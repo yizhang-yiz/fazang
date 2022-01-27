@@ -37,5 +37,12 @@ test('exp', t_exp)
 t_log = executable('log_test', files('log_test.f90'), link_with : fazanglib)
 test('log', t_log)
 
+t_rel = executable('rel_test', files('rel_test.f90'), link_with : fazanglib)
+test('relational', t_rel)
+
 t_add = executable('add_test', files('add_test.f90'), link_with : fazanglib)
 test('add', t_add)
+
+t_sub = executable('sub_test', files('sub_test.f90'), link_with : fazanglib)
+test('sub', t_sub)
+

@@ -2,6 +2,7 @@ sources = ['env.f90',
            'vari.f90',
            'test.f90',
            'var.f90',
+           'grad.f90',
            'op_v.f90',
            'sin.f90',
            'cos.f90',
@@ -12,7 +13,9 @@ sources = ['env.f90',
            'sqrt.f90',
            'exp.f90',
            'log.f90',
+           'relational.f90',
            'op_vv.f90',
-           'add.f90']
+           'add.f90',
+           'sub.f90']
 
 fazanglib = shared_library('fazang', sources)

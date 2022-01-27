@@ -44,7 +44,7 @@ module vari_mod
      procedure :: push_head
      procedure :: push_operand
      procedure :: get_operand_index
-     procedure :: set_zero_all_adj
+     procedure :: set_zero_all_adj  
      generic :: set_val => set_val_i, set_val_head
      generic :: set_adj => set_adj_i, set_adj_head
      generic :: val => val_i, val_head
@@ -71,6 +71,8 @@ module vari_mod
   end interface assignment(=)
 
   private :: new_vari_val, new_vari, set_vari_0d, chain_dummy
+  private :: set_head , reset_head , push_head , push_operand ,&
+       get_operand_index , set_zero_all_adj
 
 contains
 
