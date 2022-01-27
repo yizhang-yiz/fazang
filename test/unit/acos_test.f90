@@ -1,25 +1,26 @@
-program sin_test
+program acos_test
   use, intrinsic :: iso_fortran_env
   use env_mod
   use test_mod
   use vari_mod
+  use acos_mod
   use sin_mod
   implicit none
 
   type(vari) :: x, y1, y2, y3
   real(rk) :: z1, z2
 
-  x = vari(1.4d0)
-  y1 = sin(x)
+  x = vari(0.7d0)
+  y1 = acos(x)
   call y1%init_dependent()
   call y1%chain()
-  call expect_float_eq(y1%val(), sin(1.4d0))
+  call expect_float_eq(y1%val(), acos(0.7d0))
   call expect_float_eq(y1%adj(), 1.0d0)
-  call expect_float_eq(x%adj(), cos(1.4d0))
+  call expect_float_eq(x%adj(), -1.0d0/sqrt(1.d0 - 0.7d0 * 0.7d0))
   call expect_eq(callstack%head, 3)
 
   z1 = x%val()
-  z2 = sin(z1)
+  z2 = acos(z1)
   call expect_float_eq(y1%val(), z2)
 
   y3 = vari(1.5d0)
@@ -27,7 +28,7 @@ program sin_test
   call callstack%set_zero_all_adj()
   call expect_float_eq(y1%adj(), 0.0d0)
   call expect_float_eq(x%adj(), 0.0d0)
-  call expect_float_eq(y2%val(), sin(sin(1.4d0)))
+  call expect_float_eq(y2%val(), sin(acos(0.7d0)))
   
   call expect_eq(callstack%operand_index_begin(1), 0)
   call expect_eq(callstack%operand_index_begin(2), 1)
@@ -43,7 +44,6 @@ program sin_test
   call expect_float_eq(y3%adj(), 0.0d0)
   call expect_float_eq(x%adj(), 0.0d0)
   call expect_float_eq(y2%adj(), 1.0d0)
-  call expect_float_eq(y1%adj(), cos(sin(1.4d0)))
-  
+  call expect_float_eq(y1%adj(), cos(acos(0.7d0)))
 
-end program sin_test
+end program acos_test

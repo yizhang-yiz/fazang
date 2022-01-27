@@ -26,9 +26,7 @@ contains
 end module sin_op_mod
 
 module sin_mod
-  use iso_fortran_env
   use sin_op_mod
-
   implicit none
 
   interface sin
