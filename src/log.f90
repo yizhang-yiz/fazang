@@ -18,9 +18,9 @@ contains
   end subroutine chain_log
 
   function log_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(log(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(log(v%val()))
     call setup_callstack(s, v, chain_log)
   end function log_v
 

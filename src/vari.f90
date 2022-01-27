@@ -7,7 +7,7 @@ module vari_mod
   type :: vari
      integer(ik) :: i = 0    ! corresponding id in adstack & operands lookup
      integer(ik) :: n_operand = 0   ! # of operandsa
-     procedure(chain_op), pass, pointer :: chain => null()
+     procedure(chain_op), pass, pointer :: chain => chain_dummy
    contains
      procedure :: val
      procedure :: adj
@@ -59,79 +59,37 @@ module vari_mod
      procedure, private :: set_adj_head
   end type adstack
 
-  type(adstack) :: callstack
+  type(adstack), target :: callstack
 
   interface vari
      module procedure :: new_vari_val
      module procedure :: new_vari
-     module procedure :: new_vari_1d
-     module procedure :: new_vari_val_1d
-     module procedure :: new_vari_2d
-     module procedure :: new_vari_val_2d
   end interface vari
   
   interface assignment(=)
-     module procedure vari_0d_from_real8
-     module procedure vari_1d_from_real8
-     module procedure vari_2d_from_real8
+     module procedure set_vari_0d
   end interface assignment(=)
 
-  private :: new_vari_val, new_vari
-  private :: vari_0d_from_real8,&
-       vari_1d_from_real8,&
-       vari_2d_from_real8
+  private :: new_vari_val, new_vari, set_vari_0d, chain_dummy
 
 contains
 
-  type(vari) function new_vari_val(d)
+  function new_vari_val(d) result(vp)
     real(rk), intent(in) :: d
+    type(vari), pointer :: vp
     if ( callstack%head == adstack_len ) then
        error stop
     end if
-    new_vari_val%i = callstack%head
     callstack%storage(1, callstack%head) = d
+    callstack%varis(callstack%head)%i = callstack%head
+    vp => callstack%varis(callstack%head)
     callstack%head = callstack%head + 1
   end function new_vari_val
 
-  type(vari) function new_vari()
-    new_vari = new_vari_val(0.0d0)
+  function new_vari() result(vp)
+    type(vari), pointer :: vp
+    vp => new_vari_val(0.0d0)
   end function new_vari
-
-  function new_vari_1d(n) result(s)
-    integer(ik), intent(in) :: n
-    type(vari) :: s(n)
-    integer :: i
-    do i = 1, n
-       s(i) = new_vari()
-    end do
-  end function new_vari_1d
-
-  function new_vari_val_1d(d) result(s)
-    real(rk), intent(in) :: d(:)
-    type(vari) :: s(size(d))
-    integer :: i
-    do i = 1, size(d)
-       s(i) = new_vari_val(d(i))
-    end do
-  end function new_vari_val_1d
-
-  function new_vari_2d(m, n) result(s)
-    integer(ik), intent(in) :: m, n
-    type(vari) :: s(m, n)
-    integer :: i
-    do i = 1, n
-       s(:, i) = new_vari_1d(m)
-    end do
-  end function new_vari_2d
-
-  function new_vari_val_2d(d) result(s)
-    real(rk), intent(in) :: d(:, :)
-    type(vari) :: s(size(d, 1), size(d, 2))
-    integer :: i
-    do i = 1, size(d, 2)
-       s(:, i) = new_vari_val_1d(d(:, i))
-    end do
-  end function new_vari_val_2d
 
   pure real(rk) function val(this)
     class(vari), intent(in) :: this
@@ -165,29 +123,11 @@ contains
     call this%set_adj(1.0D0)
   end subroutine init_dependent
 
-  subroutine vari_0d_from_real8(this, from)
+  subroutine set_vari_0d(this, from)
     type(vari), intent(inout) :: this    
     real(rk), intent(in) :: from
     call this%set_val(from)
-  end subroutine vari_0d_from_real8
-
-  subroutine vari_1d_from_real8(this, from)
-    integer i
-    type(vari), intent(inout) :: this(:)
-    real(rk), intent(in) :: from(:)
-    do i = lbound(this,1), ubound(this,1)
-       call vari_0d_from_real8(this(i), from(i))
-    end do
-  end subroutine vari_1d_from_real8
-
-  subroutine vari_2d_from_real8(this, from)
-    integer i
-    type(vari), intent(inout) :: this(:, :)
-    real(rk), intent(in) :: from(:, :)
-    do i = lbound(this,2), ubound(this,2)
-       call vari_1d_from_real8(this(:, i), from(:, i))
-    end do
-  end subroutine vari_2d_from_real8
+  end subroutine set_vari_0d
 
   ! for adstack
   subroutine set_head (this, i)
@@ -281,5 +221,12 @@ contains
     class(adstack), intent(in) :: this
     adj_head = this%storage(2, this%head)
   end function adj_head
+
+  subroutine chain_dummy(this)
+    class(vari), intent(in) :: this
+    integer i
+    do i = this%i, 0
+    end do
+  end subroutine chain_dummy
 
 end module vari_mod

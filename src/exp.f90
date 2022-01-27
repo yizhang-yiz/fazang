@@ -17,9 +17,9 @@ contains
   end subroutine chain_exp
 
   function exp_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(exp(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(exp(v%val()))
     call setup_callstack(s, v, chain_exp)
   end function exp_v
 

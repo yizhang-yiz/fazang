@@ -17,9 +17,9 @@ contains
   end subroutine chain_tan
 
   function tan_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(tan(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(tan(v%val()))
     call setup_callstack(s, v, chain_tan)
   end function tan_v
 

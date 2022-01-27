@@ -1,6 +1,7 @@
 module acos_op_mod
   use iso_fortran_env
   use vari_mod
+  use var_mod, only : var
   use op_v_mod
 
   implicit none
@@ -18,9 +19,9 @@ contains
   end subroutine chain_acos
 
   function acos_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(acos(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(acos(v%val()))
     call setup_callstack(s, v, chain_acos)
   end function acos_v
 

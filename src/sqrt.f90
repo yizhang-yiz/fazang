@@ -17,9 +17,9 @@ contains
   end subroutine chain_sqrt
 
   function sqrt_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(sqrt(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(sqrt(v%val()))
     call setup_callstack(s, v, chain_sqrt)
   end function sqrt_v
 

@@ -17,9 +17,9 @@ contains
   end subroutine chain_sin
 
   function sin_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(sin(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(sin(v%val()))
     call setup_callstack(s, v, chain_sin)
   end function sin_v
 

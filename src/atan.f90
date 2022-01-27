@@ -18,9 +18,9 @@ contains
   end subroutine chain_atan
 
   function atan_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(atan(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(atan(v%val()))
     call setup_callstack(s, v, chain_atan)
   end function atan_v
 

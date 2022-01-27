@@ -17,9 +17,9 @@ contains
   end subroutine chain_cos
 
   function cos_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(cos(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(cos(v%val()))
     call setup_callstack(s, v, chain_cos)
   end function cos_v
 

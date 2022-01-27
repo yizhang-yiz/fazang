@@ -4,17 +4,18 @@ program cos_test
   use, intrinsic :: iso_fortran_env
   use env_mod
   use test_mod
+  use var_mod, only : var
   use vari_mod
   use cos_mod
   implicit none
 
-  type(vari) :: x, y1, y2, y3
+  type(var) :: x, y1, y2, y3
   real(rk) :: z1, z2
 
-  x = vari(1.4d0)
+  x = var(1.4d0)
   y1 = cos(x)
-  call y1%init_dependent()
-  call y1%chain()
+  call y1%vi%init_dependent()
+  call y1%vi%chain()
   EXPECT_FLOAT_EQ(y1%val(), cos(1.4d0))
   EXPECT_FLOAT_EQ(y1%adj(), 1.0d0)
   EXPECT_FLOAT_EQ(x%adj(), -sin(1.4d0))
@@ -24,7 +25,7 @@ program cos_test
   z2 = cos(z1)
   EXPECT_FLOAT_EQ(y1%val(), z2)
 
-  y3 = vari(1.5d0)
+  y3 = var(1.5d0)
   y2 = cos(y1)
   call callstack%set_zero_all_adj()
   EXPECT_FLOAT_EQ(y1%adj(), 0.0d0)
@@ -40,8 +41,8 @@ program cos_test
   EXPECT_EQ(callstack%operand_index(3), 0)
   EXPECT_EQ(callstack%operand_index(4), 0)
 
-  call y2%init_dependent()
-  call y2%chain()
+  call y2%vi%init_dependent()
+  call y2%vi%chain()
   EXPECT_FLOAT_EQ(y3%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(x%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(y2%adj(), 1.0d0)

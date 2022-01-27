@@ -18,9 +18,9 @@ contains
   end subroutine chain_asin
 
   function asin_v(v) result(s)
-    type(vari), intent(in) :: v
-    type(vari) :: s
-    s = vari(asin(v%val()))
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(asin(v%val()))
     call setup_callstack(s, v, chain_asin)
   end function asin_v
 

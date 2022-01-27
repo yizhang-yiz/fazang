@@ -1,6 +1,7 @@
 sources = ['env.f90',
            'vari.f90',
            'test.f90',
+           'var.f90',
            'op_v.f90',
            'sin.f90',
            'cos.f90',
