@@ -1,6 +1,6 @@
-project('autodiff', 'fortran', meson_version: '>=0.56')
+project('Fazang', 'fortran', meson_version: '>=0.56')
 
-# add_global_arguments('-DSOME_TOKEN=value', language : 'fortran')
+add_global_arguments('-cpp', language : 'fortran')
 
 subdir('src') 
 
@@ -10,35 +10,35 @@ test('debug', t_debug)
 t_test = executable('test_test', files('test/unit/test_test.f90'), link_with : fazanglib)
 test('test check routines', t_test)
 
-t_adstack = executable('test_adstack', files('test/unit/adstack_test.f90'), link_with : fazanglib)
-test('test AD adstack storage', t_adstack)
-
 t_vari = executable('vari_test', files('test/unit/vari_test.f90'), link_with : fazanglib)
 test('test vari type', t_vari)
 
-sin_test = executable('sin_test', files('test/unit/sin_test.f90'), link_with : fazanglib)
-test('test sin function', sin_test)
+t_sin = executable('sin_test', files('test/unit/sin_test.f90'), link_with : fazanglib)
+test('test sin function', t_sin)
 
-cos_test = executable('cos_test', files('test/unit/cos_test.f90'), link_with : fazanglib)
-test('test cos function', cos_test)
+t_cos = executable('cos_test', files('test/unit/cos_test.f90'), link_with : fazanglib)
+test('test cos function', t_cos)
 
-tan_test = executable('tan_test', files('test/unit/tan_test.f90'), link_with : fazanglib)
-test('test tan function', tan_test)
+t_tan = executable('tan_test', files('test/unit/tan_test.f90'), link_with : fazanglib)
+test('test tan function', t_tan)
 
-asin_test = executable('asin_test', files('test/unit/asin_test.f90'), link_with : fazanglib)
-test('test asin function', asin_test)
+t_asin = executable('asin_test', files('test/unit/asin_test.f90'), link_with : fazanglib)
+test('test asin function', t_asin)
 
-acos_test = executable('acos_test', files('test/unit/acos_test.f90'), link_with : fazanglib)
-test('test acos function', acos_test)
+t_acos = executable('acos_test', files('test/unit/acos_test.f90'), link_with : fazanglib)
+test('test acos function', t_acos)
 
-atan_test = executable('atan_test', files('test/unit/atan_test.f90'), link_with : fazanglib)
-test('test atan function', atan_test)
+t_atan = executable('atan_test', files('test/unit/atan_test.f90'), link_with : fazanglib)
+test('test atan function', t_atan)
 
-sqrt_test = executable('sqrt_test', files('test/unit/sqrt_test.f90'), link_with : fazanglib)
-test('test sqrt function', sqrt_test)
+t_sqrt = executable('sqrt_test', files('test/unit/sqrt_test.f90'), link_with : fazanglib)
+test('test sqrt function', t_sqrt)
 
-exp_test = executable('exp_test', files('test/unit/exp_test.f90'), link_with : fazanglib)
-test('test exp function', exp_test)
+t_exp = executable('exp_test', files('test/unit/exp_test.f90'), link_with : fazanglib)
+test('test exp function', t_exp)
 
-log_test = executable('log_test', files('test/unit/log_test.f90'), link_with : fazanglib)
-test('test log function', log_test)
+t_log = executable('log_test', files('test/unit/log_test.f90'), link_with : fazanglib)
+test('test log function', t_log)
+
+t_add = executable('add_test', files('test/unit/add_test.f90'), link_with : fazanglib)
+test('test add overload', t_add)

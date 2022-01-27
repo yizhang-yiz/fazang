@@ -8,35 +8,52 @@ module test_mod
 
 contains
 
-  subroutine expect_near (a, b, tol)
+  subroutine expect_near_impl(a, b, tol, file, line)
     real(REAL64), intent(in) :: a, b, tol
+    character (*) :: file
+    integer(int32) :: line
     if ( abs(a - b) >= tol ) then
+       write(*, *) file, "   line:", line
+       write(*, *)
        write(*, *) "|", a, "-", b, "| >", tol
        error stop
     end if
-  end subroutine expect_near
+  end subroutine expect_near_impl
 
-  subroutine expect_float_eq (a, b)
+
+  subroutine expect_float_eq_impl (a, b, file, line)
     real(REAL64), intent(in) :: a, b
+    character (*) :: file
+    integer(int32) :: line
     if ( abs(a - b) >= 4.d0 * ulp_f ) then
+       write(*, *) file, "   line:", line
+       write(*, *)
        write(*, *) "|", a, "-", b, "| >", 4.d0 * ulp_f
        error stop
     end if
-  end subroutine expect_float_eq
+  end subroutine expect_float_eq_impl
 
-  subroutine expect_eq (a, b)
+  subroutine expect_eq_impl (a, b, file, line)
     integer(int32), intent(in) :: a, b
+    character (*) :: file
+    integer(int32) :: line
     if ( .not.a == b ) then
+       write(*, *) file, "   line:", line
+       write(*, *)
        write(*, *) a, "!=", b
        error stop
     end if
-  end subroutine expect_eq
+  end subroutine expect_eq_impl
 
-  elemental subroutine expect_true (a)
+  subroutine expect_true_impl (a, file, line)
     logical, intent(in) :: a
+    character (*) :: file
+    integer(int32) :: line
     if ( .not. a ) then
+       write(*, *) file, "   line:", line
+       write(*, *)
        error stop
     end if
-  end subroutine expect_true
+  end subroutine expect_true_impl
 
 end module test_mod

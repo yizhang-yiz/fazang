@@ -10,7 +10,8 @@ sources = ['env.f90',
            'atan.f90',
            'sqrt.f90',
            'exp.f90',
-           'log.f90']
-
+           'log.f90',
+           'op_vv.f90',
+           'add.f90']
 
 fazanglib = shared_library('fazang', sources)
