@@ -4,6 +4,7 @@ program add_test
   use, intrinsic :: iso_fortran_env
   use test_mod
   use vari_mod
+  use grad_mod
   use fazang, only : var, operator(+), sin, cos
   implicit none
 
@@ -49,5 +50,9 @@ program add_test
   EXPECT_FLOAT_EQ(y4%val(), sin(y1%val()) + sin(z1) + cos(y2%val()) + cos(z2))
   EXPECT_FLOAT_EQ(y1%adj(), cos(y1%val()))
   EXPECT_FLOAT_EQ(y2%adj(), -sin(y2%val()))
+
+  y4 = +y3
+  call y4%grad()
+  EXPECT_FLOAT_EQ(y3%adj(), 1.0d0)
 
 end program add_test

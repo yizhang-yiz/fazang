@@ -5,6 +5,9 @@ module div_mod
 
   implicit none
 
+  private
+  public :: operator (/)
+
   interface operator (/)
      module procedure :: div_vv
      module procedure :: div_vd

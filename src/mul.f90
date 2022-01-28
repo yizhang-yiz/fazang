@@ -5,6 +5,9 @@ module mul_mod
 
   implicit none
 
+  private
+  public :: operator (*)
+
   interface operator (*)
      module procedure :: mul_vv
      module procedure :: mul_vd

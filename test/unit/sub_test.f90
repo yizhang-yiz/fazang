@@ -50,4 +50,8 @@ program sub_test
   EXPECT_FLOAT_EQ(y1%adj(), cos(y1%val()))
   EXPECT_FLOAT_EQ(y2%adj(), sin(y2%val()))
 
+  y4 = -y3
+  call y4%grad()
+  EXPECT_FLOAT_EQ(y3%adj(), -1.0d0)
+
 end program sub_test

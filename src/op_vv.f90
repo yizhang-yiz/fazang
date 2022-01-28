@@ -5,6 +5,9 @@ module op_vv_mod
 
   implicit none
 
+  private
+  public :: setup_callstack
+
   interface setup_callstack
      module procedure setup_callstack_vv
      module procedure setup_callstack_v

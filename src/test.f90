@@ -16,7 +16,7 @@ contains
        write(*, *) file, "   line:", line
        write(*, *)
        write(*, *) "|", a, "-", b, "| >", tol
-       error stop
+       stop 1
     end if
   end subroutine expect_near_impl
 
@@ -29,7 +29,7 @@ contains
        write(*, *) file, "   line:", line
        write(*, *)
        write(*, *) "|", a, "-", b, "| >", 4.d0 * ulp_f
-       error stop
+       stop 2
     end if
   end subroutine expect_float_eq_impl
 
@@ -38,10 +38,10 @@ contains
     character (*) :: file
     integer(int32) :: line
     if ( .not.a == b ) then
-       write(*, *) file, "   line:", line
+       write(*, *) file
        write(*, *)
        write(*, *) a, "!=", b
-       error stop
+       stop 3
     end if
   end subroutine expect_eq_impl
 
@@ -52,7 +52,7 @@ contains
     if ( .not. a ) then
        write(*, *) file, "   line:", line
        write(*, *)
-       error stop
+       stop 4
     end if
   end subroutine expect_true_impl
 

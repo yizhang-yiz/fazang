@@ -5,16 +5,17 @@ module add_mod
 
   implicit none
 
+  private
+  public :: operator (+)
+
   interface operator (+)
      module procedure :: add_vv
      module procedure :: add_vd
      module procedure :: add_dv
+     module procedure :: pos
   end interface operator (+)
 
-  private :: chain_add_vv, chain_add_vd, add_vv, add_vd, add_dv
-
 contains
-  
   subroutine chain_add_vv(this)
     class(vari), intent(in) :: this
     integer(ik) :: i(2)
@@ -63,5 +64,12 @@ contains
     end if
     call setup_callstack(s, v2, chain_add_vd)
   end function add_dv
+
+  function pos(v) result(s)
+    use op_vv_mod
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = v
+  end function pos
 
 end module add_mod

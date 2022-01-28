@@ -5,17 +5,17 @@ module sub_mod
 
   implicit none
 
+  private
+  public :: operator (-)
+
   interface operator (-)
      module procedure :: sub_vv
      module procedure :: sub_vd
      module procedure :: sub_dv
+     module procedure :: neg
   end interface operator (-)
 
-  private :: chain_sub_vv, chain_sub_vd, chain_sub_dv
-  private :: sub_vv, sub_vd, sub_dv
-
 contains
-  
   subroutine chain_sub_vv(this)
     class(vari), intent(in) :: this
     integer(ik) :: i(2)
@@ -68,5 +68,13 @@ contains
     s = var(v1 - v2%val())
     call setup_callstack(s, v2, chain_sub_dv)
   end function sub_dv
+
+  function neg(v) result(s)
+    use op_vv_mod
+    type(var), intent(in) :: v
+    type(var) :: s
+    s = var(-v%val())
+    call setup_callstack(s, v, chain_sub_dv)
+  end function neg
 
 end module sub_mod
