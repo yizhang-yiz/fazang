@@ -1,8 +1,7 @@
-module sub_op_mod
+module sub_mod
   use iso_fortran_env
   use var_mod, only: var
   use vari_mod
-  use op_vv_mod
 
   implicit none
 
@@ -11,6 +10,9 @@ module sub_op_mod
      module procedure :: sub_vd
      module procedure :: sub_dv
   end interface operator (-)
+
+  private :: chain_sub_vv, chain_sub_vd, chain_sub_dv
+  private :: sub_vv, sub_vd, sub_dv
 
 contains
   
@@ -23,6 +25,7 @@ contains
   end subroutine chain_sub_vv
 
   function sub_vv(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() - v2%val())
@@ -30,6 +33,7 @@ contains
   end function sub_vv
 
   subroutine chain_sub_vd(this)
+    use op_vv_mod
     class(vari), intent(in) :: this
     integer(ik) :: i(1)
     i = callstack%get_operand_index(this)
@@ -37,6 +41,7 @@ contains
   end subroutine chain_sub_vd
 
   function sub_vd(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v1
     real(rk), intent(in) :: v2
     type(var) :: s
@@ -56,6 +61,7 @@ contains
   end subroutine chain_sub_dv
 
   function sub_dv(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v2
     real(rk), intent(in) :: v1
     type(var) :: s
@@ -63,15 +69,4 @@ contains
     call setup_callstack(s, v2, chain_sub_dv)
   end function sub_dv
 
-end module sub_op_mod
-
-module sub_mod
-  use sub_op_mod
-  implicit none
-
-  interface sub
-     module procedure sub_vv
-     module procedure sub_vd
-     module procedure sub_dv
-  end interface sub
 end module sub_mod

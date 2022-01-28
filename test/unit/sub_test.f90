@@ -2,15 +2,9 @@
 
 program sub_test
   use, intrinsic :: iso_fortran_env
-  use env_mod
   use test_mod
-  use var_mod, only : var
   use vari_mod
-  use grad_mod
-  use add_mod
-  use sub_mod
-  use sin_mod
-  use cos_mod
+  use fazang, only : var, set_zero_all_adj, operator(-), operator(+), sin, cos
   implicit none
 
   type(var) :: x, y1, y2, y3, y4

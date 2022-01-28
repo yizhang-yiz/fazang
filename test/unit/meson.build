@@ -46,3 +46,5 @@ test('add', t_add)
 t_sub = executable('sub_test', files('sub_test.f90'), link_with : fazanglib)
 test('sub', t_sub)
 
+t_mul = executable('mul_test', files('mul_test.f90'), link_with : fazanglib)
+test('mul', t_mul)

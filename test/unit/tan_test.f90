@@ -2,11 +2,9 @@
 
 program tan_test
   use, intrinsic :: iso_fortran_env
-  use env_mod
   use test_mod
-  use var_mod, only : var
   use vari_mod
-  use tan_mod
+  use fazang, only : var, tan, sin, cos
   implicit none
 
   type(var) :: x, y1, y2, y3

@@ -30,6 +30,12 @@ module var_mod
      module procedure set_var_2d_from_0d
   end interface assignment(=)
 
+  private :: val, adj, grad
+  private :: set_var_0d , set_var_1d , set_var_2d        
+  private :: set_var_1d_from_0d , set_var_2d_from_0d
+  private :: new_var_val , new_var , new_var_1d , new_var_val_1d
+  private :: new_var_2d , new_var_val_2d
+
 contains
 
   function new_var_val(d) result(v)

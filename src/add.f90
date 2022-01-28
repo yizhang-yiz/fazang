@@ -1,8 +1,7 @@
-module add_op_mod
+module add_mod
   use iso_fortran_env
   use var_mod, only: var
   use vari_mod
-  use op_vv_mod
 
   implicit none
 
@@ -11,6 +10,8 @@ module add_op_mod
      module procedure :: add_vd
      module procedure :: add_dv
   end interface operator (+)
+
+  private :: chain_add_vv, chain_add_vd, add_vv, add_vd, add_dv
 
 contains
   
@@ -23,6 +24,7 @@ contains
   end subroutine chain_add_vv
 
   function add_vv(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() + v2%val())
@@ -37,6 +39,7 @@ contains
   end subroutine chain_add_vd
 
   function add_vd(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v1
     real(rk), intent(in) :: v2
     type(var) :: s
@@ -49,6 +52,7 @@ contains
   end function add_vd
 
   function add_dv(v1, v2) result(s)
+    use op_vv_mod
     type(var), intent(in) :: v2
     real(rk), intent(in) :: v1
     type(var) :: s
@@ -60,15 +64,4 @@ contains
     call setup_callstack(s, v2, chain_add_vd)
   end function add_dv
 
-end module add_op_mod
-
-module add_mod
-  use add_op_mod
-  implicit none
-
-  interface add
-     module procedure add_vv
-     module procedure add_vd
-     module procedure add_dv
-  end interface add
 end module add_mod

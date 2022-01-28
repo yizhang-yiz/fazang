@@ -2,12 +2,9 @@
 
 program exp_test
   use, intrinsic :: iso_fortran_env
-  use env_mod
   use test_mod
   use vari_mod
-  use var_mod, only : var
-  use exp_mod
-  use sin_mod
+  use fazang, only : var, exp
   implicit none
 
   type(var) :: x, y1, y2, y3

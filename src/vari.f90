@@ -6,7 +6,8 @@ module vari_mod
 
   type :: vari
      integer(ik) :: i = 0    ! corresponding id in adstack & operands lookup
-     integer(ik) :: n_operand = 0   ! # of operandsa
+     integer(ik) :: n_operand = 0   ! # of operands
+     integer(ik) :: n_operand_r = 0   ! # of data operands
      procedure(chain_op), pass, pointer :: chain => chain_dummy
    contains
      procedure :: val
@@ -34,21 +35,27 @@ module vari_mod
   type :: adstack
      integer(int32) :: head = 1
      integer(int32) :: operand_index_head = 1
-     real(real64) :: storage(2, adstack_len) = 0.d0
+     integer(int32) :: operand_r_index_head = 1
+     real(rk) :: storage(2, adstack_len) = 0.d0
      type(vari) :: varis(adstack_len)
      integer(ik) :: operand_index_begin(adstack_len) = 0
      integer(ik) :: operand_index(adstack_len * 5) !crude guess
+     integer(ik) :: operand_r_index_begin(adstack_len) = 0
+     real(rk) :: operand_r(adstack_len * 5) !crude guess
    contains
      procedure :: set_head
      procedure :: reset_head
      procedure :: push_head
-     procedure :: push_operand
+     generic :: push_operand => push_operand_v, push_operand_r
      procedure :: get_operand_index
+     procedure :: get_operand_r
      procedure :: set_zero_all_adj  
      generic :: set_val => set_val_i, set_val_head
      generic :: set_adj => set_adj_i, set_adj_head
      generic :: val => val_i, val_head
      generic :: adj => adj_i, adj_head
+     procedure, private :: push_operand_v
+     procedure, private :: push_operand_r
      procedure, private :: val_i
      procedure, private :: val_head
      procedure, private :: adj_i
@@ -71,8 +78,8 @@ module vari_mod
   end interface assignment(=)
 
   private :: new_vari_val, new_vari, set_vari_0d, chain_dummy
-  private :: set_head , reset_head , push_head , push_operand ,&
-       get_operand_index , set_zero_all_adj
+  private :: set_head , reset_head , push_head , &
+       set_zero_all_adj, set_val, set_adj
 
 contains
 
@@ -148,7 +155,7 @@ contains
     this%head = this%head + 1
   end subroutine push_head
 
-  subroutine push_operand (this, v0, v1)
+  subroutine push_operand_v (this, v0, v1)
     type(vari), intent(in) :: v0, v1
     class(adstack), intent(inout) :: this
     if ( this%operand_index_begin(v0%i) == 0 ) then
@@ -156,7 +163,18 @@ contains
     end if
     this%operand_index(this%operand_index_head) = v1%i
     this%operand_index_head = this%operand_index_head + 1
-  end subroutine push_operand
+  end subroutine push_operand_v
+
+  subroutine push_operand_r (this, v, r)
+    type(vari), intent(in) :: v
+    real(rk), intent(in) :: r
+    class(adstack), intent(inout) :: this
+    if ( this%operand_r_index_begin(v%i) == 0 ) then
+       this%operand_r_index_begin(v%i) = this%operand_r_index_head
+    end if
+    this%operand_r(this%operand_r_index_head) = r
+    this%operand_r_index_head = this%operand_r_index_head + 1
+  end subroutine push_operand_r
 
   pure function get_operand_index (this, v) result(i)
     type(vari), intent(in) :: v
@@ -170,6 +188,19 @@ contains
        end do
     end if
   end function get_operand_index
+
+  pure function get_operand_r (this, v) result(r)
+    type(vari), intent(in) :: v
+    class(adstack), intent(in) :: this
+    real(rk) :: r(v%n_operand_r)
+    integer(ik) ibegin, j
+    if ( v%n_operand_r > 0 ) then
+       ibegin = this%operand_r_index_begin(v%i)
+       do j = 1, v%n_operand_r
+          r(j) = this%operand_r(ibegin + j - 1)
+       end do
+    end if
+  end function get_operand_r
 
   subroutine set_zero_all_adj (this)
     class(adstack), intent(inout) :: this

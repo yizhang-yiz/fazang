@@ -2,12 +2,9 @@
 
 program atan_test
   use, intrinsic :: iso_fortran_env
-  use env_mod
   use test_mod
-  use var_mod, only : var
   use vari_mod
-  use atan_mod
-  use sin_mod
+  use fazang, only : var, atan, sin, cos
   implicit none
 
   type(var) :: x, y1, y2, y3
