@@ -19,6 +19,7 @@ module fazang
   use add_mod
   use sub_mod
   use mul_mod
+  use div_mod
 
   implicit none
 

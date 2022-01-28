@@ -39,9 +39,9 @@ module vari_mod
      real(rk) :: storage(2, adstack_len) = 0.d0
      type(vari) :: varis(adstack_len)
      integer(ik) :: operand_index_begin(adstack_len) = 0
-     integer(ik) :: operand_index(adstack_len * 5) !crude guess
+     integer(ik) :: operand_index(adstack_len * 2) !crude guess
      integer(ik) :: operand_r_index_begin(adstack_len) = 0
-     real(rk) :: operand_r(adstack_len * 5) !crude guess
+     real(rk) :: operand_r(adstack_len * 2) !crude guess
    contains
      procedure :: set_head
      procedure :: reset_head

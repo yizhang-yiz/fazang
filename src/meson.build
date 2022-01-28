@@ -18,6 +18,7 @@ sources = ['env.f90',
            'add.f90',
            'sub.f90',
            'mul.f90',
+           'div.f90',
            'fazang.f90']
 
 fazanglib = shared_library('fazang', sources)
