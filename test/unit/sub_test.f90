@@ -3,8 +3,8 @@
 program sub_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod
-  use fazang, only : var, set_zero_all_adj, operator(-), operator(+), sin, cos
+  use vari_mod, only : vari, adstack, callstack
+  use fazang
   implicit none
 
   type(var) :: x, y1, y2, y3, y4
@@ -14,19 +14,17 @@ program sub_test
   x = x - z1
   y1 = x
   EXPECT_EQ(callstack%head, 3)
-  EXPECT_FLOAT_EQ(callstack%val(1), 1.5d0)
-  EXPECT_FLOAT_EQ(callstack%val(2), 1.5d0 - z1)
+  EXPECT_FLOAT_EQ(y1%val(), 1.5d0 - z1)
 
   call y1%vi%set_adj(0.4d0)
   call y1%vi%chain()
-  EXPECT_FLOAT_EQ(callstack%adj(1), x%adj())
-  EXPECT_FLOAT_EQ(callstack%adj(1), y1%adj())
-  EXPECT_FLOAT_EQ(callstack%adj(1), 0.4d0)
+  EXPECT_FLOAT_EQ(0.4d0, x%adj())
+  EXPECT_FLOAT_EQ(0.4d0, y1%adj())
 
   y2 = var(2.6d0)
   y3 = y2 - y1
   EXPECT_EQ(callstack%head, 5)
-  EXPECT_FLOAT_EQ(callstack%val(4), y2%val() - y1%val())
+  EXPECT_FLOAT_EQ(y3%val(), y2%val() - y1%val())
 
   call set_zero_all_adj()
   call y3%vi%init_dependent()

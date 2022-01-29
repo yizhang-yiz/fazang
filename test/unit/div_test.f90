@@ -3,7 +3,7 @@
 program div_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod
+  use vari_mod, only : vari, adstack, callstack
   use fazang
   implicit none
 
@@ -14,15 +14,15 @@ program div_test
   x = x / z1
   x = z2 / x
   EXPECT_EQ(callstack%head, 4)
-  EXPECT_FLOAT_EQ(callstack%val(1), 1.5d0)
-  EXPECT_FLOAT_EQ(callstack%val(2), 1.5d0 / z1)
-  EXPECT_FLOAT_EQ(callstack%val(3), z1 * z2 / 1.5d0)
+  EXPECT_FLOAT_EQ(callstack%varis(1)%val(), 1.5d0)
+  EXPECT_FLOAT_EQ(callstack%varis(2)%val(), 1.5d0 / z1)
+  EXPECT_FLOAT_EQ(callstack%varis(3)%val(), z1 * z2 / 1.5d0)
   EXPECT_FLOAT_EQ(x%val(), z1 * z2 / 1.5d0)
 
   call x%grad()
-  EXPECT_FLOAT_EQ(callstack%adj(1), -z1 * z2 / (1.5d0 ** 2))
-  EXPECT_FLOAT_EQ(callstack%adj(2), -z2 * z1 * z1/(1.5d0 ** 2))
-  EXPECT_FLOAT_EQ(callstack%adj(3), 1.d0)
+  EXPECT_FLOAT_EQ(callstack%varis(1)%adj(), -z1 * z2 / (1.5d0 ** 2))
+  EXPECT_FLOAT_EQ(callstack%varis(2)%adj(), -z2 * z1 * z1/(1.5d0 ** 2))
+  EXPECT_FLOAT_EQ(callstack%varis(3)%adj(), 1.d0)
 
   y2 = var(2.5d0)
   y1 = x

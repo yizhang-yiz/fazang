@@ -5,6 +5,9 @@ module var_mod
 
   implicit none
 
+  private
+  public :: var, assignment(=), vari_index, adj, val
+
   type :: var
      type(vari), pointer :: vi => null()
    contains
@@ -20,6 +23,9 @@ module var_mod
      module procedure :: new_var_val_1d
      module procedure :: new_var_2d
      module procedure :: new_var_val_2d
+     module procedure :: new_var_val_op
+     module procedure :: new_var_val_dop
+     module procedure :: new_var_val_op_dop
   end interface var
 
   interface assignment(=)
@@ -29,12 +35,6 @@ module var_mod
      module procedure set_var_1d_from_0d
      module procedure set_var_2d_from_0d
   end interface assignment(=)
-
-  private :: val, adj, grad
-  private :: set_var_0d , set_var_1d , set_var_2d        
-  private :: set_var_1d_from_0d , set_var_2d_from_0d
-  private :: new_var_val , new_var , new_var_1d , new_var_val_1d
-  private :: new_var_2d , new_var_val_2d
 
 contains
 
@@ -48,6 +48,33 @@ contains
     type(var) :: v
     v%vi => vari()
   end function new_var
+
+  elemental integer(ik) function vari_index(this)
+    type(var), intent(in) :: this
+    vari_index = this%vi%i
+  end function vari_index
+
+  function new_var_val_op(d, op) result(v)
+    real(rk), intent(in) :: d
+    type(var) :: v
+    type(var), intent(in) :: op(:)
+    v%vi => vari(d, vari_index(op))
+  end function new_var_val_op
+
+  function new_var_val_dop(d, dop) result(v)
+    real(rk), intent(in) :: d
+    type(var) :: v
+    real(rk), intent(in) :: dop(:)
+    v%vi => vari(d, dop)
+  end function new_var_val_dop
+
+  function new_var_val_op_dop(d, op, dop) result(v)
+    real(rk), intent(in) :: d
+    type(var) :: v
+    type(var), intent(in) :: op(:)
+    real(rk), intent(in) :: dop(:)
+    v%vi => vari(d, vari_index(op), dop)
+  end function new_var_val_op_dop
 
   function new_var_val_1d(d) result(v)
     real(rk), intent(in) :: d(:)
@@ -127,12 +154,12 @@ contains
     end do
   end subroutine set_var_2d_from_0d
 
-  pure real(rk) function val(this)
+  elemental real(rk) function val(this)
     class(var), intent(in) :: this
     val = this%vi%val()
   end function val
 
-  pure real(rk) function adj(this)
+  elemental real(rk) function adj(this)
     class(var), intent(in) :: this
     adj = this%vi%adj()
   end function adj

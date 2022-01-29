@@ -2,7 +2,7 @@
 
 program adstack_test
   use, intrinsic :: iso_fortran_env
-  use vari_mod
+  use vari_mod, only : vari, adstack, callstack
   use test_mod
   implicit none
 

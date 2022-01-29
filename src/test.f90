@@ -20,7 +20,6 @@ contains
     end if
   end subroutine expect_near_impl
 
-
   subroutine expect_float_eq_impl (a, b, file, line)
     real(REAL64), intent(in) :: a, b
     character (*) :: file
@@ -38,7 +37,7 @@ contains
     character (*) :: file
     integer(int32) :: line
     if ( .not.a == b ) then
-       write(*, *) file
+       write(*, *) file, "   line:", line
        write(*, *)
        write(*, *) a, "!=", b
        stop 3
@@ -55,5 +54,17 @@ contains
        stop 4
     end if
   end subroutine expect_true_impl
+
+  subroutine expect_dbl_eq_impl (a, b, file, line)
+    real(REAL64), intent(in) :: a, b
+    character (*) :: file
+    integer(int32) :: line
+    if ( abs(a - b) >= 4.d0 * ulp_d ) then
+       write(*, *) file, "   line:", line
+       write(*, *)
+       write(*, *) "|", a, "-", b, "| >", 4.d0 * ulp_d
+       stop 5
+    end if
+  end subroutine expect_dbl_eq_impl
 
 end module test_mod

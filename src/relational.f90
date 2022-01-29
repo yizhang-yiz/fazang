@@ -4,6 +4,10 @@ module rel_operator_mod
 
   implicit none
 
+  private
+  public :: operator(==), operator(/=), operator(>), operator(<)
+  public :: operator(>=), operator(<=)
+
   interface operator(==)
      module procedure var_eq
   end interface operator(==)

@@ -1,5 +1,7 @@
 module fazang
   use env_mod
+  use tape_mod
+  use vari_mod, only : vari, adstack, callstack
   use var_mod
   use grad_mod
 
@@ -10,9 +12,9 @@ module fazang
   use asin_mod
   use acos_mod
   use atan_mod
-  use log_mod
-  use exp_mod
   use sqrt_mod
+  use exp_mod
+  use log_mod
 
   ! op 2
   use rel_operator_mod

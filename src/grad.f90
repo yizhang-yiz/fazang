@@ -1,5 +1,4 @@
 module grad_mod
-  use var_mod, only : var
   use vari_mod, only : adstack, callstack
   implicit none
 

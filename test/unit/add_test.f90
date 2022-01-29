@@ -3,9 +3,8 @@
 program add_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod
-  use grad_mod
-  use fazang, only : var, operator(+), sin, cos
+  use vari_mod, only : vari, adstack, callstack
+  use fazang
   implicit none
 
   type(var) :: x, y1, y2, y3, y4
@@ -15,18 +14,16 @@ program add_test
   x = x + z1
   y1 = x
   EXPECT_EQ(callstack%head, 3)
-  EXPECT_FLOAT_EQ(callstack%val(1), 1.5d0)
-  EXPECT_FLOAT_EQ(callstack%val(2), 1.5d0 + z1)
+  EXPECT_FLOAT_EQ(x%val(), 1.5d0 + z1)
 
   call x%vi%set_adj(0.4d0)
   call x%vi%chain()
-  EXPECT_FLOAT_EQ(callstack%adj(1), x%adj())
+  EXPECT_FLOAT_EQ(callstack % stack % adj(1), x%adj())
 
   y2 = var(2.6d0)
   y3 = y2 + y1
   EXPECT_EQ(callstack%head, 5)
-  EXPECT_FLOAT_EQ(callstack%val(3), 2.6d0)
-  EXPECT_FLOAT_EQ(callstack%val(4), y2%val() + y1%val())
+  EXPECT_FLOAT_EQ(y3%val(), y2%val() + y1%val())
 
   call y3%vi%init_dependent()
   call y3%vi%chain()
@@ -37,13 +34,11 @@ program add_test
   EXPECT_FLOAT_EQ(y2%adj(), 0.d0)
   EXPECT_FLOAT_EQ(y1%adj(), 0.d0)
   y4 = y1 + z1 + y2 + z2
-  EXPECT_EQ(callstack%head, 8)
-
   call y4%grad()
   EXPECT_FLOAT_EQ(y2%adj(), 1.d0)
   EXPECT_FLOAT_EQ(y1%adj(), 1.d0)
 
-  call callstack%set_zero_all_adj()
+  call set_zero_all_adj()
   y4 = sin(y1) + sin(z1) + cos(y2) + cos(z2)
   EXPECT_EQ(callstack%head, 13)
   call y4%grad()

@@ -4,6 +4,9 @@ test('debug', t_debug)
 t_test = executable('test_test', files('test_test.f90'), link_with : fazanglib)
 test('check', t_test)
 
+t_tape = executable('tape_test', files('tape_test.f90'), link_with : fazanglib)
+test('tape', t_tape)
+
 t_vari = executable('vari_test', files('vari_test.f90'), link_with : fazanglib)
 test('vari', t_vari)
 

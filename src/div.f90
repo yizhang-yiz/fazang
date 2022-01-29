@@ -1,7 +1,8 @@
 module div_mod
   use iso_fortran_env
+  use env_mod
   use var_mod, only: var
-  use vari_mod
+  use vari_mod, only: vari, callstack
 
   implicit none
 
@@ -18,61 +19,66 @@ contains
   
   subroutine chain_div_vv(this)
     class(vari), intent(in) :: this
+    real(rk) :: new_adj(2), val(2)
     integer(ik) :: i(2)
-    real(rk) x1, x2
-    i = callstack%get_operand_index(this)
-    x1 = callstack%val(i(1))
-    x2 = callstack%val(i(2))
-    call callstack%set_adj(i(1), callstack%adj(i(1)) + this%adj()/x2)
-    call callstack%set_adj(i(2), callstack%adj(i(2)) - this%val() * this%adj()/x2)
+    i = this%operand_index()
+    new_adj = this%operand_adj()
+    val = this%operand_val()
+    new_adj(1) = new_adj(1) + this%adj()/val(2)
+    new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
+    call callstack % stack % set_adj(i(1), new_adj(1))
+    call callstack % stack % set_adj(i(2), new_adj(2))
+    ! call callstack%set_adj(i(1), callstack%adj(i(1)) + this%adj()/x2)
+    ! call callstack%set_adj(i(2), callstack%adj(i(2)) 
   end subroutine chain_div_vv
 
   function div_vv(v1, v2) result(s)
-    use op_vv_mod
     type(var), intent(in) :: v1, v2
     type(var) :: s
-    s = var(v1%val() / v2%val())
-    call setup_callstack(s, v1, v2, chain_div_vv)
+    s = var(v1%val() / v2%val(), [v1, v2])
+    s%vi%chain => chain_div_vv
   end function div_vv
 
   subroutine chain_div_vd(this)
     class(vari), intent(in) :: this
     integer(ik) :: i(1)
-    real(rk) d(1)
-    i = callstack%get_operand_index(this)
-    d = callstack%get_operand_r(this)
-    call callstack%set_adj(i(1), callstack%adj(i(1)) + this%adj() / d(1))
+    real(rk) d(1), new_adj(1)
+    i = this%operand_index()
+    new_adj = this%operand_adj()
+    d = this%data_operand()
+    new_adj(1) = new_adj(1) + this%adj() / d(1)
+    call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_div_vd
 
   function div_vd(v, d) result(s)
-    use op_vv_mod
     type(var), intent(in) :: v
     real(rk), intent(in) :: d
     type(var) :: s
     if ( d .ne. 1.d0 ) then
-       s = var(v%val() / d)
+       s = var(v%val() / d, [v], [d])
     else
        s = v
     end if
-    call setup_callstack(s, v, d, chain_div_vd)
+    s%vi%chain => chain_div_vd
   end function div_vd
 
   subroutine chain_div_dv(this)
     class(vari), intent(in) :: this
     integer(ik) :: i(1)
-    real(rk) x2
-    i = callstack%get_operand_index(this)
-    x2 = callstack%val(i(1))
-    call callstack%set_adj(i(1), callstack%adj(i(1)) - this%val() * this%adj() / x2)
+    real(rk) val(1), new_adj(1)
+    i = this%operand_index()
+    new_adj = this%operand_adj()
+    val = this%operand_val()
+    new_adj(1) = new_adj(1) - this%val() * this%adj() / val(1)
+    call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_div_dv
 
   function div_dv(d, v) result(s)
-    use op_vv_mod
     real(rk), intent(in) :: d
     type(var), intent(in) :: v
     type(var) :: s
-    s = var(d / v%val())
-    call setup_callstack(s, v, chain_div_dv)
+    s = var(d / v%val(), [v], [d])
+    s%vi%chain => chain_div_dv
   end function div_dv
 
 end module div_mod
