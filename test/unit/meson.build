@@ -54,3 +54,6 @@ test('mul', t_mul)
 
 t_div = executable('div_test', files('div_test.f90'), link_with : fazanglib)
 test('div', t_div)
+
+t_sum = executable('sum_test', files('sum_test.f90'), link_with : fazanglib)
+test('sum', t_sum)

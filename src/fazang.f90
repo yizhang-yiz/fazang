@@ -23,6 +23,9 @@ module fazang
   use mul_mod
   use div_mod
 
+  ! op *
+  use sum_mod
+
   implicit none
 
 end module fazang
