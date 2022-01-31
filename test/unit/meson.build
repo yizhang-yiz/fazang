@@ -57,3 +57,6 @@ test('div', t_div)
 
 t_sum = executable('sum_test', files('sum_test.f90'), link_with : fazanglib)
 test('sum', t_sum)
+
+t_dot = executable('dot_test', files('dot_product_test.f90'), link_with : fazanglib)
+test('dot_product', t_dot)

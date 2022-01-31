@@ -5,7 +5,6 @@ program debug_test
   use iso_c_binding
   use test_mod
   use env_mod
-  use cast_mod
   implicit none
 
 

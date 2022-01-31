@@ -116,6 +116,16 @@ contains
     adj = callstack%stack%adj(this%i)
   end function adj
 
+  ! These integers should be negative int stored in the tape, indicating they
+  ! are for special kinds of varis. Thus we change the sign to the
+  ! returns are positive
+  function operand_info(this, n) result(i)
+    class(vari), target, intent(in) :: this
+    integer(ik), intent(in) :: n
+    integer(ik) :: i(n)
+    i = -callstack % stack % operand_info(this%i, n)
+  end function operand_info
+
   elemental integer(ik) function n_operand(this)
     class(vari), intent(in) :: this
     n_operand = callstack % stack % n_operand(this%i)

@@ -10,7 +10,7 @@ program sum_test
   implicit none
 
   type(var) :: x(4), s
-  real(rk) :: z1(4) = [1.d0, 47.d0, 3.d0, 53.d0], z2
+  real(rk) :: z1(4) = [1.d0, 47.d0, 3.d0, 53.d0]
   integer(ik) :: i
 
   x = var(z1)
