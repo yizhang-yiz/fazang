@@ -32,7 +32,7 @@ module tape_mod
    contains
      generic :: push => push_1, push_n, push_val, push_val_op,&
           & push_val_op_dop, push_val_dop,&
-          & push_int_array, push_real_array
+          & push_int_array, push_real_array, push_real_2d_array
      generic :: set_val => set_val_curr, set_val_at
      generic :: set_adj => set_adj_curr, set_adj_at
      generic :: val => val_curr, val_at
@@ -40,6 +40,8 @@ module tape_mod
      procedure :: n_operand, operand_val, operand_adj, operand_index, data_operand
      procedure :: n_data_operand, operand_info
      procedure :: record_len
+     procedure :: matrix_nrow, matrix_ncol, matrix_col_index, matrix_row_index
+     procedure :: matrix_col_data, matrix_row_data
      generic :: cast_from_real => set_real_at, set_real_array_at
      generic :: cast_to_real => get_real_at, get_real_array_at
      procedure, private :: set_val_curr, set_val_at
@@ -48,7 +50,7 @@ module tape_mod
      procedure, private :: adj_curr, adj_at
      procedure, private :: push_1, push_n, push_val
      procedure, private :: push_val_op, push_val_op_dop, push_val_dop
-     procedure, private :: push_int_array, push_real_array
+     procedure, private :: push_int_array, push_real_array, push_real_2d_array
      procedure :: set_real_at, set_real_array_at
      procedure :: get_real_at, get_real_array_at
   end type tape
@@ -82,12 +84,22 @@ contains
   function push_real_array(this, d) result(id)
     class(tape), target, intent(inout) :: this
     real(rk), intent(in) :: d(:)
-    integer(ik) :: id, n
-    id = this%head
+    integer(ik):: n, id
     n = size(d)
+    id = this%head
     this%storage(id:(id+2*n-1)) = transfer(d, this%storage)
     call incr(this%head, 2 * n) ! one real64 takes 2 int32
   end function push_real_array
+
+  function push_real_2d_array(this, d) result(id)
+    class(tape), target, intent(inout) :: this
+    real(rk), intent(in) :: d(:, :)
+    integer(ik):: n, id
+    n = size(d)
+    id = this%head
+    this%storage(id:(id+2*n-1)) = transfer(d, this%storage)
+    call incr(this%head, 2 * n) ! one real64 takes 2 int32
+  end function push_real_2d_array
 
   subroutine set_val_at(this, i, d)
     real(rk), intent(in) :: d
@@ -241,6 +253,62 @@ contains
     nop = this%storage(i + 4)
     op = this%storage((i + 5) : (i + 4 + nop))
   end function operand_index
+
+  pure function matrix_nrow(this, i) result(nrow)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i
+    integer(ik) :: nrow
+    nrow = this%storage(i)
+  end function matrix_nrow
+
+  pure function matrix_ncol(this, i) result(ncol)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i
+    integer(ik) :: ncol
+    ncol = this%storage(i + 1)
+  end function matrix_ncol
+
+  pure function matrix_row_index(this, i, row) result(op)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i, row
+    integer(ik) :: op(this%storage(i + 1)) ! i + 1 stores ncol
+    integer(ik) :: nrow, ncol
+    nrow = this%storage(i)
+    ncol = this%storage(i + 1)
+    op = this%storage((i + 1 + row) : (i + 1 + nrow * ncol) : nrow)
+  end function matrix_row_index
+
+  pure function matrix_row_data(this, i, row) result(d)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i, row
+    real(rk) :: d(this%storage(i + 1)) ! i + 1 stores ncol
+    integer(ik) :: nrow, ncol, j
+    nrow = this%storage(i)
+    ncol = this%storage(i + 1)
+    do j = 1, ncol
+       d(j) = this%get_real_at(i + 2 + 2*(j-1)*nrow + 2 * (row-1))
+    end do
+  end function matrix_row_data
+
+  pure function matrix_col_index(this, i, col) result(op)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i, col
+    integer(ik) :: op(this%storage(i)) ! i + 1 stores nrow
+    integer(ik) :: nrow, ncol
+    nrow = this%storage(i)
+    ncol = this%storage(i + 1)
+    op = this%storage((i + 1 + (col-1)*nrow+1) : (i + 1 + col*nrow))
+  end function matrix_col_index
+
+  pure function matrix_col_data(this, i, col) result(d)
+    class(tape), target, intent(in) :: this
+    integer(ik), intent(in) :: i, col
+    real(rk) :: d(this%storage(i)) ! i + 1 stores nrow
+    integer(ik) :: nrow, ncol
+    nrow = this%storage(i)
+    ncol = this%storage(i + 1)
+    d = this%get_real_array_at(i + 2 + (col-1)*nrow*2, nrow)
+  end function matrix_col_data
 
   pure function record_len(this, i) result(j)
     class(tape), target, intent(in) :: this

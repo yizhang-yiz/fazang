@@ -7,6 +7,7 @@ module var_mod
 
   private
   public :: var, assignment(=), vari_index, adj, val
+  public :: vi_index
 
   type :: var
      type(vari), pointer :: vi => null()
@@ -24,6 +25,7 @@ module var_mod
      module procedure :: new_var_2d
      module procedure :: new_var_val_2d
      module procedure :: new_var_val_op
+     module procedure :: new_var_val_opid
      module procedure :: new_var_val_dop
      module procedure :: new_var_val_op_dop
   end interface var
@@ -60,6 +62,13 @@ contains
     type(var), intent(in) :: op(:)
     v%vi => vari(d, vari_index(op))
   end function new_var_val_op
+
+  function new_var_val_opid(d, op) result(v)
+    real(rk), intent(in) :: d
+    type(var) :: v
+    integer(ik), intent(in) :: op(:)
+    v%vi => vari(d, op)
+  end function new_var_val_opid
 
   function new_var_val_dop(d, dop) result(v)
     real(rk), intent(in) :: d
@@ -163,6 +172,12 @@ contains
     class(var), intent(in) :: this
     adj = this%vi%adj()
   end function adj
+
+  elemental function vi_index(this) result(s)
+    class(var), intent(in) :: this    
+    integer(ik) :: s
+    s = this%vi%i
+  end function vi_index
 
   subroutine grad(this)
     class(var), intent(in) :: this

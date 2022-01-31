@@ -26,6 +26,7 @@ module fazang
   ! op *
   use sum_mod
   use dot_product_mod
+  use matmul_mod
 
   implicit none
 

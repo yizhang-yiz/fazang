@@ -17,6 +17,7 @@ module vari_mod
      procedure :: val
      procedure :: adj
      procedure :: n_operand, operand_val, operand_adj, operand_index
+     procedure :: matrix_operand_1_index, matrix_operand_2_index
      procedure :: data_operand
      procedure :: set_val
      procedure :: set_adj
@@ -116,16 +117,6 @@ contains
     adj = callstack%stack%adj(this%i)
   end function adj
 
-  ! These integers should be negative int stored in the tape, indicating they
-  ! are for special kinds of varis. Thus we change the sign to the
-  ! returns are positive
-  function operand_info(this, n) result(i)
-    class(vari), target, intent(in) :: this
-    integer(ik), intent(in) :: n
-    integer(ik) :: i(n)
-    i = -callstack % stack % operand_info(this%i, n)
-  end function operand_info
-
   elemental integer(ik) function n_operand(this)
     class(vari), intent(in) :: this
     n_operand = callstack % stack % n_operand(this%i)
@@ -154,6 +145,18 @@ contains
     integer(ik) :: id(this%n_operand())
     id = callstack % stack % operand_index(this%i)
   end function operand_index
+
+  pure function matrix_operand_1_index(this) result(id)
+    class(vari), intent(in) :: this
+    integer(ik) :: id
+    id = callstack % stack % storage(this%i + 4 + 3)
+  end function matrix_operand_1_index
+
+  pure function matrix_operand_2_index(this) result(id)
+    class(vari), intent(in) :: this
+    integer(ik) :: id
+    id = callstack % stack % storage(this%i + 4 + 4)
+  end function matrix_operand_2_index
 
   subroutine set_val(this, d)
     class(vari), intent(in) :: this

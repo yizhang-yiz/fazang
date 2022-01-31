@@ -20,6 +20,7 @@ sources = ['env.f90',
            'div.f90',
            'sum.f90',
            'dot_product.f90',
+           'matmul.f90',
            'fazang.f90']
 
 fazanglib = shared_library('fazang', sources)
