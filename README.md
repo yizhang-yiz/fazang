@@ -1,17 +1,20 @@
-- [Fazang](#orgbff6fc3)
-  - [Quick start](#org147a984)
-  - [Use `Fazang`](#org1e03de7)
-  - [Name](#org5b8df80)
+- [Fazang](#org140c3aa)
+  - [Quick start](#org8084ce3)
+  - [Use `Fazang`](#org5d2b68a)
+    - [Compile](#orgb81e70e)
+    - [Use the library](#org2cded92)
+  - [Planned](#org610345a)
+  - [Name](#orgd696862)
 
 
-<a id="orgbff6fc3"></a>
+<a id="org140c3aa"></a>
 
 # Fazang
 
 `Fazang` is a Fortran library for reverse-mode automatic differentiation, inspired by [Stan/Math library](https://mc-stan.org/users/interfaces/math).
 
 
-<a id="org147a984"></a>
+<a id="org8084ce3"></a>
 
 ## Quick start
 
@@ -46,11 +49,11 @@ program var_grad_test
   write(*, *) "df/d(mu): ", mu%adj()
   write(*, *) "df/d(sigma): ", sigma%adj()
 end program var_grad_test
-#+end_src fortran
+```
 
-An alternative to the same problem above is to write a function then
-use it as a procedure argument to =Fazang= 's =gradient= funcion.
-#+begin_src fortran
+An alternative to the same problem above is to write a function then use it as a procedure argument to `Fazang` 's `gradient` funcion.
+
+```fortran
 module func
   use iso_c_binding
   use fazang ! load Fazang library
@@ -87,12 +90,96 @@ end program grad_test
 ```
 
 
-<a id="org1e03de7"></a>
+<a id="org5d2b68a"></a>
 
 ## Use `Fazang`
 
 
-<a id="org5b8df80"></a>
+<a id="orgb81e70e"></a>
+
+### Compile
+
+`Fazang` uses `meson` to build
+
+```bash
+cd /path/to/fazang
+mkdir build
+cd build
+meson compile
+```
+
+One can also run the unit tests
+
+```bash
+meson test
+```
+
+
+<a id="org2cded92"></a>
+
+### Use the library
+
+`Fazang` can be accessed by `use fazang` module. For a variable declared `var`
+
+```fortran
+type(var) x
+```
+
+one can define it as
+
+```fortran
+x = var()           ! value of x is 0.d0
+x = var(1.5d0)      ! value of x is 1.5d0
+```
+
+`Fazang` supports instrinc unary and binary operations, and all the downstream variables that depend on a `var` should also be `var`
+
+```fortran
+type(var) x, y
+x = var(1.d0)
+y = sin(x)
+```
+
+The value and the adjoint (derivative) of a `var` can be accessed using `var%val()` and `var%adj()` functions, respectively.
+
+```fortran
+write(*, *) y%val()   ! equals to sin(x%val())
+write(*, *) y%adj()   ! equals to 0.d0 before any gradient operations
+```
+
+Thanks to the `elemental` attribute, `Fazang`'s functions extend to arrays.
+
+```fortran
+type(var) a(3), b, c(3), d
+a = var([1.d0, 2.d0, 3.d0])
+b = var(0.5d0)
+c = 2.d0 * a
+d = log(b * a * exp(c))
+```
+
+To calculate a dependent variable's derivatives, call `var%grad()` function
+
+```fortran
+call d(2)%grad()
+```
+
+and access each upstream variable's derivative through `var%adj()`.
+
+```fortran
+write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
+```
+
+
+<a id="org610345a"></a>
+
+## Planned
+
+-   More function and matrices operations
+-   ODE and DAE solver support
+-   Contiguous memory model for large arrays
+
+
+<a id="orgd696862"></a>
 
 ## Name
 
