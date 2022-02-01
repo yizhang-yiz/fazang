@@ -3,7 +3,7 @@
 program pow_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack
   use env_mod
   use grad_mod
   use var_mod
@@ -12,7 +12,7 @@ program pow_test
 
 
   type(var) :: x, y, z
-  real(rk) :: a, b, c
+  real(rk) :: a, b
   a = 3.0d0
 
   x = var(2.d0)

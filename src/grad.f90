@@ -20,7 +20,7 @@ contains
   end subroutine set_zero_all_adj
 
   function gradient(f, x) result (f_df)
-    procedure(dependent_function), pointer :: f
+    procedure(dependent_function) :: f
     real(rk), intent(in) :: x(:)
     real(rk) :: f_df(1 + size(x))
     type(var) :: x_var(size(x)), f_var

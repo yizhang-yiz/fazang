@@ -69,3 +69,6 @@ test('nest', t_nest)
 
 t_pow = executable('pow_test', files('pow_test.f90'), link_with : fazanglib)
 test('pow', t_pow)
+
+t_grad = executable('grad_test', files('grad_test.f90'), link_with : fazanglib)
+test('grad', t_grad)
