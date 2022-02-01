@@ -5,28 +5,38 @@ module nested_tape_mod
   implicit none
 
   private
-  public :: begin_nested, end_nested
+  public :: set_zero_nested_adj, begin_nested, end_nested
   
   integer, parameter :: max_nested_stack = 10
-  integer :: nested_head(max_nested_stack) = 0
+  integer :: nested_tape_head(max_nested_stack) = 0
+  integer :: nested_vari_head(max_nested_stack) = 0
   integer :: nest_level = 0
 
 contains
+  subroutine set_zero_nested_adj ()
+    integer i
+    do i = callstack % head, nested_vari_head(nest_level), -1
+       call callstack % stack % set_adj(callstack%varis(i)%i, 0.0d0)
+    end do
+  end subroutine set_zero_nested_adj
+
   ! we can't use OOP like FINAL because gfortran has implementation
   ! gap of standard 2018
   subroutine begin_nested()
     nest_level = nest_level + 1
-    nested_head(nest_level) = callstack % stack % head
+    nested_vari_head(nest_level) = callstack % head
+    nested_tape_head(nest_level) = callstack % stack % head
   end subroutine begin_nested
 
   subroutine end_nested()
     integer :: i
     if ( nest_level > 0 ) then
-       do i = callstack % stack % head, nested_head(nest_level), -1
+       do i = callstack % stack % head, nested_tape_head(nest_level), -1
           callstack % stack % storage(i) = 0
        end do
-       callstack % stack % head = nested_head(nest_level)
-       nested_head(nest_level) = 0
+       callstack % stack % head = nested_tape_head(nest_level)
+       nested_tape_head(nest_level) = 0
+       nested_vari_head(nest_level) = 0
        nest_level = nest_level - 1
     end if
   end subroutine end_nested
