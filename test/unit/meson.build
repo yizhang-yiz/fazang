@@ -63,3 +63,6 @@ test('dot_product', t_dot)
 
 t_matmul = executable('matmul_test', files('matmul_test.f90'), link_with : fazanglib)
 test('matmul', t_matmul)
+
+t_nest = executable('nest_test', files('nest_test.f90'), link_with : fazanglib)
+test('nest', t_nest)

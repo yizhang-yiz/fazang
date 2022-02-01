@@ -1,5 +1,6 @@
 sources = ['env.f90',
            'tape.f90',
+           'nested.f90',
            'vari.f90',
            'test.f90',
            'var.f90',

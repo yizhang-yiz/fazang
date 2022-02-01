@@ -1,6 +1,7 @@
 module fazang
   use env_mod
   use tape_mod
+  use nested_tape_mod
   use vari_mod, only : vari, adstack, callstack
   use var_mod
   use grad_mod
