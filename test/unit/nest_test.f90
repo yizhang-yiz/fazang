@@ -5,7 +5,10 @@ program nest_test
   use iso_c_binding
   use test_mod
   use env_mod
-  use fazang
+  use var_mod
+  use grad_mod
+  use vari_mod, only : adstack, callstack, vari
+  use tape_mod
 
   implicit none
 

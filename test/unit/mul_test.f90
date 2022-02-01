@@ -4,7 +4,11 @@ program mul_test
   use, intrinsic :: iso_fortran_env
   use test_mod
   use vari_mod, only : vari, adstack, callstack
-  use fazang
+  use grad_mod
+  use env_mod
+  use var_mod
+  use mul_mod
+  use add_mod
   implicit none
 
   type(var) :: x, y1, y2, y3, y4

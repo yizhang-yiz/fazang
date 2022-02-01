@@ -5,7 +5,10 @@ program dot_product_test
   use test_mod
   use vari_mod, only : vari, adstack
   use env_mod
-  use fazang
+  use var_mod
+  use grad_mod
+  use dot_product_mod
+  use add_mod
   implicit none
 
   type(var) :: x(4), y(4), z

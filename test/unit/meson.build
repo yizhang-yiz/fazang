@@ -66,3 +66,6 @@ test('matmul', t_matmul)
 
 t_nest = executable('nest_test', files('nest_test.f90'), link_with : fazanglib)
 test('nest', t_nest)
+
+t_pow = executable('pow_test', files('pow_test.f90'), link_with : fazanglib)
+test('pow', t_pow)

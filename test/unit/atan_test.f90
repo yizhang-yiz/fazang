@@ -4,7 +4,14 @@ program atan_test
   use, intrinsic :: iso_fortran_env
   use test_mod
   use vari_mod, only : vari, adstack, callstack
-  use fazang
+  use grad_mod
+  use var_mod
+  use cos_mod
+  use acos_mod
+  use sin_mod
+  use asin_mod
+  use tan_mod
+  use atan_mod
   implicit none
 
   type(var) :: x, y1, y2, y3

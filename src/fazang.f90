@@ -16,6 +16,10 @@ module fazang
   use sqrt_mod
   use exp_mod
   use log_mod
+  use inv_mod
+  use square_mod
+  use inv_square_mod
+  use inv_sqrt_mod
 
   ! op 2
   use rel_operator_mod
@@ -23,6 +27,7 @@ module fazang
   use sub_mod
   use mul_mod
   use div_mod
+  use pow_mod
 
   ! op *
   use sum_mod

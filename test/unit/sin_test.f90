@@ -6,7 +6,8 @@ program sin_test
   use vari_mod, only : vari, adstack, callstack
   use env_mod
   use grad_mod
-  use fazang, only : var, sin
+  use var_mod
+  use sin_mod
   implicit none
 
   type(var) :: x, y1, y2, y3, z(2)

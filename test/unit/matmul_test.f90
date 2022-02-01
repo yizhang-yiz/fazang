@@ -3,9 +3,12 @@
 program matmul_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack
+  use vari_mod, only : vari, adstack, callstack
+  use grad_mod
   use env_mod
-  use fazang
+  use var_mod
+  use matmul_mod
+  use add_mod
   implicit none
 
   type(var) :: x(4, 2), y(2, 5), z(4, 5), q(3, 2)

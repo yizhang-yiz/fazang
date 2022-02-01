@@ -6,7 +6,10 @@ program sum_test
   use vari_mod, only : vari, adstack, callstack
   use env_mod
   use grad_mod
-  use fazang
+  use var_mod
+  use sum_mod
+  use add_mod
+  use grad_mod
   implicit none
 
   type(var) :: x(4), s

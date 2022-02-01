@@ -4,7 +4,10 @@ program log_test
   use, intrinsic :: iso_fortran_env
   use test_mod
   use vari_mod, only : vari, adstack, callstack
-  use fazang
+  use env_mod
+  use grad_mod
+  use var_mod
+  use log_mod
   implicit none
 
   type(var) :: x, y1, y2, y3
