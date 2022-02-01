@@ -72,3 +72,6 @@ test('pow', t_pow)
 
 t_grad = executable('grad_test', files('grad_test.f90'), link_with : fazanglib)
 test('grad', t_grad)
+
+t_var_grad = executable('var_grad_test', files('var_grad_test.f90'), link_with : fazanglib)
+test('var_grad', t_var_grad)
