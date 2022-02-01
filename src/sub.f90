@@ -29,7 +29,7 @@ contains
     call callstack % stack % set_adj(i(2), new_adj(2))
   end subroutine chain_sub_vv
 
-  function sub_vv(v1, v2) result(s)
+  impure elemental function sub_vv(v1, v2) result(s)
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() - v2%val(), [v1, v2])
@@ -46,7 +46,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_sub_vd
 
-  function sub_vd(v1, v2) result(s)
+  impure elemental function sub_vd(v1, v2) result(s)
     type(var), intent(in) :: v1
     real(rk), intent(in) :: v2
     type(var) :: s
@@ -68,7 +68,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_sub_dv
 
-  function sub_dv(v1, v2) result(s)
+  impure elemental function sub_dv(v1, v2) result(s)
     type(var), intent(in) :: v2
     real(rk), intent(in) :: v1
     type(var) :: s

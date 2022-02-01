@@ -21,9 +21,7 @@ module var_mod
      module procedure :: new_var_val
      module procedure :: new_var
      module procedure :: new_var_1d
-     module procedure :: new_var_val_1d
      module procedure :: new_var_2d
-     module procedure :: new_var_val_2d
      module procedure :: new_var_val_op
      module procedure :: new_var_val_opid
      module procedure :: new_var_val_dop
@@ -40,7 +38,7 @@ module var_mod
 
 contains
 
-  function new_var_val(d) result(v)
+  impure elemental function new_var_val(d) result(v)
     real(rk), intent(in) :: d
     type(var) :: v
     v%vi => vari(d)
@@ -85,15 +83,6 @@ contains
     v%vi => vari(d, vari_index(op), dop)
   end function new_var_val_op_dop
 
-  function new_var_val_1d(d) result(v)
-    real(rk), intent(in) :: d(:)
-    type(var) :: v(size(d))
-    integer :: i
-    do i = 1, size(d)
-       v(i) = new_var_val(d(i))
-    end do
-  end function new_var_val_1d
-
   function new_var_1d(n) result(v)
     integer(ik), intent(in) :: n
     type(var) :: v(n)
@@ -102,15 +91,6 @@ contains
        v(i) = new_var()
     end do
   end function new_var_1d
-
-  function new_var_val_2d(d) result(v)
-    real(rk), intent(in) :: d(:, :)
-    type(var) :: v(size(d, 1), size(d, 2))
-    integer :: i
-    do i = 1, size(d, 2)
-       v(:, i) = new_var_val_1d(d(:, i))
-    end do
-  end function new_var_val_2d
 
   function new_var_2d(m, n) result(v)
     integer(ik), intent(in) :: m, n

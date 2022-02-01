@@ -9,7 +9,7 @@ program sin_test
   use fazang, only : var, sin
   implicit none
 
-  type(var) :: x, y1, y2, y3
+  type(var) :: x, y1, y2, y3, z(2)
   real(rk) :: z1, z2
   integer(ik) :: id(1)
 
@@ -45,4 +45,18 @@ program sin_test
   EXPECT_FLOAT_EQ(y2%adj(), 1.0d0)
   EXPECT_FLOAT_EQ(y1%adj(), cos(sin(1.4d0)))
   
+  ! vectorized version
+  z = sin([y1, y2])
+  call set_zero_all_adj()
+  call z(1)%vi%set_adj(1.3d0)
+  call z(1)%vi%chain()
+  EXPECT_DBL_EQ(y1%adj(), 1.3d0 * cos(y1%val()))
+  EXPECT_DBL_EQ(y2%adj(), 0.d0)
+  call set_zero_all_adj()
+  EXPECT_DBL_EQ(y1%adj(), 0.d0)
+  call z(2)%vi%set_adj(1.3d0)
+  call z(2)%vi%chain()
+  EXPECT_DBL_EQ(y1%adj(), 0.d0)
+  EXPECT_DBL_EQ(y2%adj(), 1.3d0 * cos(y2%val()))
+
 end program sin_test

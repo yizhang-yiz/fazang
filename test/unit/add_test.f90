@@ -8,6 +8,7 @@ program add_test
   implicit none
 
   type(var) :: x, y1, y2, y3, y4
+  type(var) :: q1(2), q2(2), q(2)
   real(rk) :: z1 = 2.4d0, z2 = 3.9d0
 
   x = var(1.5d0)
@@ -49,5 +50,20 @@ program add_test
   y4 = +y3
   call y4%grad()
   EXPECT_FLOAT_EQ(y3%adj(), 1.0d0)
+
+  ! vectorized version
+  q1 = var([1.2d0, 3.d0])
+  q2 = var([2.2d0, 4.d0])
+  q = q1 + q2
+  call set_zero_all_adj()
+  call q(1)%vi%set_adj(1.3d0)
+  call q(1)%vi%chain()
+  EXPECT_DBL_EQ(q1%adj(), ([1.3d0, 0.0d0]))
+  EXPECT_DBL_EQ(q2%adj(), ([1.3d0, 0.0d0]))
+  call set_zero_all_adj()
+  call q(2)%vi%set_adj(1.3d0)
+  call q(2)%vi%chain()
+  EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
+  EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
 
 end program add_test

@@ -192,7 +192,6 @@ contains
     do i = callstack%head - 1, 1, -1
        call this % stack % set_adj(callstack%varis(i)%i, 0.0d0)
     end do
-
   end subroutine set_zero_all_adj
 
   subroutine chain_dummy(this)

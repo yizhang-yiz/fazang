@@ -18,7 +18,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_tan
 
-  function tan_v(v) result(s)
+  impure elemental function tan_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(tan(v%val()), [v])

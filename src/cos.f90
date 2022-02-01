@@ -19,7 +19,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_cos
 
-  function cos_v(v) result(s)
+  impure elemental function cos_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(cos(v%val()), [v])

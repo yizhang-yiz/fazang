@@ -19,7 +19,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_log
 
-  function log_v(v) result(s)
+  impure elemental function log_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(log(v%val()), [v])

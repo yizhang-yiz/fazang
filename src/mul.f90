@@ -30,7 +30,7 @@ contains
     call callstack % stack % set_adj(i(2), new_adj(2))
   end subroutine chain_mul_vv
 
-  function mul_vv(v1, v2) result(s)
+  impure elemental function mul_vv(v1, v2) result(s)
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() * v2%val(), [v1, v2])
@@ -48,7 +48,7 @@ contains
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_mul_vd
 
-  function mul_vd(v, d) result(s)
+  impure elemental function mul_vd(v, d) result(s)
     type(var), intent(in) :: v
     real(rk), intent(in) :: d
     type(var) :: s
@@ -60,7 +60,7 @@ contains
     s%vi%chain => chain_mul_vd
   end function mul_vd
 
-  function mul_dv(d, v) result(s)
+  impure elemental function mul_dv(d, v) result(s)
     real(rk), intent(in) :: d
     type(var), intent(in) :: v
     type(var) :: s

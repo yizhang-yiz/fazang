@@ -18,8 +18,8 @@ contains
     new_adj(1) = new_adj(1) + this%adj() / (1.d0 + val(1) * val(1))
     call callstack % stack % set_adj(i(1), new_adj(1))
   end subroutine chain_atan
-
-  function atan_v(v) result(s)
+  
+  impure elemental function atan_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(atan(v%val()), [v])
