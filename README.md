@@ -1,20 +1,7 @@
-- [Fazang](#org140c3aa)
-  - [Quick start](#org8084ce3)
-  - [Use `Fazang`](#org5d2b68a)
-    - [Compile](#orgb81e70e)
-    - [Use the library](#org2cded92)
-  - [Planned](#org610345a)
-  - [Name](#orgd696862)
-
-
-<a id="org140c3aa"></a>
-
 # Fazang
 
 `Fazang` is a Fortran library for reverse-mode automatic differentiation, inspired by [Stan/Math library](https://mc-stan.org/users/interfaces/math).
 
-
-<a id="org8084ce3"></a>
 
 ## Quick start
 
@@ -90,12 +77,8 @@ end program grad_test
 ```
 
 
-<a id="org5d2b68a"></a>
-
 ## Use `Fazang`
 
-
-<a id="orgb81e70e"></a>
 
 ### Compile
 
@@ -114,8 +97,6 @@ One can also run the unit tests
 meson test
 ```
 
-
-<a id="org2cded92"></a>
 
 ### Use the library
 
@@ -169,8 +150,29 @@ and access each upstream variable's derivative through `var%adj()`.
 write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
 ```
 
+`Fazang` uses special storge pattern for array and matrix operations for better efficiency. This is transparent to the user.
 
-<a id="org610345a"></a>
+```fortran
+      type(var) :: x(4, 2), y(2, 5), z(4, 5)
+      real(rk) :: a(4, 2) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+      & 7.d0, 3.d0, 3.d0], [4, 2])
+      real(rk) :: b(2, 5) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+      & 7.d0, 3.d0, 3.d0, 3.2d0, 8.d0], [2, 5])
+
+      x = var(a)
+      y = var(b)
+      z = matmul(x, y)
+      do j = 1, 5
+         do i = 1, 4
+            call z(i, j)%grad()
+! ...
+            call set_zero_all_adj()  ! reset all adjionts to zero
+         end do
+      end do
+```
+
+By default `Fazang` uses stack storage allowing maximal 1024 `var` . User can change `adstack_len` to a greater value for a bigger problem. An auto-alloc & realloc storage is also in development.
+
 
 ## Planned
 
@@ -178,8 +180,6 @@ write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
 -   ODE and DAE solver support
 -   Contiguous memory model for large arrays
 
-
-<a id="orgd696862"></a>
 
 ## Name
 

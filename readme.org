@@ -1,3 +1,4 @@
+#+options: toc:nil
 * Fazang
 =Fazang= is a Fortran library for reverse-mode automatic
 differentiation, inspired by [[https://mc-stan.org/users/interfaces/math][Stan/Math library]].
@@ -132,6 +133,30 @@ end program grad_test
       write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
     #+end_src
 
+    =Fazang= uses special storge pattern for array and matrix
+    operations for better efficiency. This is transparent to the user.
+    #+begin_src fortran
+      type(var) :: x(4, 2), y(2, 5), z(4, 5)
+      real(rk) :: a(4, 2) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+      & 7.d0, 3.d0, 3.d0], [4, 2])
+      real(rk) :: b(2, 5) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+      & 7.d0, 3.d0, 3.d0, 3.2d0, 8.d0], [2, 5])
+
+      x = var(a)
+      y = var(b)
+      z = matmul(x, y)
+      do j = 1, 5
+         do i = 1, 4
+            call z(i, j)%grad()
+! ...
+            call set_zero_all_adj()  ! reset all adjionts to zero
+         end do
+      end do
+    #+end_src
+
+    By default =Fazang= uses stack storage allowing maximal 1024 =var=
+    . User can change =adstack_len= to a greater value for a bigger
+    problem. An auto-alloc & realloc storage is also in development.
 ** Planned
   - More function and matrices operations
   - ODE and DAE solver support
