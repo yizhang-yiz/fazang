@@ -14,7 +14,7 @@ program var_grad_test
 
   implicit none
 
-  real(rk) :: y, fx_d, x(2), d_mu, d_sigma
+  real(rk) :: y, fx_d
   type(var) :: f, sigma, mu
 
   ! data
@@ -23,7 +23,6 @@ program var_grad_test
   ! independent variables
   mu = var(0.5d0)
   sigma = var(1.2d0)
-  x = val([mu, sigma])
 
   ! dependent
   f = var(-0.5d0 * log(2 * pi))
@@ -183,4 +182,4 @@ By default `Fazang` uses stack storage allowing maximal 1024 `var` . User can ch
 
 ## Name
 
-The library is named after ancient Chinese philosopher Fazang (法藏), who follows the view of cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
+The library is named after ancient Chinese philosopher [Fazang](https://en.wikipedia.org/wiki/Fazang) (法藏), who follows the view of cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
