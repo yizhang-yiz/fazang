@@ -3,7 +3,7 @@
 program sub_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at
   use env_mod
   use var_mod
   use sub_mod
@@ -15,6 +15,7 @@ program sub_test
 
   type(var) :: x, y1, y2, y3, y4
   real(rk) :: z1 = 2.4d0, z2 = 3.9d0
+  type(vari), pointer :: vp
 
   x = var(1.5d0)
   x = x - z1
@@ -22,8 +23,9 @@ program sub_test
   EXPECT_EQ(callstack%head, 3)
   EXPECT_FLOAT_EQ(y1%val(), 1.5d0 - z1)
 
-  call y1%vi%set_adj(0.4d0)
-  call y1%vi%chain()
+  vp => vari_at(y1%vi)
+  call vp%set_adj(0.4d0)
+  call vp%chain()
   EXPECT_FLOAT_EQ(0.4d0, x%adj())
   EXPECT_FLOAT_EQ(0.4d0, y1%adj())
 
@@ -33,8 +35,9 @@ program sub_test
   EXPECT_FLOAT_EQ(y3%val(), y2%val() - y1%val())
 
   call set_zero_all_adj()
-  call y3%vi%init_dependent()
-  call y3%vi%chain()
+  vp => vari_at(y3%vi)
+  call vp%init_dependent()
+  call vp%chain()
   EXPECT_FLOAT_EQ(y2%adj(), 1.d0)
   EXPECT_FLOAT_EQ(y1%adj(), -1.d0)
 

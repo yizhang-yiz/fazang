@@ -4,22 +4,22 @@ program vari_test
   use, intrinsic :: iso_fortran_env
   use env_mod
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at
   implicit none
 
   type(vari), pointer :: y1, y2, y3, y4
   real(rk) :: x1(2)
   integer(ik) :: ops(3)
 
-  y1 => vari()
+  y1 => vari_at(vari())
   EXPECT_DBL_EQ(y1%val(), 0.0d0)
-  y2 => vari(2.5d0)
+  y2 => vari_at(vari(2.5d0))
   EXPECT_DBL_EQ(y2%val(), 2.5d0)
-  y3 => vari(2.9d0, [y1%i, y2%i])
+  y3 => vari_at(vari(2.9d0, [y1%i, y2%i]))
   x1 = y3%operand_val()
   EXPECT_DBL_EQ(x1(1), 0.0d0)
   EXPECT_DBL_EQ(x1(2), 2.5d0)
-  y4 => vari(3.9d0, [y3%i, y2%i, y1%i], [0.3d0, 2.3d0])
+  y4 => vari_at(vari(3.9d0, [y3%i, y2%i, y1%i], [0.3d0, 2.3d0]))
   ops = y4%operand_index()
   EXPECT_EQ(ops(1), 13)
   EXPECT_EQ(ops(2), 7)

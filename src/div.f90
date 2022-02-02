@@ -20,34 +20,27 @@ contains
   subroutine chain_div_vv(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(2), val(2)
-    integer(ik) :: i(2)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     val = this%operand_val()
     new_adj(1) = new_adj(1) + this%adj()/val(2)
     new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
-    call callstack % stack % set_adj(i(1), new_adj(1))
-    call callstack % stack % set_adj(i(2), new_adj(2))
-    ! call callstack%set_adj(i(1), callstack%adj(i(1)) + this%adj()/x2)
-    ! call callstack%set_adj(i(2), callstack%adj(i(2)) 
+    call this%set_operand_adj(new_adj)
   end subroutine chain_div_vv
 
   impure elemental function div_vv(v1, v2) result(s)
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() / v2%val(), [v1, v2])
-    s%vi%chain => chain_div_vv
+    call s%set_chain(chain_div_vv)
   end function div_vv
 
   subroutine chain_div_vd(this)
     class(vari), intent(in) :: this
-    integer(ik) :: i(1)
     real(rk) d(1), new_adj(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     d = this%data_operand()
     new_adj(1) = new_adj(1) + this%adj() / d(1)
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_div_vd
 
   impure elemental function div_vd(v, d) result(s)
@@ -59,18 +52,16 @@ contains
     else
        s = v
     end if
-    s%vi%chain => chain_div_vd
+    call s%set_chain(chain_div_vd)
   end function div_vd
 
   subroutine chain_div_dv(this)
     class(vari), intent(in) :: this
-    integer(ik) :: i(1)
     real(rk) val(1), new_adj(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     val = this%operand_val()
     new_adj(1) = new_adj(1) - this%val() * this%adj() / val(1)
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_div_dv
 
   impure elemental function div_dv(d, v) result(s)
@@ -78,7 +69,7 @@ contains
     type(var), intent(in) :: v
     type(var) :: s
     s = var(d / v%val(), [v], [d])
-    s%vi%chain => chain_div_dv
+    call s%set_chain(chain_div_dv)
   end function div_dv
 
 end module div_mod

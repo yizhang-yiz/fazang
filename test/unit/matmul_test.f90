@@ -3,7 +3,7 @@
 program matmul_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at
   use grad_mod
   use env_mod
   use var_mod
@@ -20,6 +20,7 @@ program matmul_test
        & 7.d0, 3.d0, 3.d0, 3.2d0, 8.d0, 2.d0, 42.d0], [3, 4])
   real(rk) :: d(3, 2)
   integer(ik) :: i, j
+  type(vari), pointer :: vp
 
   x = var(a)
   y = var(b)
@@ -27,11 +28,10 @@ program matmul_test
   EXPECT_EQ(callstack%head, 39)
   EXPECT_DBL_EQ(val(z), matmul(a, b))
   
-  do j = 1, 4
+  do j = 1, 5
      do i = 1, 4
         call set_zero_all_adj()
-        call z(i, j)%vi%init_dependent()
-        call z(i, j)%vi%chain()
+        call z(i, j)%grad()
         EXPECT_DBL_EQ(adj(x(i, :)), b(:, j))
         EXPECT_DBL_EQ(adj(y(:, j)), a(i, :))
      end do
@@ -40,8 +40,9 @@ program matmul_test
   do j = 1, 5
      do i = 1, 4
         call set_zero_all_adj()
-        call z(i, j)%vi%set_adj(2.5d0)
-        call z(i, j)%vi%chain()
+        vp => vari_at(z(i, j)%vi)
+        call vp%set_adj(2.5d0)
+        call vp%chain()
         EXPECT_DBL_EQ(adj(x(i, :)), 2.5d0 * b(:, j))
         EXPECT_DBL_EQ(adj(y(:, j)), 2.5d0 * a(i, :))
      end do
@@ -52,8 +53,9 @@ program matmul_test
   do j = 1, 5
      do i = 1, 4
         call set_zero_all_adj()
-        call z(i, j)%vi%set_adj(2.5d0)
-        call z(i, j)%vi%chain()
+        vp => vari_at(z(i, j)%vi)
+        call vp%set_adj(2.5d0)
+        call vp%chain()
         EXPECT_DBL_EQ(adj(x(i, :)), 2.5d0 * b(:, j))
      end do
   end do

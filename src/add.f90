@@ -20,29 +20,24 @@ contains
   subroutine chain_add_vv(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(2)
-    integer(ik) :: i(2)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     new_adj = new_adj + this%adj()
-    call callstack % stack % set_adj(i(1), new_adj(1))
-    call callstack % stack % set_adj(i(2), new_adj(2))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_add_vv
 
   impure elemental function add_vv(v1, v2) result(s)
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() + v2%val(), [v1, v2])
-    s%vi%chain => chain_add_vv
+    call s%set_chain(chain_add_vv)
   end function add_vv
 
   subroutine chain_add_vd(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     new_adj(1) = new_adj(1) + this%adj()
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_add_vd
 
   impure elemental function add_vd(v1, v2) result(s)
@@ -54,7 +49,7 @@ contains
     else
        s = v1
     end if
-    s%vi%chain => chain_add_vd
+    call s%set_chain(chain_add_vd)
   end function add_vd
 
   impure elemental function add_dv(v1, v2) result(s)
@@ -66,7 +61,7 @@ contains
     else
        s = v2
     end if
-    s%vi%chain => chain_add_vd
+    call s%set_chain(chain_add_vd)
   end function add_dv
 
   impure elemental function pos(v) result(s)

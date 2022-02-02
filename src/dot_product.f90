@@ -28,7 +28,7 @@ contains
     type(var), intent(in) :: a(:), b(:)
     type(var) :: s
     s = var(dot_product(val(a), val(b)), [a, b])
-    s%vi%chain => chain_dot_vv
+    call s%set_chain(chain_dot_vv)
   end function dot_prod_vv
 
   ! For matrix mul C=AB, c_ij = sum(a_ik * b_kj)
@@ -65,7 +65,7 @@ contains
     real(rk), intent(in) :: b(:)
     type(var) :: s
     s = var(dot_product(val(a), b), a, b)
-    s%vi%chain => chain_dot_vd
+    call s%set_chain(chain_dot_vd)
   end function dot_prod_vd
 
   function dot_prod_dv(a, b) result(s)
@@ -73,7 +73,7 @@ contains
     type(var), intent(in) :: b(:)
     type(var) :: s
     s = var(dot_product(a, val(b)), b, a)
-    s%vi%chain => chain_dot_vd
+    call s%set_chain(chain_dot_vd)
   end function dot_prod_dv
 
   subroutine chain_dot_vd(this)

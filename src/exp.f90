@@ -11,18 +11,16 @@ contains
   subroutine chain_exp(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     new_adj(1) = new_adj(1) + this%adj() * this%val()
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_exp
 
   impure elemental function exp_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(exp(v%val()), [v])
-    s%vi%chain => chain_exp
+    call s%set_chain(chain_exp)
   end function exp_v
 
 end module exp_op_mod

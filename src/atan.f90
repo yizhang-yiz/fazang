@@ -11,19 +11,17 @@ contains
   subroutine chain_atan(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1), val(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     val = this%operand_val()
     new_adj(1) = new_adj(1) + this%adj() / (1.d0 + val(1) * val(1))
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_atan
   
   impure elemental function atan_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(atan(v%val()), [v])
-    s%vi%chain => chain_atan
+    call s%set_chain(chain_atan)
   end function atan_v
 
 end module atan_op_mod

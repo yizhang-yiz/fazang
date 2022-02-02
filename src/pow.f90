@@ -1,5 +1,5 @@
 module pow_mod
-  use vari_mod, only : adstack, callstack
+  use vari_mod, only : vari
   use env_mod
   use var_mod
   use inv_mod
@@ -24,42 +24,35 @@ contains
   subroutine chain_pow_vv(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(2), val(2)
-    integer(ik) :: i(2)
-    i = this%operand_index()
     val = this%operand_val()
     new_adj = this%operand_adj()
     if ( val(1) .ne. 0.d0 ) then
        new_adj(1) = new_adj(1) + this%adj() * val(2) * this%val() / val(1)
        new_adj(2) = new_adj(2) + this%adj() * this%val() * log(val(1))
-       call callstack % stack % set_adj(i(1), new_adj(1))
-       call callstack % stack % set_adj(i(2), new_adj(2))
+       call this%set_operand_adj(new_adj)
     end if
   end subroutine chain_pow_vv
 
   subroutine chain_pow_vd(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1), val(1), d(1)
-    integer(ik) :: i(1)
     val = this%operand_val()
-    i = this%operand_index()
     new_adj = this%operand_adj()
     d = this%data_operand()
     if ( val(1) .ne. 0.d0 ) then
        new_adj(1) = new_adj(1) + this%adj() * d(1) * this%val() / val(1)
-       call callstack % stack % set_adj(i(1), new_adj(1))
+       call this%set_operand_adj(new_adj)
     end if
   end subroutine chain_pow_vd
 
   subroutine chain_pow_dv(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1), d(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     d = this%data_operand()
     if ( d(1) .ne. 0.d0 ) then
        new_adj(1) = new_adj(1) + this%adj() * this%val() * log(d(1))
-       call callstack % stack % set_adj(i(1), new_adj(1))
+       call this%set_operand_adj(new_adj)
     end if
   end subroutine chain_pow_dv
 
@@ -67,7 +60,7 @@ contains
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() ** v2%val(), [v1, v2])
-    s%vi%chain => chain_pow_vv
+    call s%set_chain(chain_pow_vv)
   end function pow_vv
 
   impure elemental function pow_vd(v1, v2) result(s)
@@ -88,7 +81,7 @@ contains
        s = inv_sqrt(v1)
     else
        s = var(v1%val() ** v2, [v1], [v2])
-       s%vi%chain => chain_pow_vd
+       call s%set_chain(chain_pow_vd)
     endif
   end function pow_vd
 
@@ -97,7 +90,7 @@ contains
     real(rk), intent(in) :: v1
     type(var) :: s
     s = var(v1 ** v2%val(), [v2], [v1])
-    s%vi%chain => chain_pow_dv
+    call s%set_chain(chain_pow_dv)
   end function pow_dv
 
 end module pow_mod

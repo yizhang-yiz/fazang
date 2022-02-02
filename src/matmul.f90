@@ -46,7 +46,7 @@ contains
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
           s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
-          s(i, j)%vi%chain => chain_matmul_vv
+          call s(i, j)%set_chain(chain_matmul_vv)
        end do
     end do
   end function mat_mul_vv
@@ -77,7 +77,7 @@ contains
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
           s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
-          s(i, j)%vi%chain => chain_matmul_vd
+          call s(i, j)%set_chain(chain_matmul_vd)
        end do
     end do
   end function mat_mul_vd
@@ -108,7 +108,7 @@ contains
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
           s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
-          s(i, j)%vi%chain => chain_matmul_dv
+          call s(i, j)%set_chain(chain_matmul_dv)
        end do
     end do
   end function mat_mul_dv

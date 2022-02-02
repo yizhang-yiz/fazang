@@ -9,6 +9,9 @@ module vari_mod
   public :: vari, adstack, callstack, chain_op, assignment(=)
   public :: n_operand, operand_val, operand_adj, operand_index
   public :: adj, val
+  public :: vari_index, set_indexed_val, set_indexed_adj, set_indexed_chain
+  public :: get_indexed_val, get_indexed_adj
+  public :: vari_at
 
   type :: vari
      integer(ik) :: i = 0    ! corresponding id in tape lookup
@@ -23,6 +26,7 @@ module vari_mod
      procedure :: set_adj
      procedure :: set_zero_adj
      procedure :: init_dependent
+     procedure :: set_operand_adj
   end type vari
 
   abstract interface
@@ -65,34 +69,46 @@ module vari_mod
 
 contains
 
+  elemental function vari_index(i) result(id)
+    integer(ik), intent(in) :: i
+    integer(ik) :: id
+    id = callstack % varis(i) % i
+  end function vari_index
+
+  function vari_at(id) result(vp)
+    integer(ik), intent(in) :: id
+    type(vari), pointer :: vp
+    vp => callstack % varis(id)
+  end function vari_at
+
   function new_vari_val(d) result(vp)
     real(rk), intent(in) :: d
-    type(vari), pointer :: vp
+    integer(ik) :: vp
     callstack%varis(callstack%head)%i = callstack % stack % push(d)
-    vp => callstack%varis(callstack%head)
+    vp = callstack%head
     call incr1(callstack%head)
   end function new_vari_val
 
   function new_vari() result(vp)
-    type(vari), pointer :: vp
-    vp => new_vari_val(0.0d0)
+    integer(ik) :: vp
+    vp = new_vari_val(0.0d0)
   end function new_vari
 
   function new_vari_val_op(d, op) result(vp)
     real(rk), intent(in) :: d
     integer(ik), intent(in) :: op(:)
-    type(vari), pointer :: vp
+    integer(ik) :: vp
     callstack%varis(callstack%head)%i = callstack % stack % push(d, op)
-    vp => callstack%varis(callstack%head)
+    vp = callstack%head
     call incr1(callstack%head)
   end function new_vari_val_op
 
   function new_vari_val_dop(d, dop) result(vp)
     real(rk), intent(in) :: d
     real(rk), intent(in) :: dop(:)
-    type(vari), pointer :: vp
+    integer(ik) :: vp
     callstack%varis(callstack%head)%i = callstack % stack % push(d, dop)
-    vp => callstack%varis(callstack%head)
+    vp = callstack%head
     call incr1(callstack%head)
   end function new_vari_val_dop
 
@@ -100,10 +116,10 @@ contains
     real(rk), intent(in) :: d
     integer(ik), intent(in) :: op(:)
     real(rk), intent(in) :: dop(:)
-    type(vari), pointer :: vp
+    integer(ik) :: vp
     callstack%varis(callstack%head)%i = callstack % stack % push(d,&
          & op, dop)
-    vp => callstack%varis(callstack%head)
+    vp = callstack%head
     call incr1(callstack%head)
   end function new_vari_val_op_dop
 
@@ -116,6 +132,16 @@ contains
     class(vari), intent(in) :: this
     adj = callstack%stack%adj(this%i)
   end function adj
+
+  subroutine set_operand_adj(this, d)
+    class(vari), intent(in) :: this
+    real(rk) :: d(this%n_operand())
+    integer(ik) :: id(this%n_operand()), i
+    id = this%operand_index()
+    do i = 1, size(id)
+       call callstack % stack % set_adj(id(i), d(i))
+    end do
+  end subroutine set_operand_adj
 
   elemental integer(ik) function n_operand(this)
     class(vari), intent(in) :: this
@@ -164,11 +190,41 @@ contains
     call callstack%stack%set_val(this%i, d)
   end subroutine set_val
 
+  subroutine set_indexed_chain(id, proc)
+    integer(ik), intent(in) :: id
+    procedure(chain_op) :: proc
+    callstack % varis(id) % chain => proc
+  end subroutine set_indexed_chain
+
+  elemental function get_indexed_val(id) result(d)
+    integer(ik), intent(in) :: id
+    real(rk) :: d
+    d = callstack % varis(id) % val()
+  end function get_indexed_val
+
+  elemental function get_indexed_adj(id) result(d)
+    integer(ik), intent(in) :: id
+    real(rk) :: d
+    d = callstack % varis(id) % adj()
+  end function get_indexed_adj
+
+  subroutine set_indexed_val(id, d)
+    integer(ik), intent(in) :: id
+    real(rk) :: d
+    call set_val(callstack % varis(id), d)
+  end subroutine set_indexed_val
+
   subroutine set_adj(this, d)
     class(vari), intent(in) :: this
     real(rk) :: d
-    call callstack%stack%set_adj(this%i, d)
+    call callstack % stack % set_adj(this%i, d)
   end subroutine set_adj
+
+  subroutine set_indexed_adj(id, d)
+    integer(ik), intent(in) :: id
+    real(rk) :: d
+    call set_adj(callstack % varis(id), d)
+  end subroutine set_indexed_adj
 
   subroutine set_zero_adj(this)
     class(vari), intent(in) :: this

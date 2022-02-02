@@ -3,21 +3,18 @@
 program add_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at
   use grad_mod
   use var_mod
   use cos_mod
-  use acos_mod
   use sin_mod
-  use asin_mod
-  use tan_mod
-  use atan_mod
   use add_mod
   implicit none
 
   type(var) :: x, y1, y2, y3, y4
   type(var) :: q1(2), q2(2), q(2)
   real(rk) :: z1 = 2.4d0, z2 = 3.9d0
+  type(vari), pointer :: vp
 
   x = var(1.5d0)
   x = x + z1
@@ -25,8 +22,9 @@ program add_test
   EXPECT_EQ(callstack%head, 3)
   EXPECT_FLOAT_EQ(x%val(), 1.5d0 + z1)
 
-  call x%vi%set_adj(0.4d0)
-  call x%vi%chain()
+  vp => vari_at(x%vi)
+  call vp%set_adj(0.4d0)
+  call vp%chain()
   EXPECT_FLOAT_EQ(callstack % stack % adj(1), x%adj())
 
   y2 = var(2.6d0)
@@ -34,8 +32,9 @@ program add_test
   EXPECT_EQ(callstack%head, 5)
   EXPECT_FLOAT_EQ(y3%val(), y2%val() + y1%val())
 
-  call y3%vi%init_dependent()
-  call y3%vi%chain()
+  vp => vari_at(y3%vi)
+  call vp%init_dependent()
+  call vp%chain()
   EXPECT_FLOAT_EQ(y2%adj(), 1.d0)
   EXPECT_FLOAT_EQ(y1%adj(), 1.4d0)
 
@@ -64,13 +63,15 @@ program add_test
   q2 = var([2.2d0, 4.d0])
   q = q1 + q2
   call set_zero_all_adj()
-  call q(1)%vi%set_adj(1.3d0)
-  call q(1)%vi%chain()
+  vp => vari_at(q(1)%vi)
+  call vp%set_adj(1.3d0)
+  call vp%chain()
   EXPECT_DBL_EQ(q1%adj(), ([1.3d0, 0.0d0]))
   EXPECT_DBL_EQ(q2%adj(), ([1.3d0, 0.0d0]))
   call set_zero_all_adj()
-  call q(2)%vi%set_adj(1.3d0)
-  call q(2)%vi%chain()
+  vp => vari_at(q(2)%vi)
+  call vp%set_adj(1.3d0)
+  call vp%chain()
   EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
   EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
 

@@ -11,18 +11,16 @@ contains
   subroutine chain_sqrt(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     new_adj(1) = new_adj(1) + 0.5d0 * this%adj() / this%val()
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_sqrt
 
   impure elemental function sqrt_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(sqrt(v%val()), [v])
-    s%vi%chain => chain_sqrt
+    call s%set_chain(chain_sqrt)
   end function sqrt_v
 
 end module sqrt_op_mod

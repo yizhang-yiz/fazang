@@ -1,20 +1,26 @@
 module var_mod
   use iso_fortran_env
   use env_mod
-  use vari_mod, only : vari, callstack
+  use vari_mod, only : vari, callstack, vari_index, get_indexed_val,&
+       & get_indexed_adj, set_indexed_val, set_indexed_adj,&
+       & set_indexed_chain, chain_op
 
   implicit none
 
   private
-  public :: var, assignment(=), vari_index, adj, val
-  public :: vi_index
+  public :: var, assignment(=), vi_index, adj, val
 
   type :: var
-     type(vari), pointer :: vi => null()
+     ! we cannot use pointer (=> vari) here because when use move_alloc to
+     ! enlarge the storage the address will be changed, thus instead
+     ! we store the id in the callstack % varis array
+     integer(ik) :: vi
    contains
      procedure :: val
      procedure :: adj
      procedure :: grad
+     procedure :: vi_index
+     procedure :: set_chain
   end type var
 
   interface var
@@ -41,38 +47,33 @@ contains
   impure elemental function new_var_val(d) result(v)
     real(rk), intent(in) :: d
     type(var) :: v
-    v%vi => vari(d)
+    v%vi = vari(d)
   end function new_var_val
 
   function new_var() result(v)
     type(var) :: v
-    v%vi => vari()
+    v%vi = vari()
   end function new_var
-
-  elemental integer(ik) function vari_index(this)
-    type(var), intent(in) :: this
-    vari_index = this%vi%i
-  end function vari_index
 
   function new_var_val_op(d, op) result(v)
     real(rk), intent(in) :: d
     type(var) :: v
     type(var), intent(in) :: op(:)
-    v%vi => vari(d, vari_index(op))
+    v%vi = vari(d, vi_index(op))
   end function new_var_val_op
 
   function new_var_val_opid(d, op) result(v)
     real(rk), intent(in) :: d
     type(var) :: v
     integer(ik), intent(in) :: op(:)
-    v%vi => vari(d, op)
+    v%vi = vari(d, op)
   end function new_var_val_opid
 
   function new_var_val_dop(d, dop) result(v)
     real(rk), intent(in) :: d
     type(var) :: v
     real(rk), intent(in) :: dop(:)
-    v%vi => vari(d, dop)
+    v%vi = vari(d, dop)
   end function new_var_val_dop
 
   function new_var_val_op_dop(d, op, dop) result(v)
@@ -80,7 +81,7 @@ contains
     type(var) :: v
     type(var), intent(in) :: op(:)
     real(rk), intent(in) :: dop(:)
-    v%vi => vari(d, vari_index(op), dop)
+    v%vi = vari(d, vi_index(op), dop)
   end function new_var_val_op_dop
 
   function new_var_1d(n) result(v)
@@ -104,7 +105,7 @@ contains
   subroutine set_var_0d(this, from)
     type(var), intent(inout) :: this    
     real(rk), intent(in) :: from
-    call this%vi%set_val(from)
+    call set_indexed_val(this%vi, from)
   end subroutine set_var_0d
 
   subroutine set_var_1d(this, from)
@@ -145,24 +146,30 @@ contains
 
   elemental real(rk) function val(this)
     class(var), intent(in) :: this
-    val = this%vi%val()
+    val = get_indexed_val(this%vi)
   end function val
 
   elemental real(rk) function adj(this)
     class(var), intent(in) :: this
-    adj = this%vi%adj()
+    adj = get_indexed_adj(this%vi)
   end function adj
 
   elemental function vi_index(this) result(s)
     class(var), intent(in) :: this    
     integer(ik) :: s
-    s = this%vi%i
+    s = vari_index(this%vi)
   end function vi_index
+
+  subroutine set_chain(this, proc)
+    class(var), intent(in) :: this    
+    procedure(chain_op) :: proc
+    call set_indexed_chain(this%vi, proc)
+  end subroutine set_chain
 
   subroutine grad(this)
     class(var), intent(in) :: this
     integer i
-    call this%vi%init_dependent()
+    call callstack % varis (this%vi) % init_dependent()
     do i = callstack%head - 1, 1, -1
        call callstack%varis(i)%chain()
     end do

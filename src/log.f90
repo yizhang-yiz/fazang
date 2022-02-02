@@ -11,19 +11,17 @@ contains
   subroutine chain_log(this)
     class(vari), intent(in) :: this
     real(rk) :: new_adj(1), val(1)
-    integer(ik) :: i(1)
-    i = this%operand_index()
     new_adj = this%operand_adj()
     val = this%operand_val()
     new_adj(1) = new_adj(1) + this%adj() / val(1)
-    call callstack % stack % set_adj(i(1), new_adj(1))
+    call this%set_operand_adj(new_adj)
   end subroutine chain_log
 
   impure elemental function log_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(log(v%val()), [v])
-    s%vi%chain => chain_log
+    call s%set_chain(chain_log)
   end function log_v
 
 end module log_op_mod

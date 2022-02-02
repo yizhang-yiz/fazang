@@ -3,7 +3,7 @@
 program sin_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at, set_indexed_adj
   use env_mod
   use grad_mod
   use var_mod
@@ -13,11 +13,13 @@ program sin_test
   type(var) :: x, y1, y2, y3, z(2)
   real(rk) :: z1, z2
   integer(ik) :: id(1)
+  type(vari), pointer :: vp
 
   x = var(1.4d0)
   y1 = sin(x)
-  call y1%vi%init_dependent()
-  call y1%vi%chain()
+  vp => vari_at(y1%vi)
+  call vp%init_dependent()
+  call vp%chain()
   EXPECT_FLOAT_EQ(y1%val(), sin(1.4d0))
   EXPECT_FLOAT_EQ(y1%adj(), 1.0d0)
   EXPECT_FLOAT_EQ(x%adj(), cos(1.4d0))
@@ -33,14 +35,18 @@ program sin_test
   EXPECT_FLOAT_EQ(y1%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(x%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(y2%val(), sin(sin(1.4d0)))
-  id = y2%vi%operand_index()
-  EXPECT_EQ(id(1), y1%vi%i)
-  EXPECT_EQ(y1%vi%n_operand(), 1)
-  EXPECT_EQ(y3%vi%n_operand(), 0)
+  vp => vari_at(y2%vi)
+  id = vp%operand_index()
+  EXPECT_EQ(id(1), y1%vi_index())
+  vp => vari_at(y1%vi)
+  EXPECT_EQ(vp%n_operand(), 1)
+  vp => vari_at(y3%vi)
+  EXPECT_EQ(vp%n_operand(), 0)
 
   call set_zero_all_adj()
-  call y2%vi%init_dependent()
-  call y2%vi%chain()
+  vp => vari_at(y2%vi)
+  call vp%init_dependent()
+  call vp%chain()
   EXPECT_FLOAT_EQ(y3%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(x%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(y2%adj(), 1.0d0)
@@ -49,14 +55,16 @@ program sin_test
   ! vectorized version
   z = sin([y1, y2])
   call set_zero_all_adj()
-  call z(1)%vi%set_adj(1.3d0)
-  call z(1)%vi%chain()
+  call set_indexed_adj(z(1)%vi, 1.3d0)
+  vp => vari_at(z(1)%vi)
+  call vp%chain()
   EXPECT_DBL_EQ(y1%adj(), 1.3d0 * cos(y1%val()))
   EXPECT_DBL_EQ(y2%adj(), 0.d0)
   call set_zero_all_adj()
   EXPECT_DBL_EQ(y1%adj(), 0.d0)
-  call z(2)%vi%set_adj(1.3d0)
-  call z(2)%vi%chain()
+  vp => vari_at(z(2)%vi)
+  call set_indexed_adj(z(2)%vi, 1.3d0)
+  call vp%chain()
   EXPECT_DBL_EQ(y1%adj(), 0.d0)
   EXPECT_DBL_EQ(y2%adj(), 1.3d0 * cos(y2%val()))
 

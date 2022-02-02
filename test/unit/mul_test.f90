@@ -3,7 +3,7 @@
 program mul_test
   use, intrinsic :: iso_fortran_env
   use test_mod
-  use vari_mod, only : vari, adstack, callstack
+  use vari_mod, only : vari, adstack, callstack, vari_at
   use grad_mod
   use env_mod
   use var_mod
@@ -14,6 +14,7 @@ program mul_test
   type(var) :: x, y1, y2, y3, y4
   type(var) :: q1(2), q2(2), q(2)
   real(rk) :: z1 = 2.0d0, z2 = 3.9d0
+  type(vari), pointer :: vp
 
   x = var(1.5d0)
   x = x * z1
@@ -32,8 +33,9 @@ program mul_test
   EXPECT_EQ(callstack%head, 6)
   EXPECT_DBL_EQ(y3%val(), 2.6d0 * x%val())
   call set_zero_all_adj()
-  call y3%vi%set_adj(2.5d0)
-  call y3%vi%chain()
+  vp => vari_at(y3%vi)
+  call vp%set_adj(2.5d0)
+  call vp%chain()
   EXPECT_DBL_EQ(y2%adj(), 2.5d0 * y1%val())
   EXPECT_DBL_EQ(y1%adj(), 2.5d0 * y2%val())
   EXPECT_DBL_EQ(x%adj(), 2.5d0 * y2%val())
@@ -64,8 +66,9 @@ program mul_test
   q = q1 * 3.4d0
   EXPECT_DBL_EQ(q%val(), ([3.4d0 * 1.2d0, 3.4d0 * 3.d0]))
   call set_zero_all_adj()
-  call q(2)%vi%init_dependent()
-  call q(2)%vi%chain()
+  vp => vari_at(q(2)%vi)
+  call vp%init_dependent()
+  call vp%chain()
   EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 3.4d0]))
   EXPECT_DBL_EQ(q2%adj(), ([0.0d0, 0.0d0]))
 
