@@ -1,8 +1,9 @@
-sources = ['env.f90',
-           'arith.f90',
-           'tape.f90',
-           'nested.f90',
-           'vari.f90',
+
+sources = ['env.F90',
+           'arith.F90',
+           'tape.F90',
+           'nested.F90',
+           'vari.F90',
            'test.f90',
            'var.f90',
            'grad.f90',
@@ -19,7 +20,7 @@ sources = ['env.f90',
            'inv_sqrt.f90',
            'exp.f90',
            'log.f90',
-           'relational.f90',
+           'relational.F90',
            'add.f90',
            'sub.f90',
            'mul.f90',
@@ -31,4 +32,11 @@ sources = ['env.f90',
            'matmul.f90',
            'fazang.f90']
 
-fazanglib = shared_library('fazang', sources)
+fazanglib = library('fazang', sources, install: true)
+
+fazang_dep = declare_dependency(link_with: fazanglib)
+
+meson.add_install_script(files('install-mod.py'), get_option('includedir')/'fazang')
+
+pkg = import('pkgconfig')
+pkg.generate(fazanglib, description: 'Fortran library for reverse-mode automatic differentiation', subdirs: ['fazang'])
