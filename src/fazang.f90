@@ -33,6 +33,7 @@ module fazang
 
   ! ! op *
   use fazang_sum_mod
+  use fazang_log_sum_exp_mod
   use fazang_dot_product_mod
   use fazang_matmul_mod
 

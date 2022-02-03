@@ -78,3 +78,6 @@ test('var_grad', t_var_grad)
 
 t_alloc = executable('alloc_test', files('alloc_test.f90'), link_with : fazanglib)
 test('alloc', t_alloc)
+
+t_log_sum_exp = executable('log_sum_exp_test', files('log_sum_exp_test.f90'), link_with : fazanglib)
+test('log_sum_exp', t_log_sum_exp)

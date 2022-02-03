@@ -1,4 +1,5 @@
 sources = ['env.f90',
+           'arith.f90',
            'tape.f90',
            'nested.f90',
            'vari.f90',
@@ -25,6 +26,7 @@ sources = ['env.f90',
            'div.f90',
            'pow.f90',
            'sum.f90',
+           'log_sum_exp.f90',
            'dot_product.f90',
            'matmul.f90',
            'fazang.f90']

@@ -27,7 +27,6 @@ module fazang_env_mod
   ! PI
   real(rk), parameter :: pi = 4.d0*atan(1.d0)
 contains
-
   elemental subroutine incr(var, inc)
     integer,intent(inout) :: var
     integer,intent(in)    :: inc
