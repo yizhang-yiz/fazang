@@ -1,0 +1,65 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        gcc: [11] # Version of GFortran we want to use.
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install GFortran (MacOS)
+      if: ${{ contains(matrix.os, 'macos') }}
+      run: |
+        brew install gcc@${{ matrix.gcc }}
+        ln -s /usr/local/bin/gfortran-${{ matrix.gcc }} /usr/local/bin/gfortran
+
+    - name: Install GFortran (Linux)
+      if: ${{ contains(matrix.os, 'ubuntu') }}
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt-get install -y gcc-${{ matrix.gcc }} gfortran-${{ matrix.gcc }}
+        sudo update-alternatives \
+          --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.gcc }} 100 \
+          --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-${{ matrix.gcc }} \
+          --slave /usr/bin/gcov gcov /usr/bin/gcov-${{ matrix.gcc }}
+
+    - name: Install GFortran (Windows)
+      if: ${{ contains(matrix.os, 'windows') }}
+      run: |
+        Invoke-WebRequest -Uri ${{ env.DOWNLOAD }} -OutFile mingw-w64.zip
+        Expand-Archive mingw-w64.zip
+        echo "$pwd\mingw-w64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      env:
+        DOWNLOAD: "https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r4/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r4.zip"
+
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1 # Use pip to install latest CMake, & FORD/Jin2For, etc.
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install meson
+      run: pip3 install ${{ env.PACKAGES }}
+      env:
+        PACKAGES: >-
+          meson==0.59
+          ninja
+
+    - name: Configure build
+      run: meson setup _build --prefix=$PWD/fazang --default-library=static
+
+    - name: Build project
+      run: meson compile -C _build
+
+    - name: Run tests
+      run: meson test -C _build --print-errorlogs --no-rebuild
+
+    - name: Install project
+      run: meson install -C _build --no-rebuild
