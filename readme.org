@@ -4,11 +4,10 @@
 differentiation, inspired by [[https://mc-stan.org/users/interfaces/math][Stan/Math library]].
 
 ** Quick start
-=Fazang= provides =var= type as dependent and independent variables
+=Fazang= provides user-facing variable =var= type. It is the type for dependent and independent variables
 whose derivatives will be calculated.
 #+begin_src fortran
 program var_grad_test
-  use iso_c_binding
   use fazang ! load Fazang library
 
   implicit none
@@ -30,6 +29,7 @@ program var_grad_test
 
   ! use grad() to calculate df/d(mu) and df/d(sigma). Each var's
   ! derivative (also called adjoint) can be access through var%adj().
+
   call f%grad()
   write(*, *) "df/d(mu): ", mu%adj()
   write(*, *) "df/d(sigma): ", sigma%adj()
@@ -40,7 +40,6 @@ An alternative to the same problem above is to write a function then
 use it as a procedure argument to =Fazang= 's =gradient= funcion.
 #+begin_src fortran
 module func
-  use iso_c_binding
   use fazang ! load Fazang library
   implicit none
 
@@ -75,31 +74,32 @@ end program grad_test
 #+end_src
 
 ** Use =Fazang=
-*** Compile
-    =Fazang= uses =meson= to build
+*** Build
+    =Fazang= uses =meson= to build.
     #+begin_src bash
       cd /path/to/fazang
       mkdir build
       cd build
       meson compile
     #+end_src
-    One can also run the unit tests
+    Afterwards one can run the unit tests
     #+begin_src bash
       meson test
     #+end_src
 *** Use the library
    =Fazang= can be accessed by =use fazang= module.
-   For a variable declared =var= 
+
+   A variable declared =var= 
     #+begin_src fortran
       type(var) x
     #+end_src
-    one can define it as
+    can be defined as
     #+begin_src fortran
       x = var()           ! value of x is 0.d0
       x = var(1.5d0)      ! value of x is 1.5d0
     #+end_src
 
-    =Fazang= supports instrinc unary and binary operations, and all the
+    =Fazang= overloads instrinc arithmatic unary and binary functions. All the
     downstream variables that depend on a =var= should also be =var=
     #+begin_src fortran
       type(var) x, y
@@ -114,8 +114,8 @@ end program grad_test
       write(*, *) y%adj()   ! equals to 0.d0 before any gradient operations
     #+end_src
 
-    Thanks to the =elemental= attribute, =Fazang='s functions extend
-    to arrays.
+    =Fazang='s unary and binary functions are =elemental=, so they can
+    be extended to arrays.
     #+begin_src fortran
       type(var) a(3), b, c(3), d
       a = var([1.d0, 2.d0, 3.d0])
@@ -127,13 +127,13 @@ end program grad_test
     #+begin_src fortran
       call d(2)%grad()
     #+end_src
-    and access each upstream variable's derivative through =var%adj()=.
+    and access each upstream variable's derivative through =var%adj()= afterwards.
     #+begin_src fortran
       write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
     #+end_src
 
-    =Fazang= uses special storge pattern for array and matrix
-    operations for better efficiency. This is transparent to the user.
+    Though =Fazang= uses special storge pattern for array and matrix
+    operations for efficiency purpose, the storage mechanism is transparent to the user.
     #+begin_src fortran
       type(var) :: x(4, 2), y(2, 5), z(4, 5)
       real(rk) :: a(4, 2) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
@@ -147,20 +147,19 @@ end program grad_test
       do j = 1, 5
          do i = 1, 4
             call z(i, j)%grad()
-! ...
+            ! ...
             call set_zero_all_adj()  ! reset all adjionts to zero
          end do
       end do
     #+end_src
 
-    By default =Fazang= uses stack storage allowing maximal 1024 =var=
-    . User can change =adstack_len= to a greater value for a bigger
-    problem. An auto-alloc & realloc storage is also in development.
 ** Planned
   - More function and matrices operations
   - ODE and DAE solver support
   - Contiguous memory model for large arrays
 ** Name
 The library is named after ancient Chinese philosopher [[https://en.wikipedia.org/wiki/Fazang][Fazang]] (法藏), who
-follows the view of cosmos "as an infinite number of interdependent
+views the cosmos "as an infinite number of interdependent
 and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果). 
+
+And yes it begins with =F= since it is in =Fortran=. 

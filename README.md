@@ -5,11 +5,10 @@
 
 ## Quick start
 
-`Fazang` provides `var` type as dependent and independent variables whose derivatives will be calculated.
+`Fazang` provides user-facing variable `var` type. It is the type for dependent and independent variables whose derivatives will be calculated.
 
 ```fortran
 program var_grad_test
-  use iso_c_binding
   use fazang ! load Fazang library
 
   implicit none
@@ -31,6 +30,7 @@ program var_grad_test
 
   ! use grad() to calculate df/d(mu) and df/d(sigma). Each var's
   ! derivative (also called adjoint) can be access through var%adj().
+
   call f%grad()
   write(*, *) "df/d(mu): ", mu%adj()
   write(*, *) "df/d(sigma): ", sigma%adj()
@@ -41,7 +41,6 @@ An alternative to the same problem above is to write a function then use it as a
 
 ```fortran
 module func
-  use iso_c_binding
   use fazang ! load Fazang library
   implicit none
 
@@ -79,9 +78,9 @@ end program grad_test
 ## Use `Fazang`
 
 
-### Compile
+### Build
 
-`Fazang` uses `meson` to build
+`Fazang` uses `meson` to build.
 
 ```bash
 cd /path/to/fazang
@@ -90,7 +89,7 @@ cd build
 meson compile
 ```
 
-One can also run the unit tests
+Afterwards one can run the unit tests
 
 ```bash
 meson test
@@ -99,20 +98,22 @@ meson test
 
 ### Use the library
 
-`Fazang` can be accessed by `use fazang` module. For a variable declared `var`
+`Fazang` can be accessed by `use fazang` module.
+
+A variable declared `var`
 
 ```fortran
 type(var) x
 ```
 
-one can define it as
+can be defined as
 
 ```fortran
 x = var()           ! value of x is 0.d0
 x = var(1.5d0)      ! value of x is 1.5d0
 ```
 
-`Fazang` supports instrinc unary and binary operations, and all the downstream variables that depend on a `var` should also be `var`
+`Fazang` overloads instrinc arithmatic unary and binary functions. All the downstream variables that depend on a `var` should also be `var`
 
 ```fortran
 type(var) x, y
@@ -127,7 +128,7 @@ write(*, *) y%val()   ! equals to sin(x%val())
 write(*, *) y%adj()   ! equals to 0.d0 before any gradient operations
 ```
 
-Thanks to the `elemental` attribute, `Fazang`'s functions extend to arrays.
+`Fazang`'s unary and binary functions are `elemental`, so they can be extended to arrays.
 
 ```fortran
 type(var) a(3), b, c(3), d
@@ -143,34 +144,32 @@ To calculate a dependent variable's derivatives, call `var%grad()` function
 call d(2)%grad()
 ```
 
-and access each upstream variable's derivative through `var%adj()`.
+and access each upstream variable's derivative through `var%adj()` afterwards.
 
 ```fortran
 write(*, *) c%adj()    ! should be [0.0, 1.0, 0.0]
 ```
 
-`Fazang` uses special storge pattern for array and matrix operations for better efficiency. This is transparent to the user.
+Though `Fazang` uses special storge pattern for array and matrix operations for efficiency purpose, the storage mechanism is transparent to the user.
 
 ```fortran
-      type(var) :: x(4, 2), y(2, 5), z(4, 5)
-      real(rk) :: a(4, 2) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
-      & 7.d0, 3.d0, 3.d0], [4, 2])
-      real(rk) :: b(2, 5) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
-      & 7.d0, 3.d0, 3.d0, 3.2d0, 8.d0], [2, 5])
+type(var) :: x(4, 2), y(2, 5), z(4, 5)
+real(rk) :: a(4, 2) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+& 7.d0, 3.d0, 3.d0], [4, 2])
+real(rk) :: b(2, 5) = reshape([1.d0, 47.d0, 3.d0, 53.d0, 21.d0,&
+& 7.d0, 3.d0, 3.d0, 3.2d0, 8.d0], [2, 5])
 
-      x = var(a)
-      y = var(b)
-      z = matmul(x, y)
-      do j = 1, 5
-         do i = 1, 4
-            call z(i, j)%grad()
-! ...
-            call set_zero_all_adj()  ! reset all adjionts to zero
-         end do
-      end do
+x = var(a)
+y = var(b)
+z = matmul(x, y)
+do j = 1, 5
+   do i = 1, 4
+      call z(i, j)%grad()
+      ! ...
+      call set_zero_all_adj()  ! reset all adjionts to zero
+   end do
+end do
 ```
-
-By default `Fazang` uses stack storage allowing maximal 1024 `var` . User can change `adstack_len` to a greater value for a bigger problem. An auto-alloc & realloc storage is also in development.
 
 
 ## Planned
@@ -182,4 +181,6 @@ By default `Fazang` uses stack storage allowing maximal 1024 `var` . User can ch
 
 ## Name
 
-The library is named after ancient Chinese philosopher [Fazang](https://en.wikipedia.org/wiki/Fazang) (法藏), who follows the view of cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
+The library is named after ancient Chinese philosopher [Fazang](https://en.wikipedia.org/wiki/Fazang) (法藏), who views the cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
+
+And yes it begins with `F` since it is in `Fortran`.
