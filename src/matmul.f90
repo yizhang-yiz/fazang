@@ -1,9 +1,9 @@
-module matmul_mod
+module fazang_matmul_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var, val, adj, vi_index
-  use vari_mod, only: vari, callstack
-  use dot_product_mod
+  use fazang_env_mod
+  use fazang_var_mod, only: var, val, adj, vi_index
+  use fazang_vari_mod, only: vari, callstack
+  use fazang_dot_product_mod
 
   implicit none
 
@@ -113,4 +113,4 @@ contains
     end do
   end function mat_mul_dv
   
-end module matmul_mod
+end module fazang_matmul_mod

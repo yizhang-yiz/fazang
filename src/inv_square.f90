@@ -1,8 +1,8 @@
-module inv_square_mod
+module fazang_inv_square_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -27,4 +27,4 @@ contains
     call s%set_chain(chain_isq)
   end function inv_square
 
-end module inv_square_mod
+end module fazang_inv_square_mod

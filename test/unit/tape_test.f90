@@ -3,9 +3,9 @@
 program tape_test
   use, intrinsic :: iso_fortran_env
   use iso_c_binding
-  use test_mod
-  use env_mod
-  use tape_mod
+  use fazang_test_mod
+  use fazang_env_mod
+  use fazang_tape_mod
 
   type(tape), target :: t
   real(rk) :: op4(3), dop(2)

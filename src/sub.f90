@@ -1,8 +1,8 @@
-module sub_mod
+module fazang_sub_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var
-  use vari_mod, only: vari, callstack
+  use fazang_env_mod
+  use fazang_var_mod, only: var
+  use fazang_vari_mod, only: vari, callstack
 
   implicit none
 
@@ -76,4 +76,4 @@ contains
     call s%set_chain(chain_sub_dv)
   end function neg
 
-end module sub_mod
+end module fazang_sub_mod

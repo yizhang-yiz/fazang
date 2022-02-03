@@ -1,8 +1,8 @@
-module tan_op_mod
+module fazang_tan_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -23,13 +23,13 @@ contains
     call s%set_chain(chain_tan)
   end function tan_v
 
-end module tan_op_mod
+end module fazang_tan_op_mod
 
-module tan_mod
-  use tan_op_mod
+module fazang_tan_mod
+  use fazang_tan_op_mod
   implicit none
 
   interface tan
      module procedure tan_v
   end interface tan
-end module tan_mod
+end module fazang_tan_mod

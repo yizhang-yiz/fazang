@@ -2,11 +2,11 @@
 
 program sqrt_test
   use, intrinsic :: iso_fortran_env
-  use test_mod
-  use vari_mod, only : vari, adstack, callstack, vari_at
-  use var_mod
-  use grad_mod
-  use sqrt_mod
+  use fazang_test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack, vari_at
+  use fazang_var_mod
+  use fazang_grad_mod
+  use fazang_sqrt_mod
   implicit none
 
   type(var) :: x, y1, y2, y3

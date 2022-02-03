@@ -1,8 +1,8 @@
-module div_mod
+module fazang_div_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var
-  use vari_mod, only: vari, callstack
+  use fazang_env_mod
+  use fazang_var_mod, only: var
+  use fazang_vari_mod, only: vari, callstack
 
   implicit none
 
@@ -72,4 +72,4 @@ contains
     call s%set_chain(chain_div_dv)
   end function div_dv
 
-end module div_mod
+end module fazang_div_mod

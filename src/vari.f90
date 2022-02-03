@@ -1,7 +1,7 @@
-module vari_mod
+module fazang_vari_mod
   use iso_fortran_env
-  use env_mod
-  use tape_mod
+  use fazang_env_mod
+  use fazang_tape_mod
 
   implicit none
 
@@ -302,4 +302,4 @@ contains
 #endif
   end function vari_stack_size
 
-end module vari_mod
+end module fazang_vari_mod

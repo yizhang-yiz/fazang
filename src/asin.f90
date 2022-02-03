@@ -1,8 +1,8 @@
-module asin_op_mod
+module fazang_asin_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_asin)
   end function asin_v
 
-end module asin_op_mod
+end module fazang_asin_op_mod
 
-module asin_mod
-  use asin_op_mod
+module fazang_asin_mod
+  use fazang_asin_op_mod
   implicit none
 
   interface asin
      module procedure asin_v
   end interface asin
-end module asin_mod
+end module fazang_asin_mod

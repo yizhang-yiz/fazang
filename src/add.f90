@@ -1,8 +1,8 @@
-module add_mod
+module fazang_add_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var
-  use vari_mod, only: vari, callstack
+  use fazang_env_mod
+  use fazang_var_mod, only: var
+  use fazang_vari_mod, only: vari, callstack
 
   implicit none
 
@@ -70,4 +70,4 @@ contains
     s = v
   end function pos
 
-end module add_mod
+end module fazang_add_mod

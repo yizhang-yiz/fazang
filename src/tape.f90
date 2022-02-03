@@ -1,7 +1,7 @@
-module tape_mod
+module fazang_tape_mod
   use iso_fortran_env
   use iso_c_binding
-  use env_mod  
+  use fazang_env_mod  
   implicit none
   
   private
@@ -417,4 +417,4 @@ contains
   !   end if
   ! end subroutine check
 
-end module tape_mod
+end module fazang_tape_mod

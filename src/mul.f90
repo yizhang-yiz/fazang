@@ -1,8 +1,8 @@
-module mul_mod
+module fazang_mul_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var
-  use vari_mod, only: vari
+  use fazang_env_mod
+  use fazang_var_mod, only: var
+  use fazang_vari_mod, only: vari
 
   implicit none
 
@@ -67,4 +67,4 @@ contains
     call s%set_chain(chain_mul_vd)
   end function mul_dv
 
-end module mul_mod
+end module fazang_mul_mod

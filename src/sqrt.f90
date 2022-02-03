@@ -1,8 +1,8 @@
-module sqrt_op_mod
+module fazang_sqrt_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -23,13 +23,13 @@ contains
     call s%set_chain(chain_sqrt)
   end function sqrt_v
 
-end module sqrt_op_mod
+end module fazang_sqrt_op_mod
 
-module sqrt_mod
-  use sqrt_op_mod
+module fazang_sqrt_mod
+  use fazang_sqrt_op_mod
   implicit none
 
   interface sqrt
      module procedure sqrt_v
   end interface sqrt
-end module sqrt_mod
+end module fazang_sqrt_mod

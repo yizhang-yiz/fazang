@@ -2,12 +2,12 @@
 
 program asin_test
   use, intrinsic :: iso_fortran_env
-  use test_mod
-  use vari_mod, only : vari, adstack, callstack, vari_at
-  use grad_mod
-  use var_mod
-  use asin_mod
-  use sin_mod
+  use fazang_test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack, vari_at
+  use fazang_grad_mod
+  use fazang_var_mod
+  use fazang_asin_mod
+  use fazang_sin_mod
   implicit none
 
   type(var) :: x, y1, y2, y3

@@ -1,7 +1,7 @@
-module var_mod
+module fazang_var_mod
   use iso_fortran_env
-  use env_mod
-  use vari_mod, only : vari, callstack, vari_index, get_indexed_val,&
+  use fazang_env_mod
+  use fazang_vari_mod, only : vari, callstack, vari_index, get_indexed_val,&
        & get_indexed_adj, set_indexed_val, set_indexed_adj,&
        & set_indexed_chain, chain_op
 
@@ -175,4 +175,4 @@ contains
     end do
   end subroutine grad
 
-end module var_mod
+end module fazang_var_mod

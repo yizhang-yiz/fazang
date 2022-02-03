@@ -3,7 +3,7 @@
 program debug_test
   ! use, intrinsic :: iso_fortran_env
   ! use iso_c_binding
-  ! use test_mod
+  ! use fazang_test_mod
   ! use fazang
   ! implicit none
 

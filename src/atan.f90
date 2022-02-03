@@ -1,8 +1,8 @@
-module atan_op_mod
+module fazang_atan_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_atan)
   end function atan_v
 
-end module atan_op_mod
+end module fazang_atan_op_mod
 
-module atan_mod
-  use atan_op_mod
+module fazang_atan_mod
+  use fazang_atan_op_mod
   implicit none
 
   interface atan
      module procedure atan_v
   end interface atan
-end module atan_mod
+end module fazang_atan_mod

@@ -1,8 +1,8 @@
-module acos_op_mod
+module fazang_acos_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod, only : var
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod, only : var
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_acos)
   end function acos_v
 
-end module acos_op_mod
+end module fazang_acos_op_mod
 
-module acos_mod
-  use acos_op_mod
+module fazang_acos_mod
+  use fazang_acos_op_mod
   implicit none
 
   interface acos
      module procedure acos_v
   end interface acos
-end module acos_mod
+end module fazang_acos_mod

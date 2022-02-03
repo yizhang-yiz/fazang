@@ -1,7 +1,7 @@
-module nested_tape_mod
-  use tape_mod
-  use env_mod
-  use vari_mod, only : callstack
+module fazang_nested_tape_mod
+  use fazang_tape_mod
+  use fazang_env_mod
+  use fazang_vari_mod, only : callstack
   implicit none
 
   private
@@ -41,4 +41,4 @@ contains
     end if
   end subroutine end_nested
 
-end module nested_tape_mod
+end module fazang_nested_tape_mod

@@ -1,8 +1,8 @@
-module sin_op_mod
+module fazang_sin_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_sin)
   end function sin_v
 
-end module sin_op_mod
+end module fazang_sin_op_mod
 
-module sin_mod
-  use sin_op_mod
+module fazang_sin_mod
+  use fazang_sin_op_mod
   implicit none
 
   interface sin
      module procedure sin_v
   end interface sin
-end module sin_mod
+end module fazang_sin_mod

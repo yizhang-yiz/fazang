@@ -1,8 +1,8 @@
-module cos_op_mod
+module fazang_cos_op_mod
   use iso_fortran_env
-  use vari_mod, only: vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only: vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_cos)
   end function cos_v
 
-end module cos_op_mod
+end module fazang_cos_op_mod
 
-module cos_mod
-  use cos_op_mod
+module fazang_cos_mod
+  use fazang_cos_op_mod
   implicit none
 
   interface cos
      module procedure cos_v
   end interface cos
-end module cos_mod
+end module fazang_cos_mod

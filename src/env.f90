@@ -1,4 +1,4 @@
-module env_mod
+module fazang_env_mod
   use, intrinsic :: iso_fortran_env
 
   implicit none
@@ -50,4 +50,4 @@ contains
   end subroutine incr4
 
 
-end module env_mod
+end module fazang_env_mod

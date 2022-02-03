@@ -1,13 +1,13 @@
-module pow_mod
-  use vari_mod, only : vari
-  use env_mod
-  use var_mod
-  use inv_mod
-  use square_mod
-  use inv_square_mod
-  use sqrt_mod
-  use inv_sqrt_mod
-  use rel_operator_mod
+module fazang_pow_mod
+  use fazang_vari_mod, only : vari
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_inv_mod
+  use fazang_square_mod
+  use fazang_inv_square_mod
+  use fazang_sqrt_mod
+  use fazang_inv_sqrt_mod
+  use fazang_rel_operator_mod
   implicit none
 
   private
@@ -93,4 +93,4 @@ contains
     call s%set_chain(chain_pow_dv)
   end function pow_dv
 
-end module pow_mod
+end module fazang_pow_mod

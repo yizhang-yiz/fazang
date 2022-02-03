@@ -2,9 +2,9 @@
 
 program rel_test
   use, intrinsic :: iso_fortran_env
-  use test_mod
-  use var_mod
-  use rel_operator_mod
+  use fazang_test_mod
+  use fazang_var_mod
+  use fazang_rel_operator_mod
   implicit none
 
   type(var) :: y1, y2, y3, y4

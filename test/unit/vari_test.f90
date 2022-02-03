@@ -2,9 +2,9 @@
 
 program vari_test
   use, intrinsic :: iso_fortran_env
-  use env_mod
-  use test_mod
-  use vari_mod, only : vari, adstack, callstack, vari_at
+  use fazang_env_mod
+  use fazang_test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack, vari_at
   implicit none
 
   type(vari), pointer :: y1, y2, y3, y4

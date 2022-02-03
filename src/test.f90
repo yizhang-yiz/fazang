@@ -1,4 +1,4 @@
-module test_mod
+module fazang_test_mod
 
   use, intrinsic :: iso_fortran_env
   implicit none
@@ -103,4 +103,4 @@ contains
     end do
   end subroutine expect_dbl_eq_impl_2
 
-end module test_mod
+end module fazang_test_mod

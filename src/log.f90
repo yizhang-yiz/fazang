@@ -1,8 +1,8 @@
-module log_op_mod
+module fazang_log_op_mod
   use iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
-  use env_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
+  use fazang_env_mod
 
   implicit none
 
@@ -24,13 +24,13 @@ contains
     call s%set_chain(chain_log)
   end function log_v
 
-end module log_op_mod
+end module fazang_log_op_mod
 
-module log_mod
-  use log_op_mod
+module fazang_log_mod
+  use fazang_log_op_mod
   implicit none
 
   interface log
      module procedure log_v
   end interface log
-end module log_mod
+end module fazang_log_mod

@@ -1,8 +1,8 @@
-module grad_mod
-  use vari_mod, only : adstack, callstack
-  use env_mod
-  use var_mod
-  use nested_tape_mod
+module fazang_grad_mod
+  use fazang_vari_mod, only : adstack, callstack
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_nested_tape_mod
   implicit none
 
   abstract interface
@@ -67,4 +67,4 @@ contains
   end function jacobian
 
 
-end module grad_mod
+end module fazang_grad_mod

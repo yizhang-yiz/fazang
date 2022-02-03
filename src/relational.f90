@@ -1,7 +1,7 @@
-module rel_operator_mod
+module fazang_rel_operator_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only : var
+  use fazang_env_mod
+  use fazang_var_mod, only : var
 
   implicit none
 
@@ -50,4 +50,4 @@ contains
   FUNC_REL_OP_VD(<=, vd_le)
   FUNC_REL_OP_DV(<=, dv_le)
 
-end module rel_operator_mod
+end module fazang_rel_operator_mod

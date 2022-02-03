@@ -2,7 +2,7 @@
 
 program test_basic
   
-  use test_mod
+  use fazang_test_mod
   implicit none
 
   EXPECT_NEAR(1.0d0, 1.001d0, 0.01d0)

@@ -2,8 +2,8 @@
 
 program adstack_test
   use, intrinsic :: iso_fortran_env
-  use vari_mod, only : vari, adstack, callstack
-  use test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_test_mod
   implicit none
 
   type(adstack) x

@@ -2,14 +2,14 @@
 
 program sum_test
   use, intrinsic :: iso_fortran_env
-  use test_mod
-  use vari_mod, only : vari, adstack, callstack
-  use env_mod
-  use grad_mod
-  use var_mod
-  use sum_mod
-  use add_mod
-  use grad_mod
+  use fazang_test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_env_mod
+  use fazang_grad_mod
+  use fazang_var_mod
+  use fazang_sum_mod
+  use fazang_add_mod
+  use fazang_grad_mod
   implicit none
 
   type(var) :: x(4), s

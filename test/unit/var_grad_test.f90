@@ -2,7 +2,7 @@
 
 program var_grad_test
   use iso_c_binding
-  use test_mod
+  use fazang_test_mod
   use fazang
 
   implicit none

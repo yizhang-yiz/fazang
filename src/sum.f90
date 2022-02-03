@@ -1,8 +1,8 @@
-module sum_op_mod
+module fazang_sum_op_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod
-  use vari_mod, only: vari, callstack
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_vari_mod, only: vari, callstack
 
   implicit none
 
@@ -23,13 +23,13 @@ contains
     call s%set_chain(chain_sum)
   end function sum_v
 
-end module sum_op_mod
+end module fazang_sum_op_mod
 
-module sum_mod
-  use sum_op_mod
+module fazang_sum_mod
+  use fazang_sum_op_mod
   implicit none
 
   interface sum
      module procedure sum_v
   end interface sum
-end module sum_mod
+end module fazang_sum_mod

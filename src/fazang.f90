@@ -1,40 +1,40 @@
 module fazang
-  use env_mod
-  use tape_mod
-  use nested_tape_mod
-  use vari_mod, only : vari, adstack, callstack
-  use var_mod
+  use fazang_env_mod
+  use fazang_tape_mod
+  use fazang_nested_tape_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_var_mod
 
   ! ! gradient & jacobian
-  use grad_mod
+  use fazang_grad_mod
 
   ! ! op 1
-  use sin_mod
-  use cos_mod
-  use tan_mod
-  use asin_mod
-  use acos_mod
-  use atan_mod
-  use sqrt_mod
-  use exp_mod
-  use log_mod
-  use inv_mod
-  use square_mod
-  use inv_square_mod
-  use inv_sqrt_mod
+  use fazang_sin_mod
+  use fazang_cos_mod
+  use fazang_tan_mod
+  use fazang_asin_mod
+  use fazang_acos_mod
+  use fazang_atan_mod
+  use fazang_sqrt_mod
+  use fazang_exp_mod
+  use fazang_log_mod
+  use fazang_inv_mod
+  use fazang_square_mod
+  use fazang_inv_square_mod
+  use fazang_inv_sqrt_mod
 
   ! ! op 2
-  use rel_operator_mod
-  use add_mod
-  use sub_mod
-  use mul_mod
-  use div_mod
-  use pow_mod
+  use fazang_rel_operator_mod
+  use fazang_add_mod
+  use fazang_sub_mod
+  use fazang_mul_mod
+  use fazang_div_mod
+  use fazang_pow_mod
 
   ! ! op *
-  use sum_mod
-  use dot_product_mod
-  use matmul_mod
+  use fazang_sum_mod
+  use fazang_dot_product_mod
+  use fazang_matmul_mod
 
   implicit none
 

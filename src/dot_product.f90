@@ -1,8 +1,8 @@
-module dot_product_mod
+module fazang_dot_product_mod
   use iso_fortran_env
-  use env_mod
-  use var_mod, only: var, val, adj
-  use vari_mod, only: vari, callstack
+  use fazang_env_mod
+  use fazang_var_mod, only: var, val, adj
+  use fazang_vari_mod, only: vari, callstack
 
   implicit none
 
@@ -105,4 +105,4 @@ contains
     call chain_dot_product_vd(this, col_id, row)
   end subroutine chain_dot_product_dv
 
-end module dot_product_mod
+end module fazang_dot_product_mod

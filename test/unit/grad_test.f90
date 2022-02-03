@@ -1,14 +1,14 @@
 #include "test_macro.fi"
 
 module func
-  use env_mod
-  use var_mod
-  use pow_mod
-  use add_mod
-  use sub_mod
-  use log_mod
-  use mul_mod
-  use div_mod
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_pow_mod
+  use fazang_add_mod
+  use fazang_sub_mod
+  use fazang_log_mod
+  use fazang_mul_mod
+  use fazang_div_mod
   implicit none
 
   real(rk), parameter :: y = 1.3d0
@@ -26,10 +26,10 @@ end module func
 
 program grad_test
   use iso_c_binding
-  use test_mod
-  use env_mod
-  use var_mod
-  use grad_mod
+  use fazang_test_mod
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_grad_mod
   use func
 
   implicit none

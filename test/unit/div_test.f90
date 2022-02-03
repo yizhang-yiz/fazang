@@ -2,14 +2,14 @@
 
 program div_test
   use, intrinsic :: iso_fortran_env
-  use test_mod
-  use vari_mod, only : vari, adstack, callstack
-  use grad_mod
-  use env_mod
-  use var_mod
-  use add_mod
-  use mul_mod
-  use div_mod
+  use fazang_test_mod
+  use fazang_vari_mod, only : vari, adstack, callstack
+  use fazang_grad_mod
+  use fazang_env_mod
+  use fazang_var_mod
+  use fazang_add_mod
+  use fazang_mul_mod
+  use fazang_div_mod
   implicit none
 
   type(var) :: x, y1, y2, y3, y4
