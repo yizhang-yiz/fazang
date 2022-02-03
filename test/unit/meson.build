@@ -75,3 +75,6 @@ test('grad', t_grad)
 
 t_var_grad = executable('var_grad_test', files('var_grad_test.f90'), link_with : fazanglib)
 test('var_grad', t_var_grad)
+
+t_alloc = executable('alloc_test', files('alloc_test.f90'), link_with : fazanglib)
+test('alloc', t_alloc)

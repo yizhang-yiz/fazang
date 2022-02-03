@@ -3,12 +3,25 @@ module env_mod
 
   implicit none
 
+#ifdef FZ_STACK_LEN
+  integer, parameter :: adstack_len = FZ_STACK_LEN
+#elif defined FZ_USE_STACK
   integer, parameter :: adstack_len = 1024
+#elif defined FZ_INIT_STACK_LEN
+  integer, parameter :: init_vari_stack_size = FZ_INIT_STACK_LEN
+#else
+  integer, parameter :: init_vari_stack_size = 1024
+#endif
 
-  ! default real KIND
+  ! each tape record = (val, adj, n_operands=0, n_data_operands=0)
+  integer, parameter :: min_rec_size = 6
+
+  integer, parameter :: init_tape_size = 2 * min_rec_size * init_vari_stack_size
+
+  ! real KIND
   integer, parameter :: rk = real64
 
-  ! default int KIND
+  ! int KIND
   integer, parameter :: ik = int32
 
   ! PI

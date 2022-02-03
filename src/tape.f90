@@ -5,10 +5,7 @@ module tape_mod
   implicit none
   
   private
-  public :: tape, min_rec_size
-
-  ! (val, adj, n_operands=0, n_data_operands=0)
-  integer(ik), parameter :: min_rec_size = 6
+  public :: tape
 
   ! essentially a csr val_adj for sparse arrays
   ! each record for vari is laid out as
@@ -26,7 +23,12 @@ module tape_mod
 
   type :: tape
      integer(ik) :: head = 1
-     integer(ik) :: storage(min_rec_size * adstack_len) = 0 !crude size est
+     integer(ik) :: storage_size = 0
+#if defined (FZ_STACK_LEN) || defined (FZ_USE_STACK)
+     integer(ik) :: storage(4 * min_rec_size * adstack_len)
+#else
+     integer(ik), allocatable :: storage(:)
+#endif
      ! type(c_ptr) :: cp
      ! real(rk), pointer :: fp
    contains
@@ -53,14 +55,38 @@ module tape_mod
      procedure, private :: push_int_array, push_real_array, push_real_2d_array
      procedure :: set_real_at, set_real_array_at
      procedure :: get_real_at, get_real_array_at
+     procedure :: alloc_storage
   end type tape
   
+  integer(ik), allocatable :: storage_tmp(:)
+
 contains
+
+  ! if remaining space of varis array is not enough for another n
+  ! vari, double the array size
+  subroutine alloc_storage(this, n)
+#if !defined (FZ_STACK_LEN) && !defined (FZ_USE_STACK)
+    class(tape), intent(inout) :: this
+    integer(ik), intent(in) :: n
+    if ( this % storage_size == 0 ) then
+       allocate(this % storage(init_tape_size), source=0)
+       this % storage_size = init_tape_size
+    endif
+
+    do while (this % storage_size - this % head + 1 < n)
+       call move_alloc(this % storage, storage_tmp)       
+       allocate(this % storage(2 * this % storage_size), source=0)
+       this % storage(1:this%storage_size) = storage_tmp
+       this % storage_size =  2 * this % storage_size
+    end do
+#endif
+  end subroutine alloc_storage
 
   function push_1(this) result(id)
     class(tape), intent(inout) :: this
     integer(ik) :: id
     id = this%head
+    call this % alloc_storage(min_rec_size)
     call incr(this%head, min_rec_size)
   end function push_1
 
@@ -69,6 +95,7 @@ contains
     class(tape), intent(inout) :: this
     integer(ik) :: id
     id = this%head
+    call this % alloc_storage(n * min_rec_size)
     call incr(this%head, min_rec_size * n)
   end function push_n
 
@@ -77,6 +104,7 @@ contains
     integer(ik), intent(in) :: i(:)
     integer(ik) :: id
     id = this%head
+    call this % alloc_storage(size(i))
     this%storage(this%head : (this%head + size(i) -1)) = i
     call incr(this%head, size(i))
   end function push_int_array
@@ -87,6 +115,7 @@ contains
     integer(ik):: n, id
     n = size(d)
     id = this%head
+    call this % alloc_storage(2 * n)
     this%storage(id:(id+2*n-1)) = transfer(d, this%storage)
     call incr(this%head, 2 * n) ! one real64 takes 2 int32
   end function push_real_array
@@ -97,6 +126,7 @@ contains
     integer(ik):: n, id
     n = size(d)
     id = this%head
+    call this % alloc_storage(2 * n)
     this%storage(id:(id+2*n-1)) = transfer(d, this%storage)
     call incr(this%head, 2 * n) ! one real64 takes 2 int32
   end function push_real_2d_array
@@ -119,6 +149,7 @@ contains
     class(tape), intent(inout) :: this
     integer(ik) :: id
     id = this%head
+    call this % alloc_storage(min_rec_size)
     call this%set_val_curr(d)
     call incr(this%head, min_rec_size)
   end function push_val
@@ -169,6 +200,8 @@ contains
     class(tape), intent(inout) :: this
     integer(ik) :: id, j
     id = this%head
+
+    call this % alloc_storage(4)
     call this%set_val_curr(val)
     call incr4(this%head)       ! val & adj storage
 
@@ -182,6 +215,7 @@ contains
     class(tape), target, intent(inout) :: this
     integer(ik) :: id, j
     id = this%head
+    call this % alloc_storage(min_rec_size)
     call this%set_val_curr(val)
     call incr4(this%head)
     call incr1(this%head)
@@ -199,6 +233,7 @@ contains
     class(tape), target, intent(inout) :: this
     integer(ik) :: id, j
     id = this%head
+    call this % alloc_storage(4)
     call this%set_val_curr(val)
     call incr4(this%head)
     j = this%push_int_array([size(op), op, size(dop)]) ! the last is for the size of data operand, which is zero

@@ -43,14 +43,19 @@ module vari_mod
 
   type :: adstack
      integer(int32) :: head = 1
+#if defined (FZ_STACK_LEN) || defined (FZ_USE_STACK)
      type(vari) :: varis(adstack_len)
+#else
+     integer(ik) :: n_varis = 0
+     type(vari), allocatable :: varis(:)
+     type(vari), allocatable :: varis_tmp(:)
+#endif
      type(tape) :: stack
    contains
      procedure :: set_zero_all_adj
-     ! procedure :: val
-     ! procedure :: adj
-     ! procedure :: set_val
-     ! procedure :: set_adj
+     generic :: alloc_vari_stack => alloc_vari_stack_n, alloc_vari_stack_1
+     procedure :: vari_stack_size
+     procedure, private :: alloc_vari_stack_n, alloc_vari_stack_1
   end type adstack
 
   type(adstack), target :: callstack
@@ -69,6 +74,33 @@ module vari_mod
 
 contains
 
+  ! if remaining space of varis array is not enough for another n
+  ! vari, double the array size
+  subroutine alloc_vari_stack_n(this, n)
+    class(adstack), intent(inout) :: this
+    integer(ik), intent(in) :: n
+#if !defined (FZ_STACK_LEN) && !defined (FZ_USE_STACK)
+    if ( this % n_varis == 0 ) then
+       allocate(this % varis (init_vari_stack_size),&
+            & source=vari(0, chain_dummy))
+       this % n_varis = init_vari_stack_size
+    endif
+
+    do while (this % n_varis - this % head + 1 < n)
+       call move_alloc(this % varis, this % varis_tmp)       
+       allocate(this % varis(2 * this % n_varis), &
+            & source=vari(0, chain_dummy))
+       this % varis(1:this % n_varis) = this % varis_tmp
+       this % n_varis =  2 * this % n_varis
+    end do
+#endif
+  end subroutine alloc_vari_stack_n
+
+  subroutine alloc_vari_stack_1(this)
+    class(adstack), intent(inout) :: this
+    call this % alloc_vari_stack_n(1)
+  end subroutine alloc_vari_stack_1
+
   elemental function vari_index(i) result(id)
     integer(ik), intent(in) :: i
     integer(ik) :: id
@@ -84,6 +116,7 @@ contains
   function new_vari_val(d) result(vp)
     real(rk), intent(in) :: d
     integer(ik) :: vp
+    call callstack % alloc_vari_stack()
     callstack%varis(callstack%head)%i = callstack % stack % push(d)
     vp = callstack%head
     call incr1(callstack%head)
@@ -91,6 +124,7 @@ contains
 
   function new_vari() result(vp)
     integer(ik) :: vp
+    call callstack % alloc_vari_stack()
     vp = new_vari_val(0.0d0)
   end function new_vari
 
@@ -98,6 +132,7 @@ contains
     real(rk), intent(in) :: d
     integer(ik), intent(in) :: op(:)
     integer(ik) :: vp
+    call callstack % alloc_vari_stack()
     callstack%varis(callstack%head)%i = callstack % stack % push(d, op)
     vp = callstack%head
     call incr1(callstack%head)
@@ -107,6 +142,7 @@ contains
     real(rk), intent(in) :: d
     real(rk), intent(in) :: dop(:)
     integer(ik) :: vp
+    call callstack % alloc_vari_stack()
     callstack%varis(callstack%head)%i = callstack % stack % push(d, dop)
     vp = callstack%head
     call incr1(callstack%head)
@@ -117,6 +153,7 @@ contains
     integer(ik), intent(in) :: op(:)
     real(rk), intent(in) :: dop(:)
     integer(ik) :: vp
+    call callstack % alloc_vari_stack()
     callstack%varis(callstack%head)%i = callstack % stack % push(d,&
          & op, dop)
     vp = callstack%head
@@ -255,5 +292,14 @@ contains
     integer(ik) i
     i = this%i
   end subroutine chain_dummy
+
+  pure integer(ik) function vari_stack_size(this)
+    class(adstack), intent(in) :: this
+#if defined (FZ_STACK_LEN) || defined (FZ_USE_STACK)
+    vari_stack_size = adstack_len
+#else
+    vari_stack_size = this % n_varis
+#endif
+  end function vari_stack_size
 
 end module vari_mod
