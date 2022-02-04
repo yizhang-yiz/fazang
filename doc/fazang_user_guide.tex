@@ -1,4 +1,4 @@
-% Created 2022-02-04 Fri 01:15
+% Created 2022-02-04 Fri 01:30
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt, reqno, oneside]{amsbook}
               \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
@@ -41,7 +41,7 @@
 
 
 \chapter{Introduction}
-\label{sec:orgb2d5569}
+\label{sec:org233974c}
 \texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
 project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
 is also involved in. \texttt{Fazang} is intended to support general scientific
@@ -52,7 +52,7 @@ User should be aware that the project is at early stage and still
 under development. For any questions, suggestions, and
 contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
 \chapter{Quick Start}
-\label{sec:orgf3c265c}
+\label{sec:orgad024e7}
 Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
 Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
 
@@ -116,7 +116,7 @@ end program log_demo
 \end{minted}
 
 \chapter{Use \texttt{Fazang}}
-\label{sec:orgb6c2348}
+\label{sec:org465a113}
 \texttt{Fazang} uses \texttt{var} type to record numerical and gradient
 operations. The type supports three functions
 \begin{itemize}
@@ -125,7 +125,7 @@ operations. The type supports three functions
 \item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
 \end{itemize}
 \section{Constructors}
-\label{sec:org101898e}
+\label{sec:org9e2ec54}
 \texttt{var} can be constructed using overloaded \texttt{var} interface.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 real(real64) :: a, b(3), c(2, 3)
@@ -138,7 +138,7 @@ y = var(b)                ! y%val() == b
 z = var(c)                ! z%val() == c
 \end{minted}
 \section{Assignment}
-\label{sec:orge73f903}
+\label{sec:orgd349c45}
 \texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 ! ....
@@ -148,20 +148,20 @@ z = new_c                 ! z%val() == new_c
 \end{minted}
 
 \section{Gradient}
-\label{sec:orged71949}
+\label{sec:org3219b4f}
    \label{sec:gradient}
 Consider a variable \(z\) calculated by the composition of a series of operations
 \begin{equation*}
-z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n),
+z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n).
 \end{equation*}
-for \(z_i, i = 1, \dots, n\) we call \(dz/{z_i}\) the \emph{adjoint} of \(z_i\),
+For \(z_i, i = 1, \dots, n\) we refer \(dz/d{z_i}\) as the \emph{adjoint} of \(z_i\),
 denoted by \(z_i^{\text{adj}}\).
-According to chain rule the adjoints can be calculated recursively \cite{griewank_evaluating_2008},
+The chain rule says the adjoints can be calculated recursively \cite{griewank_evaluating_2008},
 \begin{align*}
 z^{\text{adj}} = 1, \\
-z_1^{\text{adj}} = z^{\text{adj}} \frac{f_1}{z_1}, \\
+z_1^{\text{adj}} = z^{\text{adj}} \frac{df_1}{dz_1}, \\
 \dots, \\
-z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{f_i}{z_i}.
+z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{df_i}{dz_i}.
 \end{align*}
 
 We often refer each \((f_i, z_i)\) pair as a
@@ -217,20 +217,20 @@ first component being the function value, and the rest the partial
 derivatives.
 
 \section{Functions}
-\label{sec:orgea452dc}
+\label{sec:org7cbef5d}
 Numeric functions supported by \texttt{Fazang} are listed in Appendix \ref{appendix:func}. All unary and
 binary functions are \texttt{elemental}. The binary functions allow mixed
 argument types, namely, either argument can be \texttt{real64} type while the
 other the \texttt{var} type.
 
 \chapter{Design}
-\label{sec:orgbdbdc47}
+\label{sec:orgecdc2da}
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. \texttt{Fazang} achieves this
 through two derived types, \texttt{tape} and \texttt{vari}.
 
 \section{\texttt{tape} data structure}
-\label{sec:orgc10c16c}
+\label{sec:org0025d46}
 A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
 head to the current stack top.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -259,7 +259,7 @@ the array after saving its current value to a \texttt{vari} type variable
 for future retrieval.
 
 \section{\texttt{vari} type}
-\label{sec:orgbd59130}
+\label{sec:orgc981993}
 The \texttt{vari} type is simply a proxy of a node's storage location in the tape
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 type :: vari
@@ -288,14 +288,14 @@ restore the original values. Since there is no guarantee that \texttt{move\_allo
 will keep the original memory, a pointer to the original address would
 be corrupted.
 
-A \texttt{Fazang} program steps forward, a series of \texttt{vari} variables are
+As a \texttt{Fazang} program steps forward, a series of \texttt{vari} variables are
 generated, with their \emph{values} calculated and stored. This is called
 a \emph{forward pass}. The generated \texttt{vari} variables in the forward pass are
 stored in array \texttt{varis}. Each entry in \texttt{varis} is a dependent
 (operation output) of one or more previous entries.
 
 \section{\texttt{var} type}
-\label{sec:orgb0c50cd}
+\label{sec:org58bb4ae}
 The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
 stores the index of a \texttt{vari} in the \texttt{varis} array.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -327,7 +327,7 @@ Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} an
 \texttt{varis} arrays.
 
 \chapter{Add operation functions}
-\label{sec:org42182fa}
+\label{sec:org30a0d33}
 Adding an operation \(f_i\) involves creating functions for forward
 pass and reverse pass. Let us first use \texttt{log} function as a simple
 example.
@@ -361,9 +361,9 @@ assume the \texttt{log} operation is node \(i\), then \(f_i=\log(\dot)\) and
 \(z_{i-1}\). During the reverse pass when the node is visited, \texttt{chain\_log} 
 first retrieves current \((z_i, z_i^{\text{adj}})\)
 using \texttt{operand\_val()} and \texttt{operand\_adj()}, then updates
-\(z_i^{\text{adj}}\) with additional
+\(z_i^{\text{adj}}\) with an additional
 \begin{equation*}
-z_{i-1}^{\text{adj}} \frac{df_i}{dz_i} = z_{i-1}^{\text{adj}}\frac{\log(z_i)}{z_i}=\frac{z_{i-1}^{\text{adj}}}{z_i}.
+z_{i-1}^{\text{adj}} \frac{df_i}{dz_i} = z_{i-1}^{\text{adj}}\frac{d\log(z_i)}{dz_i}=\frac{z_{i-1}^{\text{adj}}}{z_i}.
 \end{equation*}
 
 Adding a binary operation \(f_i(z_i^{(1)}, z_i^{2})\) is slightly more complex, as we will need to
@@ -442,7 +442,7 @@ The third scenario is treated similarly.
 
 \appendix
 \chapter{\texttt{Fazang} Functions \label{sec:func_list}}
-\label{sec:org4fec50b}
+\label{sec:orgcfd34dc}
 \label{appendix:func}  
 \begin{center}
 \begin{tabular}{lll}

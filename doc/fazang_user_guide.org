@@ -121,16 +121,16 @@ The following programe calculates $\frac{df}{d\mu}$ and
    <<sec:gradient>>
 Consider a variable $z$ calculated by the composition of a series of operations
 \begin{equation*}
-z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n),
+z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n).
 \end{equation*}
-for $z_i, i = 1, \dots, n$ we call $dz/{z_i}$ the /adjoint/ of $z_i$,
+For $z_i, i = 1, \dots, n$ we refer $dz/d{z_i}$ as the /adjoint/ of $z_i$,
 denoted by $z_i^{\text{adj}}$.
-According to chain rule the adjoints can be calculated recursively cite:griewank_evaluating_2008,
+The chain rule says the adjoints can be calculated recursively cite:griewank_evaluating_2008,
 \begin{align*}
 z^{\text{adj}} = 1, \\
-z_1^{\text{adj}} = z^{\text{adj}} \frac{f_1}{z_1}, \\
+z_1^{\text{adj}} = z^{\text{adj}} \frac{df_1}{dz_1}, \\
 \dots, \\
-z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{f_i}{z_i}.
+z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{df_i}{dz_i}.
 \end{align*}
 
 We often refer each $(f_i, z_i)$ pair as a
@@ -251,7 +251,7 @@ restore the original values. Since there is no guarantee that =move_alloc=
 will keep the original memory, a pointer to the original address would
 be corrupted.
 
-A {{{fz}}} program steps forward, a series of =vari= variables are
+As a {{{fz}}} program steps forward, a series of =vari= variables are
 generated, with their /values/ calculated and stored. This is called
 a /forward pass/. The generated =vari= variables in the forward pass are
 stored in array =varis=. Each entry in =varis= is a dependent
@@ -322,9 +322,9 @@ $z_i$ is the operand =v=, and the new =var= =s= would be
 $z_{i-1}$. During the reverse pass when the node is visited, =chain_log= 
 first retrieves current $(z_i, z_i^{\text{adj}})$
 using =operand_val()= and =operand_adj()=, then updates
-$z_i^{\text{adj}}$ with additional
+$z_i^{\text{adj}}$ with an additional
 \begin{equation*}
-z_{i-1}^{\text{adj}} \frac{df_i}{dz_i} = z_{i-1}^{\text{adj}}\frac{\log(z_i)}{z_i}=\frac{z_{i-1}^{\text{adj}}}{z_i}.
+z_{i-1}^{\text{adj}} \frac{df_i}{dz_i} = z_{i-1}^{\text{adj}}\frac{d\log(z_i)}{dz_i}=\frac{z_{i-1}^{\text{adj}}}{z_i}.
 \end{equation*}
 
 Adding a binary operation $f_i(z_i^{(1)}, z_i^{2})$ is slightly more complex, as we will need to
