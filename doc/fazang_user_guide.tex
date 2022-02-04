@@ -1,4 +1,4 @@
-% Created 2022-02-04 Fri 00:40
+% Created 2022-02-04 Fri 01:15
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt, reqno, oneside]{amsbook}
               \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
@@ -41,7 +41,7 @@
 
 
 \chapter{Introduction}
-\label{sec:org9433f9b}
+\label{sec:orgb2d5569}
 \texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
 project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
 is also involved in. \texttt{Fazang} is intended to support general scientific
@@ -52,7 +52,7 @@ User should be aware that the project is at early stage and still
 under development. For any questions, suggestions, and
 contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
 \chapter{Quick Start}
-\label{sec:org03a222a}
+\label{sec:orgf3c265c}
 Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
 Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
 
@@ -63,7 +63,7 @@ cd fazang && mkdir build && cd build
 meson compile
 \end{minted}
 This generates a shared library at \texttt{build/src/}. User needs to link
-this library when building an application, which can be done in
+this library when building an application. This can be done in
 \texttt{meson} by setting
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{python}
 executable('app_name', files('path/to/app_file.F90'), dependencies : fazang_dep)
@@ -116,7 +116,7 @@ end program log_demo
 \end{minted}
 
 \chapter{Use \texttt{Fazang}}
-\label{sec:orgffd26a9}
+\label{sec:orgb6c2348}
 \texttt{Fazang} uses \texttt{var} type to record numerical and gradient
 operations. The type supports three functions
 \begin{itemize}
@@ -125,7 +125,7 @@ operations. The type supports three functions
 \item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
 \end{itemize}
 \section{Constructors}
-\label{sec:org93fffbe}
+\label{sec:org101898e}
 \texttt{var} can be constructed using overloaded \texttt{var} interface.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 real(real64) :: a, b(3), c(2, 3)
@@ -138,7 +138,7 @@ y = var(b)                ! y%val() == b
 z = var(c)                ! z%val() == c
 \end{minted}
 \section{Assignment}
-\label{sec:org6254334}
+\label{sec:orge73f903}
 \texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 ! ....
@@ -148,7 +148,7 @@ z = new_c                 ! z%val() == new_c
 \end{minted}
 
 \section{Gradient}
-\label{sec:org25f48c1}
+\label{sec:orged71949}
    \label{sec:gradient}
 Consider a variable \(z\) calculated by the composition of a series of operations
 \begin{equation*}
@@ -168,7 +168,7 @@ We often refer each \((f_i, z_i)\) pair as a
 \emph{node}, and \(z_i\) the \emph{operand} of operation \(f_i\). The above recursion through the nodes requires a way to store
 and visit the \emph{callstack} of nodes.  It is embodied in \texttt{Fazang} by the \texttt{var\%grad()}
 function. When \texttt{z\%grad()} is called, \texttt{z}'s adjoint is set to 1, and
-every other \texttt{var} variable is tranversed with its adjoint updated. In
+every other \texttt{var} variable is transversed with its adjoint updated. In
 order to calculate the adjoint with respect to another variable, user
 must \texttt{call set\_zero\_all\_adj()} first to reset all adjoints to zero.
 
@@ -217,20 +217,20 @@ first component being the function value, and the rest the partial
 derivatives.
 
 \section{Functions}
-\label{sec:org94705bf}
-Numeric functions supported by \texttt{Fazang} can be found in Appendix \ref{appendix:func}. All unary and
+\label{sec:orgea452dc}
+Numeric functions supported by \texttt{Fazang} are listed in Appendix \ref{appendix:func}. All unary and
 binary functions are \texttt{elemental}. The binary functions allow mixed
 argument types, namely, either argument can be \texttt{real64} type while the
 other the \texttt{var} type.
 
 \chapter{Design}
-\label{sec:orgb3e310a}
+\label{sec:orgbdbdc47}
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. \texttt{Fazang} achieves this
 through two derived types, \texttt{tape} and \texttt{vari}.
 
 \section{\texttt{tape} data structure}
-\label{sec:orgea6586a}
+\label{sec:orgc10c16c}
 A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
 head to the current stack top.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -252,14 +252,14 @@ space in \texttt{storage} is allotted to store the node's
 
 Since a node's value, adjoint, and data
 operands are \texttt{real64}, they are first converted to \texttt{int32} using
-\texttt{transfer} function before stored in the \texttt{tape} array, and each such
+\texttt{transfer} function before stored in the \texttt{tape} array, so that each such
 a value occupies two \texttt{storage} entries. After each
 allotation, the \texttt{head} is moved to point to the next empty slot in
 the array after saving its current value to a \texttt{vari} type variable
 for future retrieval.
 
 \section{\texttt{vari} type}
-\label{sec:orgd4754ed}
+\label{sec:orgbd59130}
 The \texttt{vari} type is simply a proxy of a node's storage location in the tape
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 type :: vari
@@ -281,20 +281,21 @@ abstract interface
 end interface
 \end{minted}
 An alternative to integer index is to a \texttt{pointer} to the according
-enry in the \texttt{tape} array. However, when \texttt{storage} is filled we will need to expand
-it. \texttt{Fazang} does this by doubling its size and use \texttt{move\_alloc} to
-restore the storage. Since there is no guarantee that \texttt{move\_alloc}
+enry in the \texttt{tape} array. However, we will need to expand the
+\texttt{storage} when it is filled up, and \texttt{Fazang} does this by doubling the
+\texttt{storage} size and use \texttt{move\_alloc} to
+restore the original values. Since there is no guarantee that \texttt{move\_alloc}
 will keep the original memory, a pointer to the original address would
 be corrupted.
 
-A \texttt{Fazang} program generates a series of \texttt{vari} variables. Each such
-variable's \emph{value} is generated and stored following the program flow. This is called
-\emph{forward pass}, during which \texttt{Fazang} uses array \texttt{varis} to store these \texttt{vari}
-variables, with each entry depending on one or more previous
-entries.
+A \texttt{Fazang} program steps forward, a series of \texttt{vari} variables are
+generated, with their \emph{values} calculated and stored. This is called
+a \emph{forward pass}. The generated \texttt{vari} variables in the forward pass are
+stored in array \texttt{varis}. Each entry in \texttt{varis} is a dependent
+(operation output) of one or more previous entries.
 
 \section{\texttt{var} type}
-\label{sec:org662a0f7}
+\label{sec:orgb0c50cd}
 The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
 stores the index of a \texttt{vari} in the \texttt{varis} array.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -307,9 +308,11 @@ type :: var
    procedure :: set_chain
 end type var
 \end{minted}
-After the forward pass, when adjoints are seeked and  \texttt{grad} or \texttt{gradient} procedure is called, \texttt{Fazang}
-initiates \emph{reverse pass}, in which it loops the \texttt{varis} array reverse
-and call each \texttt{vari}'s \texttt{chain} procedure to update the adjoints.
+After the forward pass, when adjoints are desired, we call \texttt{grad} or
+\texttt{gradient} procedure. This initiates a \emph{reverse pass}, in which  the
+\texttt{varis} array is transversed backward
+so that each \texttt{vari}'s \texttt{chain} procedure is called to update the
+operand adjoints.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 subroutine grad(this)
   class(var), intent(in) :: this
@@ -324,7 +327,7 @@ Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} an
 \texttt{varis} arrays.
 
 \chapter{Add operation functions}
-\label{sec:org6a15a1e}
+\label{sec:org42182fa}
 Adding an operation \(f_i\) involves creating functions for forward
 pass and reverse pass. Let us first use \texttt{log} function as a simple
 example.
@@ -341,8 +344,7 @@ end function log_v
 The function generates a new \texttt{var} variable \texttt{s} using a special
 constructor \texttt{var(value, array of operands)} which stores the value as
 well as the single operand \texttt{v}'s index (in the \texttt{tape} \texttt{storage}
-array). It also \texttt{set\_chain} pointer of the newly created \texttt{s} using 
-a dedicated procedure
+array). It also points \texttt{s}'s chain to a dedicated procedure \texttt{chain\_log}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 subroutine chain_log(this)
   class(vari), intent(in) :: this
@@ -353,7 +355,7 @@ subroutine chain_log(this)
   call this%set_operand_adj(new_adj)
 end subroutine chain_log
 \end{minted}
-Recall the recursion in Section \ref{sec:gradient},
+To understand this function, recall the recursion in Section \ref{sec:gradient},
 assume the \texttt{log} operation is node \(i\), then \(f_i=\log(\dot)\) and
 \(z_i\) is the operand \texttt{v}, and the new \texttt{var} \texttt{s} would be
 \(z_{i-1}\). During the reverse pass when the node is visited, \texttt{chain\_log} 
@@ -436,11 +438,11 @@ subroutine chain_div_vd(this)
 end subroutine chain_div_vd
 \end{minted}
 
-The third scenario is addressly similarly.
+The third scenario is treated similarly.
 
 \appendix
 \chapter{\texttt{Fazang} Functions \label{sec:func_list}}
-\label{sec:org4ab5d4f}
+\label{sec:org4fec50b}
 \label{appendix:func}  
 \begin{center}
 \begin{tabular}{lll}

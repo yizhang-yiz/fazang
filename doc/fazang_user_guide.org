@@ -397,7 +397,7 @@ So with =v= as $z_i^{(1)}$ and =d= as $z_i^{(2)}$ we have
   end subroutine chain_div_vd
 #+end_src
 
-The third scenario is addressly similarly.
+The third scenario is treated similarly.
 
 #+LaTeX: \appendix
 * {{{fz}}} Functions \label{sec:func_list}

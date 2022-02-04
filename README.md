@@ -5,7 +5,7 @@
 
 ## Quick start
 
-`Fazang` provides user-facing variable `var` type. It is the type for dependent and independent variables whose derivatives will be calculated.
+`Fazang` provides user-facing variable `var` type. It is the type for dependent and independent variables of which the derivatives will be calculated.
 
 ```fortran
 program var_grad_test
@@ -113,7 +113,9 @@ x = var()           ! value of x is 0.d0
 x = var(1.5d0)      ! value of x is 1.5d0
 ```
 
-`Fazang` overloads instrinc arithmatic unary and binary functions. All the downstream variables that depend on a `var` should also be `var`
+`Fazang` overloads instrinc arithmatic unary and binary functions. A list of supported functions can be found in [the user guide](https://github.com/yizhang-yiz/fazang/blob/main/doc/fazang_user_guide.pdf).
+
+All the downstream variables that depend on a `var` should also be `var`
 
 ```fortran
 type(var) x, y
