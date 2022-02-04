@@ -1,0 +1,476 @@
+% Created 2022-02-04 Fri 00:40
+% Intended LaTeX compiler: pdflatex
+\documentclass[12pt, reqno, oneside]{amsbook}
+              \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
+\BeforeBeginEnvironment{minted}{\begin{mdframed}}
+\AfterEndEnvironment{minted}{\end{mdframed}}
+\usepackage{appendix}
+\usepackage{url}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage[newfloat]{minted}
+\usepackage{caption}
+\author{Yi Zhang}
+\date{\today}
+\title{\texttt{Fazang}: A Reverse-mode Automatic differentiation tool in Fortran\\\medskip
+\large User's Guide \\  (Version 0.0.1)}
+\hypersetup{
+ pdfauthor={Yi Zhang},
+ pdftitle={\texttt{Fazang}: A Reverse-mode Automatic differentiation tool in Fortran},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 27.2 (Org mode 9.4.4)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\chapter{Introduction}
+\label{sec:org9433f9b}
+\texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
+project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
+is also involved in. \texttt{Fazang} is intended to support general scientific
+computing in Fortran beyond Bayesian inference and Markove Chain
+Monte Carlo that \texttt{Stan/Math} is designed for. 
+
+User should be aware that the project is at early stage and still
+under development. For any questions, suggestions, and
+contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
+\chapter{Quick Start}
+\label{sec:org03a222a}
+Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
+Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
+
+After downloading \texttt{Fazang}, user can use \texttt{meson} to build the library.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{bash}
+git clone git@github.com:yizhang-yiz/fazang.git
+cd fazang && mkdir build && cd build
+meson compile
+\end{minted}
+This generates a shared library at \texttt{build/src/}. User needs to link
+this library when building an application, which can be done in
+\texttt{meson} by setting
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{python}
+executable('app_name', files('path/to/app_file.F90'), dependencies : fazang_dep)
+\end{minted}
+
+\texttt{Fazang} provides a user-facing derived type \texttt{var}. This is the
+type for the dependent and independent variables of which the
+adjoint (derivative) will be calculated.
+
+For example, consider the log of
+the Gaussian distribution density with mean \(\mu\) and
+standard deviation \(\sigma\)
+\begin{equation}\label{eq:lnormal_example}
+  f(\mu, \sigma) = \log{\left(
+      \frac{1}{\sigma\sqrt{2\pi}} \exp\left(
+        -\frac{1}{2}\left(\frac{y-\mu}{\sigma}\right)^2
+      \right)
+    \right)}
+\end{equation}
+The following programe calculates \(\frac{df}{d\mu}\) and
+      \(\frac{df}{d\sigma}\) at \(y=1.3\), \(\mu=0.5\), and \(\sigma=1.2\).
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+program log_demo
+  use fazang ! load Fazang library
+
+  implicit none
+
+  real(rk) :: y
+  type(var) :: f, sigma, mu
+
+  ! data
+  y = 1.3d0
+
+  ! independent variables
+  mu = var(0.5d0)
+  sigma = var(1.2d0)
+
+  ! dependent
+  f = var(-0.5d0 * log(2 * pi))
+  f = f - log(sigma)
+  f = f - 0.5d0 * ((y - mu) / sigma) ** 2.d0;
+
+  ! use grad() to calculate df/d(mu) and df/d(sigma). Each var's
+  ! derivative (also called adjoint) can be access through var%adj().
+
+  call f%grad()
+  write(*, *) "df/d(mu): ", mu%adj()
+  write(*, *) "df/d(sigma): ", sigma%adj()
+end program log_demo
+\end{minted}
+
+\chapter{Use \texttt{Fazang}}
+\label{sec:orgffd26a9}
+\texttt{Fazang} uses \texttt{var} type to record numerical and gradient
+operations. The type supports three functions
+\begin{itemize}
+\item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%val()} : returns value
+\item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%adj()} : returns derivative, henceforth referred as \emph{adjoint}.
+\item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
+\end{itemize}
+\section{Constructors}
+\label{sec:org93fffbe}
+\texttt{var} can be constructed using overloaded \texttt{var} interface.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+real(real64) :: a, b(3), c(2, 3)
+real(real64) :: new_a, new_b(3), new_c(2, 3)
+type(var) :: x, y(3), z(2, 3)
+! ...
+x = var()                 ! x%val() == 0.d0
+x = var(a)                ! x%val() == a
+y = var(b)                ! y%val() == b
+z = var(c)                ! z%val() == c
+\end{minted}
+\section{Assignment}
+\label{sec:org6254334}
+\texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+! ....
+x = new_a                 ! x%val() == new_a
+y = new_b                 ! y%val() == new_b
+z = new_c                 ! z%val() == new_c
+\end{minted}
+
+\section{Gradient}
+\label{sec:org25f48c1}
+   \label{sec:gradient}
+Consider a variable \(z\) calculated by the composition of a series of operations
+\begin{equation*}
+z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n),
+\end{equation*}
+for \(z_i, i = 1, \dots, n\) we call \(dz/{z_i}\) the \emph{adjoint} of \(z_i\),
+denoted by \(z_i^{\text{adj}}\).
+According to chain rule the adjoints can be calculated recursively \cite{griewank_evaluating_2008},
+\begin{align*}
+z^{\text{adj}} = 1, \\
+z_1^{\text{adj}} = z^{\text{adj}} \frac{f_1}{z_1}, \\
+\dots, \\
+z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{f_i}{z_i}.
+\end{align*}
+
+We often refer each \((f_i, z_i)\) pair as a
+\emph{node}, and \(z_i\) the \emph{operand} of operation \(f_i\). The above recursion through the nodes requires a way to store
+and visit the \emph{callstack} of nodes.  It is embodied in \texttt{Fazang} by the \texttt{var\%grad()}
+function. When \texttt{z\%grad()} is called, \texttt{z}'s adjoint is set to 1, and
+every other \texttt{var} variable is tranversed with its adjoint updated. In
+order to calculate the adjoint with respect to another variable, user
+must \texttt{call set\_zero\_all\_adj()} first to reset all adjoints to zero.
+
+An alternative to invoke gradient calculation is to define the
+dependent as a function and feed it to \texttt{Fazang}'s \texttt{gradient}
+function. Take Eq.\eqref{eq:lnormal_example} for example, we can first
+define the function for \(f(\mu, \sigma)\).
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+module func
+  use fazang ! load Fazang library
+  implicit none
+
+  real(rk), parameter :: y = 1.3d0
+
+contains
+  type(var) function f(x)
+    type(var), intent(in) :: x(:)
+    type(var) :: mu, sigma
+    mu = x(1)
+    sigma = x(2)
+    f = -0.5d0 * log(2 * pi) - log(sigma) - 0.5d0 * ((y - mu) / sigma) ** 2.d0;
+  end function f
+
+end module func
+\end{minted}
+Then we can supply function \texttt{f} as a procedure argument.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+program log_demo2
+  use iso_c_binding
+  use fazang
+  use func
+
+  implicit none
+
+  real(real64) :: fx(3), x(2)
+  x = [0.5d0, 1.2d0]
+
+  fx = gradient(f, x)
+  write(*, *) "f(x): ", fx(1)
+  write(*, *) "df/d(x(1)): ", fx(2)
+  write(*, *) "df/d(x(2)): ", fx(3)
+end program log_demo2
+\end{minted}
+The output of \texttt{gradient(f, x)} is an array of size \texttt{1 + size(x)}, with
+first component being the function value, and the rest the partial
+derivatives.
+
+\section{Functions}
+\label{sec:org94705bf}
+Numeric functions supported by \texttt{Fazang} can be found in Appendix \ref{appendix:func}. All unary and
+binary functions are \texttt{elemental}. The binary functions allow mixed
+argument types, namely, either argument can be \texttt{real64} type while the
+other the \texttt{var} type.
+
+\chapter{Design}
+\label{sec:orgb3e310a}
+The core of any reverse-mode automatic differentiation is the data
+structure to store and visit the callstack. \texttt{Fazang} achieves this
+through two derived types, \texttt{tape} and \texttt{vari}.
+
+\section{\texttt{tape} data structure}
+\label{sec:orgea6586a}
+A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
+head to the current stack top.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+type :: tape
+     integer(ik) :: head = 1
+     integer(ik), allocatable :: storage(:)
+!...
+\end{minted}
+Each time a new AD node is created,
+space in \texttt{storage} is allotted to store the node's
+\begin{itemize}
+\item value \(f_i(z_i)\),
+\item adjoint \(z_{i-1}^{\text{adj}}\),
+\item number of \texttt{var} operands of \(f_i\),
+\item The \texttt{var} operands' index in the same \texttt{tape} array,
+\item number of \texttt{real64} operands of \(f_i\),
+\item The \texttt{real64} operands' value.
+\end{itemize}
+
+Since a node's value, adjoint, and data
+operands are \texttt{real64}, they are first converted to \texttt{int32} using
+\texttt{transfer} function before stored in the \texttt{tape} array, and each such
+a value occupies two \texttt{storage} entries. After each
+allotation, the \texttt{head} is moved to point to the next empty slot in
+the array after saving its current value to a \texttt{vari} type variable
+for future retrieval.
+
+\section{\texttt{vari} type}
+\label{sec:orgd4754ed}
+The \texttt{vari} type is simply a proxy of a node's storage location in the tape
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+type :: vari
+  integer(ik) :: i = 0
+  procedure(chain_op), pass, pointer :: chain
+contains
+   !....
+\end{minted}
+where \texttt{i} is the index to the beginning of a node's storage, and the
+\texttt{chain} procedure encodes the node's operation
+\(f_i\). \texttt{chain} follows an interface that describes the chain rule
+operation
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+abstract interface
+   subroutine chain_op(this)
+     import :: vari
+     class(vari), intent(in) :: this
+   end subroutine chain_op
+end interface
+\end{minted}
+An alternative to integer index is to a \texttt{pointer} to the according
+enry in the \texttt{tape} array. However, when \texttt{storage} is filled we will need to expand
+it. \texttt{Fazang} does this by doubling its size and use \texttt{move\_alloc} to
+restore the storage. Since there is no guarantee that \texttt{move\_alloc}
+will keep the original memory, a pointer to the original address would
+be corrupted.
+
+A \texttt{Fazang} program generates a series of \texttt{vari} variables. Each such
+variable's \emph{value} is generated and stored following the program flow. This is called
+\emph{forward pass}, during which \texttt{Fazang} uses array \texttt{varis} to store these \texttt{vari}
+variables, with each entry depending on one or more previous
+entries.
+
+\section{\texttt{var} type}
+\label{sec:org662a0f7}
+The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
+stores the index of a \texttt{vari} in the \texttt{varis} array.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+type :: var
+   integer(int32) :: vi
+ contains
+   procedure :: val
+   procedure :: adj
+   procedure :: grad
+   procedure :: set_chain
+end type var
+\end{minted}
+After the forward pass, when adjoints are seeked and  \texttt{grad} or \texttt{gradient} procedure is called, \texttt{Fazang}
+initiates \emph{reverse pass}, in which it loops the \texttt{varis} array reverse
+and call each \texttt{vari}'s \texttt{chain} procedure to update the adjoints.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+subroutine grad(this)
+  class(var), intent(in) :: this
+  integer i
+  call callstack % varis (this%vi) % init_dependent()
+  do i = callstack % head - 1, 1, -1
+     call callstack % varis(i) % chain()
+  end do
+end subroutine grad
+\end{minted}
+Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} and
+\texttt{varis} arrays.
+
+\chapter{Add operation functions}
+\label{sec:org6a15a1e}
+Adding an operation \(f_i\) involves creating functions for forward
+pass and reverse pass. Let us first use \texttt{log} function as a simple
+example.
+
+First, we create a \texttt{log\_v} function for the forward pass.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+impure elemental function log_v(v) result(s)
+  type(var), intent(in) :: v
+  type(var) :: s
+  s = var(log(v%val()), [v])
+  call s%set_chain(chain_log)
+end function log_v
+\end{minted}
+The function generates a new \texttt{var} variable \texttt{s} using a special
+constructor \texttt{var(value, array of operands)} which stores the value as
+well as the single operand \texttt{v}'s index (in the \texttt{tape} \texttt{storage}
+array). It also \texttt{set\_chain} pointer of the newly created \texttt{s} using 
+a dedicated procedure
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+subroutine chain_log(this)
+  class(vari), intent(in) :: this
+  real(rk) :: new_adj(1), val(1)
+  new_adj = this%operand_adj()
+  val = this%operand_val()
+  new_adj(1) = new_adj(1) + this%adj() / val(1)
+  call this%set_operand_adj(new_adj)
+end subroutine chain_log
+\end{minted}
+Recall the recursion in Section \ref{sec:gradient},
+assume the \texttt{log} operation is node \(i\), then \(f_i=\log(\dot)\) and
+\(z_i\) is the operand \texttt{v}, and the new \texttt{var} \texttt{s} would be
+\(z_{i-1}\). During the reverse pass when the node is visited, \texttt{chain\_log} 
+first retrieves current \((z_i, z_i^{\text{adj}})\)
+using \texttt{operand\_val()} and \texttt{operand\_adj()}, then updates
+\(z_i^{\text{adj}}\) with additional
+\begin{equation*}
+z_{i-1}^{\text{adj}} \frac{df_i}{dz_i} = z_{i-1}^{\text{adj}}\frac{\log(z_i)}{z_i}=\frac{z_{i-1}^{\text{adj}}}{z_i}.
+\end{equation*}
+
+Adding a binary operation \(f_i(z_i^{(1)}, z_i^{2})\) is slightly more complex, as we will need to
+address possibly different scenarios when \(z_i^{(1)}\) and \(z_i^{(2)}\)
+are either \texttt{var} or \texttt{real64}. Let us use overloaded division \texttt{operator(/)} as an example.
+
+With
+\begin{equation*}
+f_i(z_i^{(1)}, z_i^{2}) = z_i^{(1)} / z_i^{(2)}
+\end{equation*}
+we need to account for
+\begin{itemize}
+\item both \(z_i^{(1)}\) and \(z_i^{2}\) are \texttt{var}'s
+\item \(z_i^{(1)}\) is \texttt{var}, \(z_i^{2}\) is \texttt{real64},
+\item \(z_i^{(1)}\) is \texttt{real64}, \(z_i^{2}\) is \texttt{var},
+\end{itemize}
+
+
+For the first scenario, we create
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+impure elemental function div_vv(v1, v2) result(s)
+  type(var), intent(in) :: v1, v2
+  type(var) :: s
+  s = var(v1%val() / v2%val(), [v1, v2])
+  call s%set_chain(chain_div_vv)
+end function div_vv
+\end{minted}
+Similar to the \texttt{log} example, we create a new \texttt{s} with both operands
+stored. In the corresponding \texttt{chain} procedure, we need update
+the adjoints of both \texttt{v1} and \texttt{v2}.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+subroutine chain_div_vv(this)
+  class(vari), intent(in) :: this
+  real(rk) :: new_adj(2), val(2)
+  new_adj = this%operand_adj()
+  val = this%operand_val()
+  new_adj(1) = new_adj(1) + this%adj()/val(2)
+  new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
+  call this%set_operand_adj(new_adj)
+end subroutine chain_div_vv
+\end{minted}
+
+For the second scenario, we create
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+impure elemental function div_vd(v, d) result(s)
+  type(var), intent(in) :: v
+  real(rk), intent(in) :: d
+  type(var) :: s
+  s = var(v%val() / d, [v], [d])
+  call s%set_chain(chain_div_vd)
+end function div_vd
+\end{minted}
+Again we create a new \texttt{var} \texttt{s}. But this time
+we use another constructor \texttt{var(value, var operands, data
+operands)} to store value, \texttt{var} operand \texttt{v}, and \texttt{real64}
+operand \texttt{d}. In the corresponding reverse pass \texttt{chain} procedure, not
+      only we need retrieve \texttt{var} operand \texttt{v} but also data operand
+      \texttt{d}, as the new adjoint of \(z_i^{(1)}\) is
+\begin{equation*}
+z_i^{(1)\text{new adj}} = z_i^{(1)\text{old adj}} + z_{i-1}^{\text{adj}}\frac{df_i}{dz_i^{(1)}}
+= z_i^{(1)\text{old adj}} + z_{i-1}^{\text{adj}}\frac{1}{dz_i^{(2)}}
+\end{equation*}      
+So with \texttt{v} as \(z_i^{(1)}\) and \texttt{d} as \(z_i^{(2)}\) we have
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+subroutine chain_div_vd(this)
+  class(vari), intent(in) :: this
+  real(rk) d(1), new_adj(1)
+  new_adj = this%operand_adj()
+  d = this%data_operand()
+  new_adj(1) = new_adj(1) + this%adj() / d(1)
+  call this%set_operand_adj(new_adj)
+end subroutine chain_div_vd
+\end{minted}
+
+The third scenario is addressly similarly.
+
+\appendix
+\chapter{\texttt{Fazang} Functions \label{sec:func_list}}
+\label{sec:org4ab5d4f}
+\label{appendix:func}  
+\begin{center}
+\begin{tabular}{lll}
+Function & Argument(s) & Operation\\
+\hline
+\texttt{sin} & scalar or array & same as intrinsic\\
+\texttt{cos} & scalar or array & same as intrinsic\\
+\texttt{tan} & scalar or array & same as intrinsic\\
+\texttt{asin} & scalar or array & same as intrinsic\\
+\texttt{acos} & scalar or array & same as intrinsic\\
+\texttt{atan} & scalar or array & same as intrinsic\\
+\texttt{log} & scalar or array & same as intrinsic\\
+\texttt{exp} & scalar or array & same as intrinsic\\
+\texttt{squrt} & scalar or array & same as intrinsic\\
+\texttt{square} & scalar or array & For input \texttt{x}, calculate \texttt{x**2}\\
+\texttt{inv} & scalar or array & For input \texttt{x}, calculate \texttt{1/x}\\
+\texttt{inv\_square} & scalar or array & For input \texttt{x}, calculate \texttt{1/x**2}\\
+\texttt{inv\_sqrt} & scalar or array & For input \texttt{x}, calculate \texttt{1/sqrt(x)}\\
+operator (\texttt{+}) & scalars or arrays & same as intrinsic\\
+operator (\texttt{-}) & scalars or arrays & same as intrinsic\\
+operator (\texttt{*}) & scalars or arrays & same as intrinsic\\
+operator (\texttt{/}) & scalars or arrays & same as intrinsic\\
+operator (\texttt{**}) & scalars & same as intrinsic\\
+\texttt{sum} & 1D array & same as intrinsic\\
+\texttt{dot\_product} & 1D arrays & same as intrinsic\\
+\texttt{log\_sum\_exp} & 1D array & For input \texttt{x}, calculate \texttt{log(sum(exp((x))))}\\
+\texttt{matmul} & 2D arrays & same as intrinsic\\
+\end{tabular}
+\end{center}
+
+\bibliographystyle{plain}
+\bibliography{ref}
+\end{document}
