@@ -1,14 +1,17 @@
 module fazang
   use fazang_env_mod
+  use fazang_arith_mod
+
+  ! data structure
   use fazang_tape_mod
   use fazang_nested_tape_mod
   use fazang_vari_mod, only : vari, adstack, callstack
   use fazang_var_mod
 
-  ! ! gradient & jacobian
+  ! gradient & jacobian
   use fazang_grad_mod
 
-  ! ! op 1
+  ! op 1
   use fazang_sin_mod
   use fazang_cos_mod
   use fazang_tan_mod
@@ -22,8 +25,10 @@ module fazang
   use fazang_square_mod
   use fazang_inv_square_mod
   use fazang_inv_sqrt_mod
+  use fazang_logit_mod
+  use fazang_inv_logit_mod
 
-  ! ! op 2
+  ! op 2
   use fazang_rel_operator_mod
   use fazang_add_mod
   use fazang_sub_mod
@@ -31,7 +36,7 @@ module fazang
   use fazang_div_mod
   use fazang_pow_mod
 
-  ! ! op *
+  ! op *
   use fazang_sum_mod
   use fazang_log_sum_exp_mod
   use fazang_dot_product_mod

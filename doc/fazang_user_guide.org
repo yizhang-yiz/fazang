@@ -417,6 +417,8 @@ The third scenario is treated similarly.
 | =inv=           | scalar or array   | For input =x=, calculate =1/x=                |
 | =inv_square=    | scalar or array   | For input =x=, calculate =1/x**2=             |
 | =inv_sqrt=      | scalar or array   | For input =x=, calculate =1/sqrt(x)=          |
+| =logit=         | scalar or array   | For input =x=, calculate =log(x/(1-x))=       |
+| =inv_logit=     | scalar or array   | For input =x=, calculate =1/(1+exp(-x))=      |
 | operator (=+=)  | scalars or arrays | same as intrinsic                             |
 | operator (=-=)  | scalars or arrays | same as intrinsic                             |
 | operator (=*=)  | scalars or arrays | same as intrinsic                             |

@@ -1,4 +1,4 @@
-% Created 2022-02-04 Fri 01:30
+% Created 2022-02-04 Fri 11:48
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt, reqno, oneside]{amsbook}
               \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
@@ -41,7 +41,7 @@
 
 
 \chapter{Introduction}
-\label{sec:org233974c}
+\label{sec:org58c8df1}
 \texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
 project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
 is also involved in. \texttt{Fazang} is intended to support general scientific
@@ -52,7 +52,7 @@ User should be aware that the project is at early stage and still
 under development. For any questions, suggestions, and
 contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
 \chapter{Quick Start}
-\label{sec:orgad024e7}
+\label{sec:org7e86c8b}
 Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
 Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
 
@@ -116,7 +116,7 @@ end program log_demo
 \end{minted}
 
 \chapter{Use \texttt{Fazang}}
-\label{sec:org465a113}
+\label{sec:org71f919e}
 \texttt{Fazang} uses \texttt{var} type to record numerical and gradient
 operations. The type supports three functions
 \begin{itemize}
@@ -125,7 +125,7 @@ operations. The type supports three functions
 \item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
 \end{itemize}
 \section{Constructors}
-\label{sec:org9e2ec54}
+\label{sec:orge3eb514}
 \texttt{var} can be constructed using overloaded \texttt{var} interface.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 real(real64) :: a, b(3), c(2, 3)
@@ -138,7 +138,7 @@ y = var(b)                ! y%val() == b
 z = var(c)                ! z%val() == c
 \end{minted}
 \section{Assignment}
-\label{sec:orgd349c45}
+\label{sec:org9a6fc87}
 \texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 ! ....
@@ -148,7 +148,7 @@ z = new_c                 ! z%val() == new_c
 \end{minted}
 
 \section{Gradient}
-\label{sec:org3219b4f}
+\label{sec:org17a2cbe}
    \label{sec:gradient}
 Consider a variable \(z\) calculated by the composition of a series of operations
 \begin{equation*}
@@ -217,20 +217,20 @@ first component being the function value, and the rest the partial
 derivatives.
 
 \section{Functions}
-\label{sec:org7cbef5d}
+\label{sec:orgcdd6c76}
 Numeric functions supported by \texttt{Fazang} are listed in Appendix \ref{appendix:func}. All unary and
 binary functions are \texttt{elemental}. The binary functions allow mixed
 argument types, namely, either argument can be \texttt{real64} type while the
 other the \texttt{var} type.
 
 \chapter{Design}
-\label{sec:orgecdc2da}
+\label{sec:org66faff8}
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. \texttt{Fazang} achieves this
 through two derived types, \texttt{tape} and \texttt{vari}.
 
 \section{\texttt{tape} data structure}
-\label{sec:org0025d46}
+\label{sec:org9b4eff5}
 A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
 head to the current stack top.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -259,7 +259,7 @@ the array after saving its current value to a \texttt{vari} type variable
 for future retrieval.
 
 \section{\texttt{vari} type}
-\label{sec:orgc981993}
+\label{sec:org419f147}
 The \texttt{vari} type is simply a proxy of a node's storage location in the tape
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 type :: vari
@@ -295,7 +295,7 @@ stored in array \texttt{varis}. Each entry in \texttt{varis} is a dependent
 (operation output) of one or more previous entries.
 
 \section{\texttt{var} type}
-\label{sec:org58bb4ae}
+\label{sec:orgff9d04e}
 The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
 stores the index of a \texttt{vari} in the \texttt{varis} array.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -327,7 +327,7 @@ Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} an
 \texttt{varis} arrays.
 
 \chapter{Add operation functions}
-\label{sec:org30a0d33}
+\label{sec:orgb738ad9}
 Adding an operation \(f_i\) involves creating functions for forward
 pass and reverse pass. Let us first use \texttt{log} function as a simple
 example.
@@ -442,7 +442,7 @@ The third scenario is treated similarly.
 
 \appendix
 \chapter{\texttt{Fazang} Functions \label{sec:func_list}}
-\label{sec:orgcfd34dc}
+\label{sec:org63ffb65}
 \label{appendix:func}  
 \begin{center}
 \begin{tabular}{lll}
@@ -461,6 +461,8 @@ Function & Argument(s) & Operation\\
 \texttt{inv} & scalar or array & For input \texttt{x}, calculate \texttt{1/x}\\
 \texttt{inv\_square} & scalar or array & For input \texttt{x}, calculate \texttt{1/x**2}\\
 \texttt{inv\_sqrt} & scalar or array & For input \texttt{x}, calculate \texttt{1/sqrt(x)}\\
+\texttt{logit} & scalar or array & For input \texttt{x}, calculate \texttt{log(x/(1-x))}\\
+\texttt{inv\_logit} & scalar or array & For input \texttt{x}, calculate \texttt{1/(1+exp(-x))}\\
 operator (\texttt{+}) & scalars or arrays & same as intrinsic\\
 operator (\texttt{-}) & scalars or arrays & same as intrinsic\\
 operator (\texttt{*}) & scalars or arrays & same as intrinsic\\

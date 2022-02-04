@@ -24,8 +24,6 @@ module fazang_env_mod
   ! int KIND
   integer, parameter :: ik = int32
 
-  ! PI
-  real(rk), parameter :: pi = 4.d0*atan(1.d0)
 contains
   elemental subroutine incr(var, inc)
     integer,intent(inout) :: var

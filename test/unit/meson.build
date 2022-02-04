@@ -81,3 +81,9 @@ test('alloc', t_alloc)
 
 t_log_sum_exp = executable('log_sum_exp_test', files('log_sum_exp_test.F90'), dependencies : fazang_dep)
 test('log_sum_exp', t_log_sum_exp)
+
+t_logit = executable('logit_test', files('logit_test.F90'), dependencies : fazang_dep)
+test('logit', t_logit)
+
+t_inv_logit = executable('inv_logit_test', files('inv_logit_test.F90'), dependencies : fazang_dep)
+test('inv_logit', t_inv_logit)

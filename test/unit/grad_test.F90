@@ -2,6 +2,7 @@
 
 module func
   use fazang_env_mod
+  use fazang_arith_mod
   use fazang_var_mod
   use fazang_pow_mod
   use fazang_add_mod

@@ -9,6 +9,11 @@ module fazang_inv_mod
   private
   public :: inv
 
+  interface inv
+     module procedure :: inv_d
+     module procedure :: inv_v
+  end interface inv
+
 contains
   
   subroutine chain_inv(this)
@@ -20,11 +25,17 @@ contains
     call this%set_operand_adj(new_adj)
   end subroutine chain_inv
 
-  impure elemental function inv(v) result(s)
+  impure elemental function inv_v(v) result(s)
     type(var), intent(in) :: v
     type(var) :: s
     s = var(1.d0 / v%val(), [v])
     call s%set_chain(chain_inv)
-  end function inv
+  end function inv_v
+
+  elemental function inv_d(d) result(s)
+    real(rk), intent(in) :: d
+    real(rk) :: s
+    s = 1.d0/d
+  end function inv_d
 
 end module fazang_inv_mod
