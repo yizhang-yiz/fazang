@@ -11,6 +11,15 @@ module fazang_arith_mod
   ! 2PI
   real(rk), parameter :: two_pi = 2.d0 * pi
 
+  ! sqrt(PI)
+  real(rk), parameter :: sqrt_pi = sqrt(pi)
+
+  ! 0.5 sqrt(PI)
+  real(rk), parameter :: half_sqrt_pi = 0.5d0 * sqrt(pi)
+
+  ! 2/sqrt(PI)
+  real(rk), parameter :: two_over_sqrt_pi = 2.d0 / sqrt(pi)
+
   ! E
   real(rk), parameter :: euler_e = exp(1.0d0)
 
