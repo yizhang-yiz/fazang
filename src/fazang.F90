@@ -28,6 +28,7 @@ module fazang
   use fazang_logit_mod
   use fazang_inv_logit_mod
   use fazang_erf_mod
+  use fazang_erfc_mod
 
   ! op 2
   use fazang_rel_operator_mod

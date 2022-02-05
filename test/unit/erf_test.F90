@@ -7,6 +7,7 @@ program erf_test
   use fazang_grad_mod
   use fazang_var_mod
   use fazang_erf_mod
+  use fazang_erfc_mod
   implicit none
 
   type(var) :: x, y1, y2, y3
@@ -16,6 +17,11 @@ program erf_test
   EXPECT_DBL_EQ(y1%val(), -0.3286267594591274d0)
   call y1%grad()
   EXPECT_DBL_EQ(x%adj(), (2/sqrt(pi) * exp(-0.09d0)))
+  call set_zero_all_adj()
+  y1 = erfc(x)
+  EXPECT_DBL_EQ(y1%val(), 1.3286267594591274d0)
+  call y1%grad()
+  EXPECT_DBL_EQ(x%adj(), -(2/sqrt(pi) * exp(-0.09d0)))
 
   x = var(0.d0)  
   y2 = erf(x)

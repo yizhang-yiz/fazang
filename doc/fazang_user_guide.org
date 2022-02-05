@@ -3,6 +3,7 @@
 #+LATEX_CLASS: amsbook
 #+LATEX_CLASS_OPTIONS: [12pt, reqno, oneside]
 
+#+LATEX_HEADER: \usepackage[letterpaper, width=6.5in, height=9in]{geometry}
 #+LATEX_HEADER: \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
 #+LATEX_HEADER: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
 #+LATEX_HEADER: \AfterEndEnvironment{minted}{\end{mdframed}}
@@ -10,12 +11,23 @@
 #+LATEX_HEADER: \usepackage{appendix}
 #+LATEX_HEADER: \usepackage{url}
 
-#+OPTIONS: 
+#+OPTIONS: toc:nil title:nil
 #+AUTHOR: Yi Zhang
 #+date: \today
 #+email: [[mailto:yz@yizh.org]]
 
 #+MACRO: fz =Fazang=
+
+\begin{titlepage}
+\maketitle
+Copyright 2022, Yi Zhang
+\newline
+\newline
+\newline
+
+\today
+\tableofcontents
+\end{titlepage}
 
 * Introduction
   {{{fz}}} is a reverse-mode automatic differentiation (AD) tool. The
@@ -126,12 +138,12 @@ z = f_1(z_1), \quad z_1 = f_2(z_2), \quad \dots, \quad z_{n-1} = f_n(z_n).
 For $z_i, i = 1, \dots, n$ we refer $dz/d{z_i}$ as the /adjoint/ of $z_i$,
 denoted by $z_i^{\text{adj}}$.
 The chain rule says the adjoints can be calculated recursively cite:griewank_evaluating_2008,
-\begin{align*}
-z^{\text{adj}} = 1, \\
-z_1^{\text{adj}} = z^{\text{adj}} \frac{df_1}{dz_1}, \\
-\dots, \\
+\begin{equation*}
+z^{\text{adj}} = 1, \quad
+z_1^{\text{adj}} = z^{\text{adj}} \frac{df_1}{dz_1}, \quad
+\dots, \quad
 z_i^{\text{adj}} = z_{i-1}^{\text{adj}} \frac{df_i}{dz_i}.
-\end{align*}
+\end{equation*}
 
 We often refer each $(f_i, z_i)$ pair as a
 /node/, and $z_i$ the /operand/ of operation $f_i$. The above recursion through the nodes requires a way to store
@@ -184,6 +196,68 @@ Then we can supply function =f= as a procedure argument.
 The output of =gradient(f, x)= is an array of size =1 + size(x)=, with
 first component being the function value, and the rest the partial
 derivatives.
+
+Note that the above approach of using =gradient= function does not
+involve explicitly setting up =var= variables. {{{fz}}} achieves this
+by using a /nested/ AD envionment.
+
+** Nested AD envionment
+   <<sec:nested>>
+Let us take a look of the internals of {{{fz}}}'s =gradient= function.
+The =dependent_function= interface requires $f$ to follow the above
+example's signature, and =x= is the =real64= array of independent variables.
+We then create the =var= version of =x= and introduct it to =f=. The
+evaluation result is saved in =f_var= variable. The adjoints are
+obtained by calling =f_var%grad()=. Unlike what we have seen, the
+above process happens within a pairing =begin_nested()= and
+=end_nested()= calls.
+#+begin_src fortran
+  function gradient(f, x) result (f_df)
+    procedure(dependent_function) :: f
+    real(real64), intent(in) :: x(:)
+    real(real64) :: f_df(1 + size(x))
+    type(var) :: x_var(size(x)), f_var
+
+    call begin_nested()
+
+    x_var = var(x)
+    f_var = f(x_var)
+    f_df(1) = f_var%val()
+    call f_var%grad()
+    f_df(2:(1+size(x))) = x_var%adj()
+
+    call end_nested()
+  end function gradient
+#+end_src
+When we use these two functions, all the =var= variables created
+in between are "temporary", in the sense that the values and adjoints
+of these variables are no longer available after =call
+end_nested()=. User can use this function pair to construct a local
+gradient evaluation procedure.
+
+** Jacobian
+   <<sec:jacobian>>
+Similar to =gradient=, using the same nested technique {{{fz}}}
+provides a =jacobian= function that calculates the Jacobian matrix of
+=f=, a multivariate function $f: \mathbb{R}^m \rightarrow \mathbb{R}^n$ for
+an input array =x= of dimension =m=.
+#+begin_src fortran
+  function jacobian(f, n, x) result (f_df)
+#+end_src
+The input function must follow the interface
+#+begin_src fortran
+  abstract interface
+     function jac_dependent_function (x, n) result (fx)
+       import :: var
+       integer, intent(in) :: n
+       type(var), intent(in) :: x(:)
+       type(var) :: fx(n)
+     end function jac_dependent_function
+  end interface
+#+end_src
+where =n= is the output dimension. Like =gradient=, the output =f_df=
+has dimension $n\times(m+1)$, with the first column being the function
+results and the rest columns the adjoints.
 
 ** Functions
 Numeric functions supported by {{{fz}}} are listed in Appendix [[appendix:func]]. All unary and
@@ -271,7 +345,7 @@ stores the index of a =vari= in the =varis= array.
     end type var
 #+end_src
 After the forward pass, when adjoints are desired, we call =grad= or
-=gradient= procedure. This initiates a /reverse pass/, in which  the
+=gradient= procedure. This initiates a /backward pass/, in which  the
 =varis= array is transversed backward
 so that each =vari='s =chain= procedure is called to update the
 operand adjoints.
@@ -288,9 +362,17 @@ operand adjoints.
 Here =callstack= is the module variable that encapsulate =tape= and
 =varis= arrays.
 
+** Nested tape
+{{{fz}}} use =begin_nested()= and =end_nested()= to record and
+terminate a nested tape. With =call begin_nested()= {{{fz}}} records
+the current =tape= and =varis= array head. When =end_nested()= is
+called, the storage between the recorded head and current head are
+wiped, and the head is moved back to the recorded location. Multiple
+levels of nested envionment are supported this way.
+
 * Add operation functions
 Adding an operation $f_i$ involves creating functions for forward
-pass and reverse pass. Let us first use =log= function as a simple
+pass and backward pass. Let us first use =log= function as a simple
 example.
 
 First, we create a =log_v= function for the forward pass.
@@ -319,7 +401,7 @@ array). It also points =s='s chain to a dedicated procedure =chain_log=.
 To understand this function, recall the recursion in Section [[sec:gradient]],
 assume the =log= operation is node $i$, then $f_i=\log(\dot)$ and
 $z_i$ is the operand =v=, and the new =var= =s= would be
-$z_{i-1}$. During the reverse pass when the node is visited, =chain_log= 
+$z_{i-1}$. During the backward pass when the node is visited, =chain_log= 
 first retrieves current $(z_i, z_i^{\text{adj}})$
 using =operand_val()= and =operand_adj()=, then updates
 $z_i^{\text{adj}}$ with an additional
@@ -378,7 +460,7 @@ For the second scenario, we create
 Again we create a new =var= =s=. But this time
 we use another constructor =var(value, var operands, data
 operands)= to store value, =var= operand =v=, and =real64=
-operand =d=. In the corresponding reverse pass =chain= procedure, not
+operand =d=. In the corresponding backward pass =chain= procedure, not
       only we need retrieve =var= operand =v= but also data operand
       =d=, as the new adjoint of $z_i^{(1)}$ is
 \begin{equation*}
@@ -413,6 +495,8 @@ The third scenario is treated similarly.
 | =log=           | scalar or array   | same as intrinsic                             |
 | =exp=           | scalar or array   | same as intrinsic                             |
 | =squrt=         | scalar or array   | same as intrinsic                             |
+| =erf=           | scalar or array   | same as intrinsic                             |
+| =erfc=          | scalar or array   | same as intrinsic                             |
 | =square=        | scalar or array   | For input =x=, calculate =x**2=               |
 | =inv=           | scalar or array   | For input =x=, calculate =1/x=                |
 | =inv_square=    | scalar or array   | For input =x=, calculate =1/x**2=             |
