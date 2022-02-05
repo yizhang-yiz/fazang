@@ -1,6 +1,6 @@
 #include "test_macro.fi"
 
-program asin_test
+program erf_test
   use, intrinsic :: iso_fortran_env
   use fazang_test_mod
   use fazang_vari_mod, only : vari, adstack, vari_at
@@ -24,4 +24,4 @@ program asin_test
   y3 = erf(x)
   EXPECT_DBL_EQ(y3%val(), -1.d0)
 
-end program asin_test
+end program erf_test
