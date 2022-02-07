@@ -2,7 +2,8 @@ module fazang_matmul_mod
   use iso_fortran_env
   use fazang_env_mod
   use fazang_var_mod, only: var, val, adj, vi_index
-  use fazang_vari_mod, only: vari, callstack
+  use fazang_vari_mod, only: vari, callstack, vari_index
+  use fazang_array_in_tape_mod
   use fazang_dot_product_mod
 
   implicit none
@@ -24,12 +25,11 @@ contains
   subroutine chain_matmul_vv(this)
     class(vari), intent(in) :: this
     integer(ik) :: info(4)
-    integer(ik) :: row_id(callstack%stack%matrix_ncol(this%matrix_operand_1_index()))
-    integer(ik) :: col_id(callstack%stack%matrix_nrow(this%matrix_operand_2_index()))
+    type(array_in_tape) :: mat1, mat2
     info = this%operand_index()
-    row_id = callstack % stack % matrix_row_index(info(3), info(1))
-    col_id = callstack % stack % matrix_col_index(info(4), info(2))
-    call chain_dot_product(this, row_id, col_id)
+    mat1 = array_in_tape(callstack % stack, info(3), 2)
+    mat2 = array_in_tape(callstack % stack, info(4), 2)
+    call chain_dot_product(this, mat1%row(info(1)), mat2%col(info(2)))
   end subroutine chain_matmul_vv
 
   function mat_mul_vv(a, b) result(s)
@@ -37,15 +37,16 @@ contains
     type(var) :: s(size(a, 1), size(b, 2))
     real(rk) :: a_val(size(a,1), size(a,2)), b_val(size(b, 1), size(b, 2))
     real(rk) :: s_val(size(a,1), size(b,2))
-    integer(ik) :: i, j, a_id, b_id
-    a_id = callstack % stack % push([shape(a), vi_index(a)])
-    b_id = callstack % stack % push([shape(b), vi_index(b)])
+    integer(ik) :: i, j
+    type(array_in_tape) :: arr_a, arr_b
+    arr_a = array_in_tape(callstack % stack, a)
+    arr_b = array_in_tape(callstack % stack, b)
     a_val = val(a)
     b_val = val(b)
     s_val = matmul(a_val, b_val)
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
-          s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
+          s(i, j) = var(s_val(i, j), [i, j, arr_a%loc, arr_b%loc])
           call s(i, j)%set_chain(chain_matmul_vv)
        end do
     end do
@@ -54,12 +55,11 @@ contains
   subroutine chain_matmul_vd(this)
     class(vari), intent(in) :: this
     integer(ik) :: info(4)
-    integer(ik) :: row_id(callstack%stack%matrix_ncol(this%matrix_operand_1_index()))
-    real(rk) :: col(callstack%stack%matrix_nrow(this%matrix_operand_2_index()))
+    type(array_in_tape) :: mat1, mat2
     info = this%operand_index()
-    row_id = callstack % stack % matrix_row_index(info(3), info(1))
-    col = callstack % stack % matrix_col_data(info(4), info(2))
-    call chain_dot_product(this, row_id, col)
+    mat1 = array_in_tape(callstack % stack, info(3), 2)
+    mat2 = array_in_tape(callstack % stack, info(4), 2)
+    call chain_dot_product(this, mat1%row(info(1)), mat2%data_col(info(2)))
   end subroutine chain_matmul_vd
 
   function mat_mul_vd(a, b) result(s)
@@ -68,15 +68,15 @@ contains
     type(var) :: s(size(a, 1), size(b, 2))
     real(rk) :: a_val(size(a,1), size(a,2))
     real(rk) :: s_val(size(a,1), size(b,2))
-    integer(ik) :: i, j, a_id, b_id
-    a_id = callstack % stack % push([shape(a), vi_index(a)])
-    b_id = callstack % stack % push(shape(b))
-    i = callstack % stack % push(b)
+    integer(ik) :: i, j
+    type(array_in_tape) :: arr_a, arr_b
+    arr_a = array_in_tape(callstack % stack, a)
+    arr_b = array_in_tape(callstack % stack, b)
     a_val = val(a)
     s_val = matmul(a_val, b)
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
-          s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
+          s(i, j) = var(s_val(i, j), [i, j, arr_a%loc, arr_b%loc])
           call s(i, j)%set_chain(chain_matmul_vd)
        end do
     end do
@@ -85,12 +85,11 @@ contains
   subroutine chain_matmul_dv(this)
     class(vari), intent(in) :: this
     integer(ik) :: info(4)
-    real(rk) :: row(callstack%stack%matrix_ncol(this%matrix_operand_1_index()))
-    integer(ik) :: col_id(callstack%stack%matrix_nrow(this%matrix_operand_2_index()))
+    type(array_in_tape) :: mat1, mat2
     info = this%operand_index()
-    row = callstack % stack % matrix_row_data(info(3), info(1))
-    col_id = callstack % stack % matrix_col_index(info(4), info(2))
-    call chain_dot_product(this, row, col_id)
+    mat1 = array_in_tape(callstack % stack, info(3), 2)
+    mat2 = array_in_tape(callstack % stack, info(4), 2)
+    call chain_dot_product(this, mat1%data_row(info(1)), mat2%col(info(2)))
   end subroutine chain_matmul_dv
 
   function mat_mul_dv(a, b) result(s)
@@ -99,15 +98,15 @@ contains
     type(var) :: s(size(a, 1), size(b, 2))
     real(rk) :: b_val(size(b,1), size(b,2))
     real(rk) :: s_val(size(a,1), size(b,2))
-    integer(ik) :: i, j, a_id, b_id
-    a_id = callstack % stack % push(shape(a))
-    i = callstack % stack % push(a)
-    b_id = callstack % stack % push([shape(b), vi_index(b)])
+    integer(ik) :: i, j
+    type(array_in_tape) :: arr_a, arr_b
+    arr_a = array_in_tape(callstack % stack, a)
+    arr_b = array_in_tape(callstack % stack, b)
     b_val = val(b)
     s_val = matmul(a, b_val)
     do j = 1, size(b, 2)
        do i = 1, size(a, 1)
-          s(i, j) = var(s_val(i, j), [i, j, a_id, b_id])
+          s(i, j) = var(s_val(i, j), [i, j, arr_a%loc, arr_b%loc])
           call s(i, j)%set_chain(chain_matmul_dv)
        end do
     end do
