@@ -93,3 +93,9 @@ test('erf', t_erf)
 
 t_norm2 = executable('norm2_test', files('norm2_test.F90'), dependencies : fazang_dep)
 test('norm2', t_norm2)
+
+t_abs = executable('abs_test', files('abs_test.F90'), dependencies : fazang_dep)
+test('abs', t_abs)
+
+t_hypot = executable('hypot_test', files('hypot_test.F90'), dependencies : fazang_dep)
+test('hypot', t_hypot)

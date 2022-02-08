@@ -5,6 +5,10 @@ module fazang_arith_mod
   
   implicit none
 
+  ! NaN.
+  ! see https://stackoverflow.com/questions/31971836/having-parameter-constant-variable-with-nan-value-in-fortran
+  real(real64), parameter :: nan64 =  transfer(-2251799813685248_int64, 1._real64)
+
   ! PI
   real(rk), parameter :: pi = 4.d0*atan(1.d0)
 

@@ -37,6 +37,7 @@ module fazang
   use fazang_mul_mod
   use fazang_div_mod
   use fazang_pow_mod
+  use fazang_hypot_mod
 
   ! op *
   use fazang_sum_mod
