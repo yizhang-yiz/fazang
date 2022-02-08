@@ -90,3 +90,6 @@ test('inv_logit', t_inv_logit)
 
 t_erf = executable('erf_test', files('erf_test.F90'), dependencies : fazang_dep)
 test('erf', t_erf)
+
+t_norm2 = executable('norm2_test', files('norm2_test.F90'), dependencies : fazang_dep)
+test('norm2', t_norm2)
