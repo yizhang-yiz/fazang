@@ -51,6 +51,11 @@ module fazang_arith_mod
   ! sqrt(2)
   real(rk), parameter :: sqrt_two = sqrt(2.d0)
 
+  interface is_nan
+     module procedure :: is_nan_d
+     module procedure :: is_nan_v
+  end interface is_nan
+
 contains
   elemental logical function is_inf(d)
     real(rk), intent(in) :: d
@@ -62,10 +67,14 @@ contains
     is_neg_inf = d < -huge(d)
   end function is_neg_inf
 
-  elemental logical function is_nan(d)
+  elemental logical function is_nan_d(d)
     real(rk), intent(in) :: d
-    is_nan = d /= d
-  end function is_nan
+    is_nan_d = d /= d
+  end function is_nan_d
 
+  elemental logical function is_nan_v(v)
+    type(var), intent(in) :: v
+    is_nan_v = is_nan_d(v%val())
+  end function is_nan_v
 
 end module fazang_arith_mod

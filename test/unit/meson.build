@@ -99,3 +99,6 @@ test('abs', t_abs)
 
 t_hypot = executable('hypot_test', files('hypot_test.F90'), dependencies : fazang_dep)
 test('hypot', t_hypot)
+
+t_hyperbolic = executable('hyperbolic_test', files('hyperbolic_test.F90'), dependencies : fazang_dep)
+test('hyperbolic', t_hyperbolic)

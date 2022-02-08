@@ -33,7 +33,7 @@ Copyright 2022, Yi Zhang
   {{{fz}}} is a reverse-mode automatic differentiation (AD) tool. The
   project is heavily influenced by =Stan/Math= cite:Carpenter:2015, a project the author
   is also involved in. {{{fz}}} is intended to support general scientific
-  computing in Fortran beyond Bayesian inference and Markove Chain
+  computing in Fortran beyond Bayesian inference and Markov Chain
   Monte Carlo that =Stan/Math= is designed for. 
   
   User should be aware that the project is at early stage and still
@@ -497,6 +497,15 @@ The third scenario is treated similarly.
 | =squrt=         | scalar or array   | same as intrinsic                             |
 | =erf=           | scalar or array   | same as intrinsic                             |
 | =erfc=          | scalar or array   | same as intrinsic                             |
+| =abs=           | scalar or array   | same as intrinsic                             |
+| =norm2=         | 1D array          | same as intrinsic                             |
+| =hypot=         | scalars or arrays | same as intrinsic                             |
+| =sinh=          | scalar of array   | same as intrinsic                             |
+| =cosh=          | scalar of array   | same as intrinsic                             |
+| =tanh=          | scalar of array   | same as intrinsic                             |
+| =asinh=         | scalar of array   | same as intrinsic                             |
+| =acosh=         | scalar of array   | same as intrinsic                             |
+| =atanh=         | scalar of array   | same as intrinsic                             |
 | =square=        | scalar or array   | For input =x=, calculate =x**2=               |
 | =inv=           | scalar or array   | For input =x=, calculate =1/x=                |
 | =inv_square=    | scalar or array   | For input =x=, calculate =1/x**2=             |
@@ -512,6 +521,7 @@ The third scenario is treated similarly.
 | =dot_product=   | 1D arrays         | same as intrinsic                             |
 | =log_sum_exp=   | 1D array          | For input =x=, calculate =log(sum(exp((x))))= |
 | =matmul=        | 2D arrays         | same as intrinsic                             |
+#+TBLFM: $1=sinh
 
 bibliographystyle:plain
 bibliography:ref.bib

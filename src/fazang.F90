@@ -29,6 +29,12 @@ module fazang
   use fazang_inv_logit_mod
   use fazang_erf_mod
   use fazang_erfc_mod
+  use fazang_sinh_mod
+  use fazang_cosh_mod
+  use fazang_tanh_mod
+  use fazang_asinh_mod
+  use fazang_acosh_mod
+  use fazang_atanh_mod
 
   ! op 2
   use fazang_rel_operator_mod
