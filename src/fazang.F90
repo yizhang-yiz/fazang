@@ -2,11 +2,12 @@ module fazang
   use fazang_env_mod
   use fazang_arith_mod
 
-  ! data structure
+  ! core data structure
   use fazang_tape_mod
   use fazang_nested_tape_mod
   use fazang_vari_mod, only : vari, adstack, callstack
   use fazang_var_mod
+  use fazang_value_of_mod
 
   ! gradient & jacobian
   use fazang_grad_mod
@@ -51,6 +52,10 @@ module fazang
   use fazang_log_sum_exp_mod
   use fazang_dot_product_mod
   use fazang_matmul_mod
+
+  ! prob
+  use fazang_normal_lpdf_mod
+  use fazang_lognormal_lpdf_mod
 
   implicit none
 

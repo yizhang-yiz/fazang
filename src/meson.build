@@ -7,6 +7,7 @@ sources = ['env.F90',
            'array_in_tape.F90',
            'test.F90',
            'var.F90',
+           'value_of.F90',
            'grad.F90',
            'abs.F90',
            'sin.F90',
@@ -45,6 +46,8 @@ sources = ['env.F90',
            'dot_product.F90',
            'matmul.F90',
            'fazang.F90']
+
+subdir('prob')
 
 fazanglib = library('fazang', sources, install: true)
 

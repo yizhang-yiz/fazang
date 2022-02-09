@@ -45,6 +45,12 @@ module fazang_arith_mod
   ! log(2pi)
   real(rk), parameter :: log_two_pi = log_two + log_pi
 
+  ! log(sqrt(2pi))
+  real(rk), parameter :: log_sqrt_two_pi = 0.5d0 * log_two_pi
+
+  ! log(1/sqrt(2pi))
+  real(rk), parameter :: neg_log_sqrt_two_pi = -log_sqrt_two_pi
+
   ! log(10)
   real(rk), parameter :: log_ten = log(10.d0)
 

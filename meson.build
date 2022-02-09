@@ -7,3 +7,4 @@ endif
 
 subdir('src')
 subdir('test/unit')
+subdir('test/unit/prob')
