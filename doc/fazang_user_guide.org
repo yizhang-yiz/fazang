@@ -1,5 +1,5 @@
 #+TITLE: \texttt{Fazang}: A Reverse-mode Automatic differentiation tool in Fortran
-#+SUBTITLE: User's Guide @@latex:\\@@ @@html:<br>@@ (Version 0.0.1)
+#+SUBTITLE: User's Guide @@latex:\\@@ @@html:<br>@@ (Version pre-release)
 #+LATEX_CLASS: amsbook
 #+LATEX_CLASS_OPTIONS: [12pt, reqno, oneside]
 
@@ -7,6 +7,8 @@
 #+LATEX_HEADER: \usepackage[framemethod=TikZ, skipabove=10pt, skipbelow=10pt, backgroundcolor=black!3, roundcorner=4pt, linewidth=1pt]{mdframed}
 #+LATEX_HEADER: \BeforeBeginEnvironment{minted}{\begin{mdframed}}
 #+LATEX_HEADER: \AfterEndEnvironment{minted}{\end{mdframed}}
+
+#+LATEX_HEADER: \numberwithin{equation}{chapter}
 
 #+LATEX_HEADER: \usepackage{appendix}
 #+LATEX_HEADER: \usepackage{url}
@@ -265,6 +267,8 @@ binary functions are =elemental=. The binary functions allow mixed
 argument types, namely, either argument can be =real64= type while the
 other the =var= type.
 
+Probability distributions supported by {{{fz}}} are list in Appendix [[ref:appendix:likelihood]].
+
 * Design
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. {{{fz}}} achieves this
@@ -494,7 +498,7 @@ The third scenario is treated similarly.
 | =atan=          | scalar or array   | same as intrinsic                             |
 | =log=           | scalar or array   | same as intrinsic                             |
 | =exp=           | scalar or array   | same as intrinsic                             |
-| =squrt=         | scalar or array   | same as intrinsic                             |
+| =sqrt=          | scalar or array   | same as intrinsic                             |
 | =erf=           | scalar or array   | same as intrinsic                             |
 | =erfc=          | scalar or array   | same as intrinsic                             |
 | =abs=           | scalar or array   | same as intrinsic                             |
@@ -506,6 +510,7 @@ The third scenario is treated similarly.
 | =asinh=         | scalar of array   | same as intrinsic                             |
 | =acosh=         | scalar of array   | same as intrinsic                             |
 | =atanh=         | scalar of array   | same as intrinsic                             |
+| =log_gamma=     | scalar or array   | same as intrinsic                             |
 | =square=        | scalar or array   | For input =x=, calculate =x**2=               |
 | =inv=           | scalar or array   | For input =x=, calculate =1/x=                |
 | =inv_square=    | scalar or array   | For input =x=, calculate =1/x**2=             |
@@ -522,6 +527,48 @@ The third scenario is treated similarly.
 | =log_sum_exp=   | 1D array          | For input =x=, calculate =log(sum(exp((x))))= |
 | =matmul=        | 2D arrays         | same as intrinsic                             |
 #+TBLFM: $1=sinh
+
+* {{{fz}}} Probability distributions \label{sec:likelihood_list}
+  <<appendix:likelihood>>  
+** Normal distribution
+\begin{equation}
+\text{Normal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\exp{
+  \left(
+    -\frac{1}{2}
+    \left(
+      \frac{y_i-\mu}{\sigma}
+    \right)^2
+  \right)
+},\qquad
+\forall y\in \mathbb{R}^n, \mu\in \mathbb{R}, \sigma\in \mathbb{R}^+.
+\end{equation}
+
+- =normal_lpdf(y, mu, sigma)=
+  + =y=: =real64= array.
+  + =mu=: =real64= or =var=.
+  + =sigma=: =real64= or =var=.
+  + Return: the =log= of $\text{Normal}(y, \mu, \sigma)$.
+
+** LogNormal distribution
+\begin{equation}
+\text{LogNormal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\frac{1}{y_i}\exp{
+  \left(
+    -\frac{1}{2}
+    \left(
+      \frac{\log{y_i}-\mu}{\sigma}
+    \right)^2
+  \right)
+},\quad
+\forall y\in (\mathbb{R}^+)^n, \mu\in \mathbb{R}, \sigma\in \mathbb{R}^+.
+\end{equation}
+
+- =normal_lpdf(y, mu, sigma)=
+  + =y=: =real64= array.
+  + =mu=: =real64= or =var=.
+  + =sigma=: =real64= or =var=.
+  + Return: the =log= of $\text{LogNormal}(y, \mu, \sigma)$.
+** TODO additional distributions
+
 
 bibliographystyle:plain
 bibliography:ref.bib

@@ -102,3 +102,9 @@ test('hypot', t_hypot)
 
 t_hyperbolic = executable('hyperbolic_test', files('hyperbolic_test.F90'), dependencies : fazang_dep)
 test('hyperbolic', t_hyperbolic)
+
+t_digamma = executable('digamma_test', files('digamma_test.F90'), dependencies : fazang_dep)
+test('digamma', t_digamma)
+
+t_log_gamma = executable('log_gamma_test', files('log_gamma_test.F90'), dependencies : fazang_dep)
+test('log_gamma', t_log_gamma)

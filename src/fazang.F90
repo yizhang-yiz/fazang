@@ -36,6 +36,7 @@ module fazang
   use fazang_asinh_mod
   use fazang_acosh_mod
   use fazang_atanh_mod
+  use fazang_log_gamma_mod
 
   ! op 2
   use fazang_rel_operator_mod
