@@ -562,7 +562,7 @@ The third scenario is treated similarly.
 \forall y\in (\mathbb{R}^+)^n, \mu\in \mathbb{R}, \sigma\in \mathbb{R}^+.
 \end{equation}
 
-- =normal_lpdf(y, mu, sigma)=
+- =lognormal_lpdf(y, mu, sigma)=
   + =y=: =real64= array.
   + =mu=: =real64= or =var=.
   + =sigma=: =real64= or =var=.

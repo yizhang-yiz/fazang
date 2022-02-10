@@ -1,7 +1,7 @@
 #ifndef TEST_MACRO_HPP
 #define TEST_MACRO_HPP
 
-#define EXPECT_NEAR(A, B, TOL) call expect_near_impl ((A), (B), TOL, __FILE__, __LINE__)
+#define EXPECT_NEAR(A, B, TOL) call expect_near_impl ((A), (B), (TOL), __FILE__, __LINE__)
 #define EXPECT_FLOAT_EQ(A, B) call expect_float_eq_impl ((A), (B), __FILE__, __LINE__)
 #define EXPECT_TRUE(A) call expect_true_impl ((A), __FILE__, __LINE__)
 #define EXPECT_EQ(A, B) call expect_eq_impl ((A), (B), __FILE__, __LINE__)
