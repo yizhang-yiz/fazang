@@ -88,21 +88,21 @@ contains
     end select
   end function grad_mu
 
-  elemental function grad_y(y, mu, sigma) result(dy)
-    real(rk), intent(in) :: y
-    class(*), intent(in) :: mu
-    class(*), intent(in) :: sigma
-    real(rk) :: y_scaled, inv_sigma, dy
-    select type (mu)
-    class default
-       select type (sigma)
-       class default
-          inv_sigma = 1.d0/value_of(sigma)
-          y_scaled = (y - value_of(mu)) * inv_sigma
-          dy = -y_scaled * inv_sigma
-       end select
-    end select
-  end function grad_y
+  ! elemental function grad_y(y, mu, sigma) result(dy)
+  !   real(rk), intent(in) :: y
+  !   class(*), intent(in) :: mu
+  !   class(*), intent(in) :: sigma
+  !   real(rk) :: y_scaled, inv_sigma, dy
+  !   select type (mu)
+  !   class default
+  !      select type (sigma)
+  !      class default
+  !         inv_sigma = 1.d0/value_of(sigma)
+  !         y_scaled = (y - value_of(mu)) * inv_sigma
+  !         dy = -y_scaled * inv_sigma
+  !      end select
+  !   end select
+  ! end function grad_y
 
   elemental function grad_sigma(y, mu, sigma) result(ds)
     real(rk), intent(in) :: y
