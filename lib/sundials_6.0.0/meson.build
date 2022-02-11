@@ -8,7 +8,7 @@ sundials_inc = include_directories(
     'src/cvodes'
 )
 
-sundials_sources = [
+sundials_sources = files(
     'src/sunnonlinsol/newton/fmod/fsunnonlinsol_newton_mod.c',
     'src/sunnonlinsol/newton/sunnonlinsol_newton.c',
     # 'src/sunnonlinsol/petscsnes/sunnonlinsol_petscsnes.c',
@@ -117,9 +117,9 @@ sundials_sources = [
     'src/cvodes/cvodes_spils.c',
     'src/cvodes/cvodes_nls.c',
     'src/cvodes/cvodes.c'
-]
+)
 
-sundials_f90_sources = [
+sundials_f90_sources = files(
     'src/sunnonlinsol/newton/fmod/fsunnonlinsol_newton_mod.f90',
     'src/sunnonlinsol/fixedpoint/fmod/fsunnonlinsol_fixedpoint_mod.f90',
     'src/sunlinsol/pcg/fmod/fsunlinsol_pcg_mod.f90',
@@ -129,7 +129,7 @@ sundials_f90_sources = [
     'src/sunlinsol/spfgmr/fmod/fsunlinsol_spfgmr_mod.f90',
     'src/sunlinsol/sptfqmr/fmod/fsunlinsol_sptfqmr_mod.f90',
     'src/sunlinsol/spgmr/fmod/fsunlinsol_spgmr_mod.f90',
-    'src/sunlinsol/klu/fmod/fsunlinsol_klu_mod.f90',
+    # 'src/sunlinsol/klu/fmod/fsunlinsol_klu_mod.f90',
     'src/sunmatrix/band/fmod/fsunmatrix_band_mod.f90',
     'src/sunmatrix/dense/fmod/fsunmatrix_dense_mod.f90',
     'src/sunmatrix/sparse/fmod/fsunmatrix_sparse_mod.f90',
@@ -143,20 +143,25 @@ sundials_f90_sources = [
     'src/sundials/fmod/fsundials_nonlinearsolver_mod.f90',
     'src/idas/fmod/fidas_mod.f90',
     'src/kinsol/fmod/fkinsol_mod.f90',
-    'src/nvector/parallel/fmod/fnvector_parallel_mod.f90',
-    'src/nvector/manyvector/fmod/fnvector_manyvector_mod.f90',
-    'src/nvector/manyvector/fmod/fnvector_mpimanyvector_mod.f90',
-    'src/nvector/mpiplusx/fmod/fnvector_mpiplusx_mod.f90',
+    # 'src/nvector/parallel/fmod/fnvector_parallel_mod.f90',
+    # 'src/nvector/manyvector/fmod/fnvector_manyvector_mod.f90',
+    # 'src/nvector/manyvector/fmod/fnvector_mpimanyvector_mod.f90',
+    # 'src/nvector/mpiplusx/fmod/fnvector_mpiplusx_mod.f90',
     'src/nvector/pthreads/fmod/fnvector_pthreads_mod.f90',
     'src/nvector/serial/fmod/fnvector_serial_mod.f90',
     'src/nvector/openmp/fmod/fnvector_openmp_mod.f90',
     'src/cvodes/fmod/fcvodes_mod.f90'    
-]
+)
 
-libsundials = static_library('sundials', sundials_sources + sundials_f90_sources,
-                              install: true,
-                              include_directories : sundials_inc)
+# fazang_cvs = ['cvodes.F90', 'cvodes_model.F90']
 
-libsundials_dep = declare_dependency(include_directories : sundials_inc,
-                                     link_with : libsundials,
-                                     variables : {'version': '6.0.0'})
+sources += sundials_sources
+sources += sundials_f90_sources
+
+# LIBSUNDIALS = STATIC_LIBRARY('SUNDIALS', SUNDIALS_SOURCES,
+#                               INSTALL: TRUE,
+#                               INCLUDE_DIRECTORIES : SUNDIALS_INC)
+
+# LIBSUNDIALS_DEP = DECLARE_DEPENDENCY(INCLUDE_DIRECTORIES : SUNDIALS_INC,
+#                                      LINK_WITH : LIBSUNDIALS,
+#                                      VARIABLES : {'VERSION': '6.0.0'})
