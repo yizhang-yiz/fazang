@@ -1,5 +1,5 @@
 # we need c++/c compiler for SUNDIALS
-project('Fazang', ['cpp','fortran'], version : '0.1.0', meson_version: '>=0.59.0', default_options: ['default_library=shared'])
+project('Fazang', ['c','fortran'], version : '0.1.0', meson_version: '>=0.59.0', default_options: ['default_library=shared'])
 
 # TODO: support Windows
 if meson.get_compiler('fortran').get_id() == 'gcc'
