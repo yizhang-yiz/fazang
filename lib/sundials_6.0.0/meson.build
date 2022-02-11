@@ -100,8 +100,8 @@ sundials_sources = files(
     # 'src/nvector/parhyp/nvector_parhyp.c',
     'src/nvector/serial/fmod/fnvector_serial_mod.c',
     'src/nvector/serial/nvector_serial.c',
-    'src/nvector/openmp/fmod/fnvector_openmp_mod.c',
-    'src/nvector/openmp/nvector_openmp.c',
+    # 'src/nvector/openmp/fmod/fnvector_openmp_mod.c',
+    # 'src/nvector/openmp/nvector_openmp.c',
     'src/cvodes/cvodes_io.c',
     'src/cvodes/cvodes_ls.c',
     'src/cvodes/fmod/fcvodes_mod.c',
@@ -149,7 +149,7 @@ sundials_f90_sources = files(
     # 'src/nvector/mpiplusx/fmod/fnvector_mpiplusx_mod.f90',
     'src/nvector/pthreads/fmod/fnvector_pthreads_mod.f90',
     'src/nvector/serial/fmod/fnvector_serial_mod.f90',
-    'src/nvector/openmp/fmod/fnvector_openmp_mod.f90',
+    # 'src/nvector/openmp/fmod/fnvector_openmp_mod.f90',
     'src/cvodes/fmod/fcvodes_mod.f90'    
 )
 

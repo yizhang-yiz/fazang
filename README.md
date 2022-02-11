@@ -1,3 +1,5 @@
+![build](https://github.com/yizhang-yiz/fazang/actions/workflows/build.yml/badge.svg)
+
 # Fazang
 
 `Fazang` is a Fortran library for reverse-mode automatic differentiation, inspired by [Stan/Math library](https://mc-stan.org/users/interfaces/math).
@@ -184,5 +186,3 @@ end do
 ## Name
 
 The library is named after ancient Chinese philosopher [Fazang](https://en.wikipedia.org/wiki/Fazang) (法藏), who views the cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
-
-And yes it begins with `F` since it is in `Fortran`.
