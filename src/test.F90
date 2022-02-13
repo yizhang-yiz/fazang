@@ -21,7 +21,7 @@ contains
     if ( abs(a - b) >= tol ) then
        write(*, *) file, "   line:", line
        write(*, *)
-       write(*, *) "|", a, "-", b, "| >", tol
+       write(*, *) "|", a, "-", b, "| =", abs(a-b), " >", tol
        stop 1
     end if
   end subroutine expect_near_impl

@@ -22,6 +22,14 @@ for d in listdir(build_dir):
             if f.endswith(".mod"):
                 modules.append(join(bd, f))
 
+lib_build_dir = join(build_dir, "lib")
+for d in listdir(lib_build_dir):
+    bd = join(lib_build_dir, d)
+    if isdir(bd):
+        for f in listdir(bd):
+            if f.endswith(".mod"):
+                modules.append(join(bd, f))
+
 if not exists(module_dir):
     makedirs(module_dir)
 

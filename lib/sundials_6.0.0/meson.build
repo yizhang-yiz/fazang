@@ -1,5 +1,3 @@
-# project('sundials', ['cpp', 'fortran'], version : '6.0.0', meson_version: '>=0.59.0', default_options: ['default_library=static'])
-
 sundials_inc = include_directories(
     'include',
     'src/sundials',
@@ -8,7 +6,7 @@ sundials_inc = include_directories(
     'src/cvodes'
 )
 
-sundials_sources = files(
+sundials_c_sources = files(
     'src/sunnonlinsol/newton/fmod/fsunnonlinsol_newton_mod.c',
     'src/sunnonlinsol/newton/sunnonlinsol_newton.c',
     # 'src/sunnonlinsol/petscsnes/sunnonlinsol_petscsnes.c',
@@ -119,7 +117,7 @@ sundials_sources = files(
     'src/cvodes/cvodes.c'
 )
 
-sundials_f90_sources = files(
+sundials_f_sources = files(
     'src/sunnonlinsol/newton/fmod/fsunnonlinsol_newton_mod.f90',
     'src/sunnonlinsol/fixedpoint/fmod/fsunnonlinsol_fixedpoint_mod.f90',
     'src/sunlinsol/pcg/fmod/fsunlinsol_pcg_mod.f90',
@@ -153,15 +151,12 @@ sundials_f90_sources = files(
     'src/cvodes/fmod/fcvodes_mod.f90'    
 )
 
-# fazang_cvs = ['cvodes.F90', 'cvodes_model.F90']
+sundials_sources = sundials_f_sources + sundials_c_sources
 
-sources += sundials_sources
-sources += sundials_f90_sources
+libsundials = static_library('sundials', sundials_sources,
+                              install: true,
+                              include_directories : sundials_inc)
 
-# LIBSUNDIALS = STATIC_LIBRARY('SUNDIALS', SUNDIALS_SOURCES,
-#                               INSTALL: TRUE,
-#                               INCLUDE_DIRECTORIES : SUNDIALS_INC)
-
-# LIBSUNDIALS_DEP = DECLARE_DEPENDENCY(INCLUDE_DIRECTORIES : SUNDIALS_INC,
-#                                      LINK_WITH : LIBSUNDIALS,
-#                                      VARIABLES : {'VERSION': '6.0.0'})
+libsundials_dep = declare_dependency(include_directories : sundials_inc,
+                                     link_with : libsundials,
+                                     variables : {'version': '6.0.0'})

@@ -5,7 +5,8 @@ module fazang_cvodes_model_mod
   implicit none
 
   type :: cvs_rhs
-     procedure(cvs_rhs_func), nopass, pointer :: f
+     procedure(cvs_rhs_func), nopass, pointer :: f => null()
+     procedure(RhsFn), nopass, pointer :: cvs_f => null()
    contains
      procedure, nopass :: RhsFn
   end type cvs_rhs
@@ -27,6 +28,7 @@ contains
     procedure(cvs_rhs_func) :: func
     type(cvs_rhs), target :: rhs
     rhs % f => func
+    rhs % cvs_f => RhsFn
   end function new_cvs_rhs
 
   ! ----------------------------------------------------------------
@@ -53,16 +55,17 @@ contains
     real(c_double), pointer :: yvec(:)
     real(c_double), pointer :: fvec(:)
 
-    type(cvs_rhs), pointer :: rhs_p
+    type(cvs_rhs), pointer :: ode
 
-    call c_f_pointer(user_data, rhs_p)
+    ierr = -1
+    call c_f_pointer(user_data, ode)
 
     ! get data arrays from SUNDIALS vectors
     yvec => FN_VGetArrayPointer(sunvec_y)
     fvec => FN_VGetArrayPointer(sunvec_f)
 
     ! fill RHS vector
-    call rhs_p % f(tn, yvec, fvec)
+    call ode % f(tn, yvec, fvec)
 
     ! return success
     ierr = 0

@@ -78,7 +78,7 @@ end program grad_test
 
 
 ## Use `Fazang`
-
+User guide can be found [here](https://github.com/yizhang-yiz/fazang/blob/main/doc/fazang_user_guide.pdf).
 
 ### Build
 

@@ -74,6 +74,7 @@ end program grad_test
 #+end_src
 
 ** Use =Fazang=
+User guide can be found [[https://github.com/yizhang-yiz/fazang/blob/main/doc/fazang_user_guide.pdf][here]].
 *** Build
     =Fazang= uses =meson= to build.
     #+begin_src bash
@@ -163,6 +164,4 @@ end program grad_test
 ** Name
 The library is named after ancient Chinese philosopher [[https://en.wikipedia.org/wiki/Fazang][Fazang]] (法藏), who
 views the cosmos "as an infinite number of interdependent
-and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果). 
-
-And yes it begins with =F= since it is in =Fortran=. 
+and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).
