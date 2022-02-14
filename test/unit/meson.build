@@ -110,7 +110,7 @@ t_log_gamma = executable('log_gamma_test', files('log_gamma_test.F90'), dependen
 test('log_gamma', t_log_gamma)
 
 t_cvs_f90_interface = executable('cvs_f90_interface_test',
-                                 files(meson.project_source_root() + '/lib/sundials_6.0.0/examples/cvodes/F2003_serial/cvsAdvDiff_FSA_non_f2003.f90'), 
+                                 files(meson.project_source_root() + '/lib/sundials-6.1.1/examples/cvodes/F2003_serial/cvsAdvDiff_FSA_non_f2003.f90'), 
                                  dependencies : [fazang_dep, libsundials_dep])
 test('cvs_f90_interface', t_cvs_f90_interface, args : ['-sensi','sim','t'])
 
@@ -123,3 +123,8 @@ t_cvs_data_test = executable('cvs_data_test',
                             files('cvodes_data_test.F90'),
                             dependencies : [fazang_dep, libsundials_dep])
 test('cvs_data', t_cvs_data_test)
+
+# t_cvs_y0_test = executable('cvs_y0_test',
+#                             files('cvodes_y0_test.F90'),
+#                             dependencies : [fazang_dep, libsundials_dep])
+# test('cvs_y0', t_cvs_y0_test)

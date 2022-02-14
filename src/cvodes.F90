@@ -2,6 +2,9 @@ module fazang_cvodes_mod
   use, intrinsic :: iso_c_binding
 
   use fazang_cvodes_model_mod
+  use fazang_cvodes_options_mod
+  use fazang_eager_adj_mod
+
   use fcvodes_mod                   ! Fortran interface to CVODES
   use fsundials_context_mod         ! Fortran interface to SUNContext
   use fsundials_nvector_mod         ! Fortran interface to generic N_Vector
@@ -26,6 +29,11 @@ module fazang_cvodes_mod
      type(SUNMatrix),       pointer :: sunmat_A      ! sundials matrix
      type(SUNLinearSolver), pointer :: sunlinsol_LS  ! sundials linear solver
 
+     ! sens
+     integer(ik) :: nsens = 0
+     logical :: ysens = .false.
+     type(c_ptr) :: yS
+
    contains
      final :: free_cvodes_service
   end type cvodes_service
@@ -35,12 +43,18 @@ module fazang_cvodes_mod
   end interface cvodes_service
 
 contains
-  function new_cvodes_service(t0, y, ode) result(serv)
+  function new_cvodes_service(t0, y, nsens, ysens, ode) result(serv)
+    implicit none
+    
     type(cvodes_service) :: serv
-    integer :: ierr
+    integer :: ierr, is
     real(c_double) :: t0
     real(c_double), intent(inout) :: y(:)
+    integer(ik), intent(in) :: nsens
+    logical, intent(in) :: ysens ! calculate sens w.r.t. y?
     type(cvs_rhs), target, intent(in) :: ode
+    type(N_Vector), pointer :: yiS
+    real(c_double), pointer :: yiSvec(:)
 
     ierr = FSUNContext_Create(c_null_ptr, serv%ctx)
 
@@ -71,13 +85,33 @@ contains
        stop 1
     endif
 
+    ierr = FCVodeSetUserData(serv % mem, c_loc(ode))
+
     ierr = FCVodeSetLinearSolver(serv % mem, serv % sunlinsol_LS, &
          serv % sunmat_A)
 
-    ierr = FCVodeSetUserData(serv % mem, c_loc(ode))
+    ! need sensitivity ?
+    serv % nsens = nsens
+    serv % ysens = ysens
+    if ( nsens > 0 ) then
+       serv % yS = FN_VCloneVectorArray(nsens, serv % sunvec_y) 
+       do is = 0, nsens - 1
+          yiS => FN_VGetVecAtIndexVectorArray(serv % yS, is)
+          yiSvec => FN_VGetArrayPointer(yiS)
+          call FN_VConst(0.d0, yiS)
+          if (ysens .and. is < serv % neq) then
+             yiSvec(is + 1) = 1.0;
+          endif
+       end do
+       ierr = FCVodeSensInit(serv % mem, nsens, CV_STAGGERED, &
+            c_funloc(ode % cvs_jac), serv % yS)
+    end if
+
   end function new_cvodes_service
 
   subroutine free_cvodes_service(this)
+    implicit none
+
     type(cvodes_service) :: this
     integer :: ierr
     call FCVodeFree(this % mem)
@@ -85,25 +119,29 @@ contains
     ierr = FSUNLinSolFree(this % sunlinsol_LS)
     call FSUNMatDestroy(this % sunmat_A)
     call FN_VDestroy(this % sunvec_y)
+    if (this % nsens > 0) then
+       call FN_VDestroyVectorArray(this % yS, this % nsens)
+    endif
     ierr = FSUNContext_Free(this % ctx)
   end subroutine free_cvodes_service
 
-  function cvodes_bdf_data(t, y, ts, rhs, rtol, atol, max_nstep) result(yt)
+  function cvodes_bdf_data(t, y, ts, rhs, cvs_options) result(yt)
+    implicit none
+
     procedure(cvs_rhs_func) :: rhs
-    real(c_double), intent(in) :: ts(:), rtol, atol, t
+    real(c_double), intent(in) :: ts(:), t
+    class(cvodes_options), intent(in) :: cvs_options
     real(c_double), intent(inout) :: y(:)
     real(c_double) :: yt(size(y), size(ts))
-    integer(c_long), intent(in) :: max_nstep
     real(c_double) :: tcur(1)
     type(cvs_rhs), target :: ode
     type(cvodes_service) :: serv
     integer :: ierr, outstep, nout
 
     ode = cvs_rhs(rhs)
-    serv = new_cvodes_service(t, y, ode)
+    serv = new_cvodes_service(t, y, 0, .false., ode)
 
-    ierr = FCVodeSStolerances(serv % mem, rtol, atol)
-    ierr = FCVodeSetMaxNumSteps(serv % mem, max_nstep)
+    call cvs_options % set(serv % mem)
 
     nout = size(ts)
     tcur = t
@@ -116,5 +154,62 @@ contains
        yt(:, outstep) = y
     enddo
   end function cvodes_bdf_data
+
+  function cvodes_bdf_y0_sens(t, y, ts, rhs, rhs_yvar, cvs_options) result(yt)
+    implicit none
+
+    procedure(cvs_rhs_func) :: rhs
+    procedure(cvs_rhs_func_yvar) :: rhs_yvar
+    real(c_double), intent(in) :: ts(:), t
+    class(cvodes_options), intent(in) :: cvs_options
+    type(var), intent(in) :: y(:)
+    type(var) :: yt(size(y), size(ts))
+
+    ! local variables
+    real(c_double) :: tcur(1)
+    type(cvs_rhs), target :: ode
+    type(cvodes_service) :: serv
+    integer :: ierr, outstep, nout, is
+    integer(c_long) :: i
+    real(rk) :: yval(size(y)), g(size(y))
+    type(N_Vector), pointer :: yiS
+    real(c_double), pointer :: yiSvec(:)
+
+    type(cvs_rhs), pointer :: debug
+
+    ode = cvs_rhs(rhs, rhs_yvar)
+    yval = y%val()
+    serv = new_cvodes_service(t, yval, size(y), .true., ode)
+
+    ierr = FCVodeSensEEtolerances(serv % mem)       
+
+    call cvs_options % set(serv % mem)
+
+    write(*, *) "taki test: ", c_loc(ode)
+
+    nout = size(ts)
+    tcur = t
+    do outstep = 1, nout
+       ierr = FCVode(serv % mem, ts(outstep), serv % sunvec_y, tcur, CV_NORMAL)
+       if (ierr /= 0) then
+          print *, 'Error in FCVODE, ierr = ', ierr, '; halting'
+          stop 1
+       endif
+       yt(:, outstep) = yval
+
+       ierr = FCVodeGetSens(serv % mem, tcur, serv % yS)
+       do i = 1, serv % neq
+          g = 0.d0
+          do is = 0, serv % nsens - 1
+             yiS => FN_VGetVecAtIndexVectorArray(serv % yS, is)
+             yiSvec => FN_VGetArrayPointer(yiS)
+             g(is + 1) = yiSvec(i)
+          end do
+          yiSvec => FN_VGetArrayPointer(serv % sunvec_y)
+          yt(i, outstep) = var(yiSvec(i), y, g)
+          call yt(i, outstep)%set_chain(chain_eager_adj)
+       enddo
+    enddo
+  end function cvodes_bdf_y0_sens
 
 end module fazang_cvodes_mod

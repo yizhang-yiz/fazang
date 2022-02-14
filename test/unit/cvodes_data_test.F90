@@ -31,10 +31,13 @@ program cvodes_solve_data_test
   implicit none
 
   real(c_double) :: yt(2, 3), y0(2)
+  type(cvodes_tol) :: tol
   
+  tol = cvodes_tol(1.d-10, 1.d-10, 1000_8)
+
   y0 = [1.2d0, 1.8d0]
   params = var([0.2d0, 0.1d0])
-  yt = cvodes_bdf_data(0.d0, y0, [1.d0, 2.d0, 3.d0], eval_rhs, 1.d-10, 1.d-10, 1000_8)
+  yt = cvodes_bdf_data(0.d0, y0, [1.d0, 2.d0, 3.d0], eval_rhs, tol)
 
   EXPECT_EQ(size(yt), 6)
 

@@ -22,7 +22,7 @@ for d in listdir(build_dir):
             if f.endswith(".mod"):
                 modules.append(join(bd, f))
 
-lib_build_dir = join(build_dir, "lib")
+lib_build_dir = build_dir = join(environ["MESON_BUILD_ROOT"], "lib")
 for d in listdir(lib_build_dir):
     bd = join(lib_build_dir, d)
     if isdir(bd):

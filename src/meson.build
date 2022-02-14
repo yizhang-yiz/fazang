@@ -8,6 +8,7 @@ sources += files('env.F90',
                  'var.F90',
                  'value_of.F90',
                  'grad.F90',
+                 'chain_eager_adj.F90',
                  'abs.F90',
                  'sin.F90',
                  'cos.F90',
@@ -49,7 +50,7 @@ sources += files('env.F90',
                  'fazang.F90')
 
 # CVODES interface
-sources += files('cvodes_model.F90', 'cvodes.F90')
+sources += files('cvodes_model.F90', 'cvodes.F90', 'cvodes_options.F90')
 
 subdir('prob')
 
