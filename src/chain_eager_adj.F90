@@ -9,7 +9,7 @@ contains
   subroutine chain_eager_adj(this)
     class(vari), intent(in) :: this
     real(rk) :: adj(this%n_operand())
-    adj = this%operand_adj() + this%adj() * this%data_operand()
+    adj = this%adj() * this%data_operand()
     call this%set_operand_adj(adj)
   end subroutine chain_eager_adj
 

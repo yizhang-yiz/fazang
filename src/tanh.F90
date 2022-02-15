@@ -19,8 +19,7 @@ contains
     real(rk) :: val(1)
     val = this%operand_val()
     val = cosh(val)
-    adj = this%operand_adj()
-    adj = adj + this%adj() / (val * val)
+    adj = this%adj() / (val * val)
     call this%set_operand_adj(adj)
   end subroutine chain_tanh
 

@@ -1,5 +1,7 @@
 # we need c++/c compiler for SUNDIALS
-project('Fazang', ['c','fortran'], version : '0.1.0', meson_version: '>=0.59.0', default_options: ['default_library=shared'])
+project('Fazang', ['fortran', 'c'], version : '0.1.0',
+        meson_version: '>=0.60.0',
+        default_options: ['default_library=shared', 'buildtype=debug'])
 
 # TODO: support Windows
 if meson.get_compiler('fortran').get_id() == 'gcc'
@@ -13,4 +15,4 @@ sources = files()
 subdir('lib/sundials-6.1.1')
 subdir('src')
 subdir('test/unit')
-subdir('test/unit/prob')
+# subdir('test/unit/prob')

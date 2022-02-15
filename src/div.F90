@@ -19,12 +19,11 @@ contains
   
   subroutine chain_div_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2), val(2)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(2), val(2)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) + this%adj()/val(2)
-    new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
-    call this%set_operand_adj(new_adj)
+    adj(1) = this%adj()/val(2)
+    adj(2) = - this%val() * this%adj()/val(2)
+    call this%set_operand_adj(adj)
   end subroutine chain_div_vv
 
   impure elemental function div_vv(v1, v2) result(s)
@@ -36,11 +35,10 @@ contains
 
   subroutine chain_div_vd(this)
     class(vari), intent(in) :: this
-    real(rk) d(1), new_adj(1)
-    new_adj = this%operand_adj()
+    real(rk) d(1), adj(1)
     d = this%data_operand()
-    new_adj(1) = new_adj(1) + this%adj() / d(1)
-    call this%set_operand_adj(new_adj)
+    adj(1) = this%adj() / d(1)
+    call this%set_operand_adj(adj)
   end subroutine chain_div_vd
 
   impure elemental function div_vd(v, d) result(s)
@@ -57,11 +55,10 @@ contains
 
   subroutine chain_div_dv(this)
     class(vari), intent(in) :: this
-    real(rk) val(1), new_adj(1)
-    new_adj = this%operand_adj()
+    real(rk) val(1), adj(1)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) - this%val() * this%adj() / val(1)
-    call this%set_operand_adj(new_adj)
+    adj(1) = - this%val() * this%adj() / val(1)
+    call this%set_operand_adj(adj)
   end subroutine chain_div_dv
 
   impure elemental function div_dv(d, v) result(s)

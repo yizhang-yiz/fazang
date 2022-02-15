@@ -47,17 +47,11 @@ contains
   subroutine chain_dot_product_vv(this, row_id, col_id)
     class(vari), intent(in) :: this
     integer(ik), intent(in) :: row_id(:), col_id(:)
-    real(rk) :: new_adj(size(row_id))
-    integer(ik) :: j, n
-    n = size(row_id)
-    new_adj = callstack % stack % adj(row_id) + this%adj() * callstack % stack % val(col_id)
-    do j = 1, n
-       call callstack % stack % set_adj(row_id(j), new_adj(j))
-    end do
-    new_adj = callstack % stack % adj(col_id) + this%adj() * callstack % stack % val(row_id)
-    do j = 1, n
-       call callstack % stack % set_adj(col_id(j), new_adj(j))
-    end do
+    real(rk) :: adj(size(row_id))
+    adj = this%adj() * callstack % stack % val(col_id)
+    call this%set_operand_adj(row_id, adj)
+    adj = this%adj() * callstack % stack % val(row_id)
+    call this%set_operand_adj(col_id, adj)
   end subroutine chain_dot_product_vv
 
   function dot_prod_vd(a, b) result(s)
@@ -89,13 +83,7 @@ contains
     class(vari), intent(in) :: this
     integer(ik), intent(in) :: row_id(:)
     real(rk), intent(in) :: col(:)
-    real(rk) :: new_adj(size(row_id))
-    integer(ik) :: j, n
-    n = size(row_id)
-    new_adj = callstack % stack % adj(row_id) + this%adj() * col
-    do j = 1, n
-       call callstack % stack % set_adj(row_id(j), new_adj(j))
-    end do
+    call this%set_operand_adj(row_id, this%adj() * col)
   end subroutine chain_dot_product_vd
 
   subroutine chain_dot_product_dv(this, row, col_id)

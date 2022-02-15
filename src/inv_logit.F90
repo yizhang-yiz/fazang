@@ -20,10 +20,9 @@ contains
   
   subroutine chain_inv_logit(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj() * this%val() * (1.d0 - this%val())
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = this%adj() * this%val() * (1.d0 - this%val())
+    call this%set_operand_adj(adj)
   end subroutine chain_inv_logit
 
   impure elemental function inv_logit_v(v) result(s)

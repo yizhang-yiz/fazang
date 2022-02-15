@@ -10,10 +10,9 @@ contains
   
   subroutine chain_exp(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj() * this%val()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = this%adj() * this%val()
+    call this%set_operand_adj(adj)
   end subroutine chain_exp
 
   impure elemental function exp_v(v) result(s)

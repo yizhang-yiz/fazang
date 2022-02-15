@@ -45,4 +45,9 @@ program div_test
   EXPECT_FLOAT_EQ(y2%adj(), 0.0d0)
   EXPECT_FLOAT_EQ(y3%adj(), z1 * z2 * y1%val() / y2%val())
 
+  y1 = x / x
+  call set_zero_all_adj()
+  call y1%grad()
+  EXPECT_FLOAT_EQ(x%adj(), 0.d0)
+
 end program div_test

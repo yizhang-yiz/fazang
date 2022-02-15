@@ -7,7 +7,7 @@ module fazang_vari_mod
 
   private
   public :: vari, adstack, callstack, chain_op, assignment(=)
-  public :: n_operand, operand_val, operand_adj, operand_index
+  public :: n_operand, operand_val, operand_index
   public :: adj, val
   public :: vari_index, set_indexed_val, set_indexed_adj, set_indexed_chain
   public :: get_indexed_val, get_indexed_adj
@@ -19,14 +19,15 @@ module fazang_vari_mod
    contains
      procedure :: val
      procedure :: adj
-     procedure :: n_operand, operand_val, operand_adj, operand_index
+     procedure :: n_operand, operand_val, operand_index
      procedure :: matrix_operand_1_index, matrix_operand_2_index
      procedure :: data_operand
      procedure :: set_val
      procedure :: set_adj
      procedure :: set_zero_adj
      procedure :: init_dependent
-     procedure :: set_operand_adj
+     generic :: set_operand_adj => set_operand_adj_all, set_operand_adj_by_index
+     procedure, private :: set_operand_adj_all, set_operand_adj_by_index
   end type vari
 
   abstract interface
@@ -170,32 +171,40 @@ contains
     adj = callstack%stack%adj(this%i)
   end function adj
 
-  subroutine set_operand_adj(this, d)
-    class(vari), intent(in) :: this
-    real(rk) :: d(this%n_operand())
-    integer(ik) :: id(this%n_operand()), i
-    id = this%operand_index()
-    do i = 1, size(id)
-       call callstack % stack % set_adj(id(i), d(i))
-    end do
-  end subroutine set_operand_adj
-
   elemental integer(ik) function n_operand(this)
     class(vari), intent(in) :: this
     n_operand = callstack % stack % n_operand(this%i)
   end function n_operand
+
+  subroutine set_operand_adj_all(this, d)
+    class(vari), intent(in) :: this
+    real(rk), intent(in) :: d(this%n_operand())
+    real(rk) :: di
+    integer(ik) :: id(this%n_operand()), i
+    id = this%operand_index()
+    do i = 1, size(id)
+       di = callstack % stack % adj(id(i)) + d(i)
+       call callstack % stack % set_adj(id(i), di)
+    end do
+  end subroutine set_operand_adj_all
+
+  subroutine set_operand_adj_by_index(this, id, d)
+    class(vari), intent(in) :: this
+    real(rk), intent(in) :: d(:)
+    integer(ik), intent(in) :: id(:)
+    real(rk) :: di
+    integer(ik) :: i
+    do i = 1, size(id)
+       di = callstack % stack % adj(id(i)) + d(i)
+       call callstack % stack % set_adj(id(i), di)
+    end do
+  end subroutine set_operand_adj_by_index
 
   pure function operand_val(this)
     class(vari), intent(in) :: this
     real(rk) :: operand_val(this%n_operand())
     operand_val = callstack % stack % operand_val(this%i)
   end function operand_val
-
-  pure function operand_adj(this)
-    class(vari), intent(in) :: this
-    real(rk) :: operand_adj(this%n_operand())
-    operand_adj = callstack % stack % operand_adj(this%i)
-  end function operand_adj
 
   pure function data_operand(this)
     class(vari), intent(in) :: this

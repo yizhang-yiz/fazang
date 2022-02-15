@@ -13,11 +13,10 @@ contains
   
   subroutine chain_isqrt(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1), val(1)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(1), val(1)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) - 0.5d0 * this%adj() / (val(1) * sqrt(val(1)))
-    call this%set_operand_adj(new_adj)
+    adj(1) = - 0.5d0 * this%adj() / (val(1) * sqrt(val(1)))
+    call this%set_operand_adj(adj)
   end subroutine chain_isqrt
 
   impure elemental function inv_sqrt(v) result(s)

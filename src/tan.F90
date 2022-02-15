@@ -10,10 +10,9 @@ contains
   
   subroutine chain_tan(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj() * (1.d0 + this%val() * this%val())
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj = this%adj() * (1.d0 + this%val() * this%val())
+    call this%set_operand_adj(adj)
   end subroutine chain_tan
 
   impure elemental function tan_v(v) result(s)

@@ -10,10 +10,9 @@ contains
   
   subroutine chain_sum(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(this%n_operand())
-    new_adj = this%operand_adj()
-    new_adj = new_adj + this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(this%n_operand())
+    adj = this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_sum
 
   function sum_v(v) result(s)

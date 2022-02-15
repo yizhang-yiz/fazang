@@ -23,36 +23,33 @@ contains
 
   subroutine chain_pow_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2), val(2)
+    real(rk) :: adj(2), val(2)
     val = this%operand_val()
-    new_adj = this%operand_adj()
     if ( val(1) .ne. 0.d0 ) then
-       new_adj(1) = new_adj(1) + this%adj() * val(2) * this%val() / val(1)
-       new_adj(2) = new_adj(2) + this%adj() * this%val() * log(val(1))
-       call this%set_operand_adj(new_adj)
+       adj(1) = this%adj() * val(2) * this%val() / val(1)
+       adj(2) = this%adj() * this%val() * log(val(1))
+       call this%set_operand_adj(adj)
     end if
   end subroutine chain_pow_vv
 
   subroutine chain_pow_vd(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1), val(1), d(1)
+    real(rk) :: adj(1), val(1), d(1)
     val = this%operand_val()
-    new_adj = this%operand_adj()
     d = this%data_operand()
     if ( val(1) .ne. 0.d0 ) then
-       new_adj(1) = new_adj(1) + this%adj() * d(1) * this%val() / val(1)
-       call this%set_operand_adj(new_adj)
+       adj(1) = this%adj() * d(1) * this%val() / val(1)
+       call this%set_operand_adj(adj)
     end if
   end subroutine chain_pow_vd
 
   subroutine chain_pow_dv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1), d(1)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(1), d(1)
     d = this%data_operand()
     if ( d(1) .ne. 0.d0 ) then
-       new_adj(1) = new_adj(1) + this%adj() * this%val() * log(d(1))
-       call this%set_operand_adj(new_adj)
+       adj(1) = this%adj() * this%val() * log(d(1))
+       call this%set_operand_adj(adj)
     end if
   end subroutine chain_pow_dv
 

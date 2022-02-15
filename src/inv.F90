@@ -18,11 +18,10 @@ contains
   
   subroutine chain_inv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1), val(1)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(1), val(1)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) - this%adj() / (val(1) * val(1))
-    call this%set_operand_adj(new_adj)
+    adj = - this%adj() / (val(1) * val(1))
+    call this%set_operand_adj(adj)
   end subroutine chain_inv
 
   impure elemental function inv_v(v) result(s)

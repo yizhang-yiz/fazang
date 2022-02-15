@@ -5,7 +5,7 @@ differentiation, inspired by [[https://mc-stan.org/users/interfaces/math][Stan/M
 
 ** Quick start
 =Fazang= provides user-facing variable =var= type. It is the type for dependent and independent variables
-of which the derivatives will be calculated.
+of which derivatives will be calculated.
 #+begin_src fortran
 program var_grad_test
   use fazang ! load Fazang library

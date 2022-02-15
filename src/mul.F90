@@ -19,12 +19,11 @@ contains
   
   subroutine chain_mul_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2), val(2)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(2), val(2)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) + val(2) * this%adj()
-    new_adj(2) = new_adj(2) + val(1) * this%adj()
-    call this%set_operand_adj(new_adj)
+    adj(1) = val(2) * this%adj()
+    adj(2) = val(1) * this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_mul_vv
 
   impure elemental function mul_vv(v1, v2) result(s)
@@ -36,11 +35,9 @@ contains
 
   subroutine chain_mul_vd(this)
     class(vari), intent(in) :: this
-    real(rk) d(1), new_adj(1)
-    new_adj = this%operand_adj()
-    d = this%data_operand()
-    new_adj(1) = new_adj(1) + this%adj() * d(1)
-    call this%set_operand_adj(new_adj)
+    real(rk) adj(1)
+    adj = this%adj() * this%data_operand()
+    call this%set_operand_adj(adj)
   end subroutine chain_mul_vd
 
   impure elemental function mul_vd(v, d) result(s)

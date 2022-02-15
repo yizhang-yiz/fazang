@@ -19,11 +19,10 @@ module fazang_sub_mod
 contains
   subroutine chain_sub_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj()
-    new_adj(2) = new_adj(2) - this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(2)
+    adj(1) = this%adj()
+    adj(2) = - this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_sub_vv
 
   impure elemental function sub_vv(v1, v2) result(s)
@@ -35,10 +34,9 @@ contains
 
   subroutine chain_sub_vd(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_sub_vd
 
   impure elemental function sub_vd(v1, v2) result(s)
@@ -55,10 +53,9 @@ contains
 
   subroutine chain_sub_dv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) - this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = - this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_sub_dv
 
   impure elemental function sub_dv(v1, v2) result(s)

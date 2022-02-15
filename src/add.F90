@@ -19,10 +19,9 @@ module fazang_add_mod
 contains
   subroutine chain_add_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2)
-    new_adj = this%operand_adj()
-    new_adj = new_adj + this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(2)
+    adj = this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_add_vv
 
   impure elemental function add_vv(v1, v2) result(s)
@@ -34,10 +33,9 @@ contains
 
   subroutine chain_add_vd(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + this%adj()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = this%adj()
+    call this%set_operand_adj(adj)
   end subroutine chain_add_vd
 
   impure elemental function add_vd(v1, v2) result(s)

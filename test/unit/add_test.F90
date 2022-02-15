@@ -75,4 +75,10 @@ program add_test
   EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
   EXPECT_DBL_EQ(q1%adj(), ([0.0d0, 1.3d0]))
 
+  x = var(3.d0)
+  y1 = x + x + x + x
+  call set_zero_all_adj()
+  call y1%grad()
+  EXPECT_DBL_EQ(x%adj(), 4.d0)
+
 end program add_test

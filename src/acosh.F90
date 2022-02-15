@@ -18,8 +18,7 @@ contains
     real(rk) :: adj(1)
     real(rk) :: val(1)
     val = this%operand_val()
-    adj = this%operand_adj()
-    adj = adj + this%adj() / sqrt(val * val - 1.d0)
+    adj = this%adj() / sqrt(val * val - 1.d0)
     call this%set_operand_adj(adj)
   end subroutine chain_acosh
 

@@ -7,7 +7,7 @@
 
 ## Quick start
 
-`Fazang` provides user-facing variable `var` type. It is the type for dependent and independent variables of which the derivatives will be calculated.
+`Fazang` provides user-facing variable `var` type. It is the type for dependent and independent variables of which derivatives will be calculated.
 
 ```fortran
 program var_grad_test

@@ -10,10 +10,9 @@ contains
   
   subroutine chain_sqrt(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1)
-    new_adj = this%operand_adj()
-    new_adj(1) = new_adj(1) + 0.5d0 * this%adj() / this%val()
-    call this%set_operand_adj(new_adj)
+    real(rk) :: adj(1)
+    adj(1) = 0.5d0 * this%adj() / this%val()
+    call this%set_operand_adj(adj)
   end subroutine chain_sqrt
 
   impure elemental function sqrt_v(v) result(s)

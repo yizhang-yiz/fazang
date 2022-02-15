@@ -1,4 +1,4 @@
-% Created 2022-02-10 Thu 10:30
+% Created 2022-02-15 Tue 09:50
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt, reqno, oneside]{amsbook}
               \usepackage[letterpaper, width=6.5in, height=9in]{geometry}
@@ -50,7 +50,7 @@ Copyright 2022, Yi Zhang
 \end{titlepage}
 
 \chapter{Introduction}
-\label{sec:org768faca}
+\label{sec:org7d04fe0}
 \texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
 project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
 is also involved in. \texttt{Fazang} is intended to support general scientific
@@ -61,7 +61,7 @@ User should be aware that the project is at early stage and still
 under development. For any questions, suggestions, and
 contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
 \chapter{Quick Start}
-\label{sec:org069a473}
+\label{sec:orgbf374ef}
 Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
 Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
 
@@ -125,7 +125,7 @@ end program log_demo
 \end{minted}
 
 \chapter{Use \texttt{Fazang}}
-\label{sec:orgb4b5e3c}
+\label{sec:orgbe7b456}
 \texttt{Fazang} uses \texttt{var} type to record numerical and gradient
 operations. The type supports three functions
 \begin{itemize}
@@ -134,7 +134,7 @@ operations. The type supports three functions
 \item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
 \end{itemize}
 \section{Constructors}
-\label{sec:org8871d49}
+\label{sec:org6176336}
 \texttt{var} can be constructed using overloaded \texttt{var} interface.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 real(real64) :: a, b(3), c(2, 3)
@@ -147,7 +147,7 @@ y = var(b)                ! y%val() == b
 z = var(c)                ! z%val() == c
 \end{minted}
 \section{Assignment}
-\label{sec:org015c53c}
+\label{sec:org4710256}
 \texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 ! ....
@@ -157,7 +157,7 @@ z = new_c                 ! z%val() == new_c
 \end{minted}
 
 \section{Gradient}
-\label{sec:org4d61acc}
+\label{sec:org238e40c}
    \label{sec:gradient}
 Consider a variable \(z\) calculated by the composition of a series of operations
 \begin{equation*}
@@ -230,7 +230,7 @@ involve explicitly setting up \texttt{var} variables. \texttt{Fazang} achieves t
 by using a \emph{nested} AD envionment.
 
 \section{Nested AD envionment}
-\label{sec:orgd714115}
+\label{sec:org45d75b9}
    \label{sec:nested}
 Let us take a look of the internals of \texttt{Fazang}'s \texttt{gradient} function.
 The \texttt{dependent\_function} interface requires \(f\) to follow the above
@@ -265,7 +265,7 @@ end\_nested()}. User can use this function pair to construct a local
 gradient evaluation procedure.
 
 \section{Jacobian}
-\label{sec:org070907c}
+\label{sec:orgca15e46}
    \label{sec:jacobian}
 Similar to \texttt{gradient}, using the same nested technique \texttt{Fazang}
 provides a \texttt{jacobian} function that calculates the Jacobian matrix of
@@ -290,7 +290,7 @@ has dimension \(n\times(m+1)\), with the first column being the function
 results and the rest columns the adjoints.
 
 \section{Functions}
-\label{sec:orgf7931eb}
+\label{sec:org232ca14}
 Numeric functions supported by \texttt{Fazang} are listed in Appendix \ref{appendix:func}. All unary and
 binary functions are \texttt{elemental}. The binary functions allow mixed
 argument types, namely, either argument can be \texttt{real64} type while the
@@ -299,13 +299,13 @@ other the \texttt{var} type.
 Probability distributions supported by \texttt{Fazang} are list in Appendix \ref{appendix:likelihood}.
 
 \chapter{Design}
-\label{sec:org5e93332}
+\label{sec:orgb732b9f}
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. \texttt{Fazang} achieves this
 through two derived types, \texttt{tape} and \texttt{vari}.
 
 \section{\texttt{tape} data structure}
-\label{sec:org20e7ecd}
+\label{sec:org21ba8c6}
 A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
 head to the current stack top.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -334,7 +334,7 @@ the array after saving its current value to a \texttt{vari} type variable
 for future retrieval.
 
 \section{\texttt{vari} type}
-\label{sec:org4ec8b2d}
+\label{sec:orgb0a47b8}
 The \texttt{vari} type is simply a proxy of a node's storage location in the tape
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 type :: vari
@@ -370,7 +370,7 @@ stored in array \texttt{varis}. Each entry in \texttt{varis} is a dependent
 (operation output) of one or more previous entries.
 
 \section{\texttt{var} type}
-\label{sec:org30768b0}
+\label{sec:orgee6f1cf}
 The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
 stores the index of a \texttt{vari} in the \texttt{varis} array.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -402,7 +402,7 @@ Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} an
 \texttt{varis} arrays.
 
 \section{Nested tape}
-\label{sec:orgfc87c4d}
+\label{sec:org4503642}
 \texttt{Fazang} use \texttt{begin\_nested()} and \texttt{end\_nested()} to record and
 terminate a nested tape. With \texttt{call begin\_nested()} \texttt{Fazang} records
 the current \texttt{tape} and \texttt{varis} array head. When \texttt{end\_nested()} is
@@ -411,7 +411,7 @@ wiped, and the head is moved back to the recorded location. Multiple
 levels of nested envionment are supported this way.
 
 \chapter{Add operation functions}
-\label{sec:orgc9aac3e}
+\label{sec:org2cdfd18}
 Adding an operation \(f_i\) involves creating functions for forward
 pass and backward pass. Let us first use \texttt{log} function as a simple
 example.
@@ -432,11 +432,10 @@ array). It also points \texttt{s}'s chain to a dedicated procedure \texttt{chain
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 subroutine chain_log(this)
   class(vari), intent(in) :: this
-  real(rk) :: new_adj(1), val(1)
-  new_adj = this%operand_adj()
+  real(rk) :: adj(1), val(1)
   val = this%operand_val()
-  new_adj(1) = new_adj(1) + this%adj() / val(1)
-  call this%set_operand_adj(new_adj)
+  adj(1) = this%adj() / val(1)
+  call this%set_operand_adj(adj)
 end subroutine chain_log
 \end{minted}
 To understand this function, recall the recursion in Section \ref{sec:gradient},
@@ -481,12 +480,11 @@ the adjoints of both \texttt{v1} and \texttt{v2}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 subroutine chain_div_vv(this)
   class(vari), intent(in) :: this
-  real(rk) :: new_adj(2), val(2)
-  new_adj = this%operand_adj()
+  real(rk) :: adj(2), val(2)
   val = this%operand_val()
-  new_adj(1) = new_adj(1) + this%adj()/val(2)
-  new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
-  call this%set_operand_adj(new_adj)
+  adj(1) = this%adj()/val(2)
+  adj(2) = - this%val() * this%adj()/val(2)
+  call this%set_operand_adj(adj)
 end subroutine chain_div_vv
 \end{minted}
 
@@ -514,11 +512,10 @@ So with \texttt{v} as \(z_i^{(1)}\) and \texttt{d} as \(z_i^{(2)}\) we have
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 subroutine chain_div_vd(this)
   class(vari), intent(in) :: this
-  real(rk) d(1), new_adj(1)
-  new_adj = this%operand_adj()
+  real(rk) d(1), adj(1)
   d = this%data_operand()
-  new_adj(1) = new_adj(1) + this%adj() / d(1)
-  call this%set_operand_adj(new_adj)
+  adj(1) = this%adj() / d(1)
+  call this%set_operand_adj(adj)
 end subroutine chain_div_vd
 \end{minted}
 
@@ -526,7 +523,7 @@ The third scenario is treated similarly.
 
 \appendix
 \chapter{\texttt{Fazang} Functions \label{sec:func_list}}
-\label{sec:org577f57f}
+\label{sec:orgd0f12cf}
 \label{appendix:func}  
 \begin{center}
 \begin{tabular}{lll}
@@ -572,10 +569,10 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{center}
 
 \chapter{\texttt{Fazang} Probability distributions \label{sec:likelihood_list}}
-\label{sec:orgd4f7813}
+\label{sec:org27104ff}
 \label{appendix:likelihood}  
 \section{Normal distribution}
-\label{sec:orgffb0b94}
+\label{sec:org7d64b26}
 \begin{equation}
 \text{Normal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\exp{
   \left(
@@ -599,7 +596,7 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{itemize}
 
 \section{LogNormal distribution}
-\label{sec:org42eb763}
+\label{sec:org917dc81}
 \begin{equation}
 \text{LogNormal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\frac{1}{y_i}\exp{
   \left(
@@ -613,7 +610,7 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{equation}
 
 \begin{itemize}
-\item \texttt{normal\_lpdf(y, mu, sigma)}
+\item \texttt{lognormal\_lpdf(y, mu, sigma)}
 \begin{itemize}
 \item \texttt{y}: \texttt{real64} array.
 \item \texttt{mu}: \texttt{real64} or \texttt{var}.
@@ -622,7 +619,7 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{itemize}
 \end{itemize}
 \section{{\bfseries\sffamily TODO} additional distributions}
-\label{sec:org5f5d998}
+\label{sec:org8459e42}
 
 
 \bibliographystyle{plain}

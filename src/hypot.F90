@@ -13,11 +13,10 @@ module fazang_hypot_v_mod
 contains
   subroutine chain_hypot(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(this%n_operand()), val(this%n_operand())
-    new_adj = this%operand_adj()
+    real(rk) :: adj(this%n_operand()), val(this%n_operand())
     val = this%operand_val()
-    new_adj = new_adj + this%adj() * val / this%val()
-    call this%set_operand_adj(new_adj)
+    adj = this%adj() * val / this%val()
+    call this%set_operand_adj(adj)
   end subroutine chain_hypot
 
   impure elemental function hypot_vv(v1, v2) result(s)

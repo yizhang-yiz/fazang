@@ -395,11 +395,10 @@ array). It also points =s='s chain to a dedicated procedure =chain_log=.
 #+begin_src fortran
   subroutine chain_log(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(1), val(1)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(1), val(1)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) + this%adj() / val(1)
-    call this%set_operand_adj(new_adj)
+    adj(1) = this%adj() / val(1)
+    call this%set_operand_adj(adj)
   end subroutine chain_log
 #+end_src
 To understand this function, recall the recursion in Section [[sec:gradient]],
@@ -442,12 +441,11 @@ the adjoints of both =v1= and =v2=.
 #+begin_src fortran
   subroutine chain_div_vv(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(2), val(2)
-    new_adj = this%operand_adj()
+    real(rk) :: adj(2), val(2)
     val = this%operand_val()
-    new_adj(1) = new_adj(1) + this%adj()/val(2)
-    new_adj(2) = new_adj(2) - this%val() * this%adj()/val(2)
-    call this%set_operand_adj(new_adj)
+    adj(1) = this%adj()/val(2)
+    adj(2) = - this%val() * this%adj()/val(2)
+    call this%set_operand_adj(adj)
   end subroutine chain_div_vv
 #+end_src
 
@@ -475,11 +473,10 @@ So with =v= as $z_i^{(1)}$ and =d= as $z_i^{(2)}$ we have
 #+begin_src fortran
   subroutine chain_div_vd(this)
     class(vari), intent(in) :: this
-    real(rk) d(1), new_adj(1)
-    new_adj = this%operand_adj()
+    real(rk) d(1), adj(1)
     d = this%data_operand()
-    new_adj(1) = new_adj(1) + this%adj() / d(1)
-    call this%set_operand_adj(new_adj)
+    adj(1) = this%adj() / d(1)
+    call this%set_operand_adj(adj)
   end subroutine chain_div_vd
 #+end_src
 

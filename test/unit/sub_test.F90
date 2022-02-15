@@ -58,7 +58,17 @@ program sub_test
   EXPECT_FLOAT_EQ(y2%adj(), sin(y2%val()))
 
   y4 = -y3
+  call set_zero_all_adj()
   call y4%grad()
   EXPECT_FLOAT_EQ(y3%adj(), -1.0d0)
+
+  y4 = y2 - y2
+  call set_zero_all_adj()
+  call y4%grad()
+  EXPECT_FLOAT_EQ(y2%adj(), 0.0d0)
+  y4 = y2 - y2 - y2
+  call set_zero_all_adj()
+  call y4%grad()
+  EXPECT_FLOAT_EQ(y2%adj(), -1.0d0)
 
 end program sub_test

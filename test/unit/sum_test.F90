@@ -12,7 +12,7 @@ program sum_test
   use fazang_grad_mod
   implicit none
 
-  type(var) :: x(4), s
+  type(var) :: x(4), s, a
   real(rk) :: z1(4) = [1.d0, 47.d0, 3.d0, 53.d0]
   integer(ik) :: i
 
@@ -36,4 +36,11 @@ program sum_test
      EXPECT_DBL_EQ(callstack%varis(i)%adj(), 0.d0)
   end do
   
+  a = var(3.d0)
+  x = [a, a, a, var(3.d0)]
+  s = sum(x)
+  call set_zero_all_adj()
+  call s%grad()
+  EXPECT_DBL_EQ(a%adj(), 3.d0)
+
 end program sum_test

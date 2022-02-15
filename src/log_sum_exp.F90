@@ -19,12 +19,11 @@ contains
   
   subroutine chain_log_sum_exp(this)
     class(vari), intent(in) :: this
-    real(rk) :: new_adj(this%n_operand())
+    real(rk) :: adj(this%n_operand())
     real(rk) :: val(this%n_operand())
     val = this%operand_val()
-    new_adj = this%operand_adj()
-    new_adj = new_adj + this%adj() * exp(val - this%val())
-    call this%set_operand_adj(new_adj)
+    adj = this%adj() * exp(val - this%val())
+    call this%set_operand_adj(adj)
   end subroutine chain_log_sum_exp
 
   pure function log_sum_exp_d(d) result(s)

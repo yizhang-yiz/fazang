@@ -13,7 +13,7 @@ contains
     class(vari), intent(in) :: this
     real(rk) :: adj(1), val(1)
     val = this%operand_val()
-    adj = this%operand_adj() + this%adj() * digamma(val)
+    adj = this%adj() * digamma(val)
     call this%set_operand_adj(adj)
   end subroutine chain_log_gamma
 

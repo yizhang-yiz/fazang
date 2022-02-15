@@ -15,7 +15,7 @@ module fazang_nested_tape_mod
 contains
   subroutine set_zero_nested_adj ()
     integer i
-    do i = callstack % head, nested_vari_head(nest_level), -1
+    do i = callstack % head - 1, nested_vari_head(nest_level), -1
        call callstack % stack % set_adj(callstack%varis(i)%i, 0.0d0)
     end do
   end subroutine set_zero_nested_adj

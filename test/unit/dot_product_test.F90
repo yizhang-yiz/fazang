@@ -11,7 +11,7 @@ program dot_product_test
   use fazang_add_mod
   implicit none
 
-  type(var) :: x(4), y(4), z
+  type(var) :: x(4), y(4), z, p
   real(rk) :: a(4) = [1.d0, 47.d0, 3.d0, 53.d0], b
   type(vari), pointer :: vp
 
@@ -58,6 +58,24 @@ program dot_product_test
   EXPECT_DBL_EQ(y(3)%adj(), 2.5d0 * a(3))
   EXPECT_DBL_EQ(y(4)%adj(), 2.5d0 * a(4))
 
+  ! repeated args
+  z = dot_product(x, x)
+  call set_zero_all_adj()
+  call z%grad()
+  EXPECT_DBL_EQ(x%adj(), 2.d0 * x % val())
+
+  p = var(0.5d0)
+  x = [p, p, p, p]
+  z = dot_product(x, x)
+  call set_zero_all_adj()
+  call z%grad()
+  EXPECT_DBL_EQ(p%adj(), 8.d0 * p % val())
+
+  z = dot_product(x, a)
+  call set_zero_all_adj()
+  call z%grad()
+  EXPECT_DBL_EQ(p%adj(), sum(a))
+  
   ! double version should also work
   b = dot_product(a, a)
   EXPECT_DBL_EQ(b, 5028.d0)
