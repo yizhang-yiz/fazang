@@ -35,6 +35,7 @@ contains
           callstack % stack % storage(i) = 0
        end do
        callstack % stack % head = nested_tape_head(nest_level)
+       callstack % head = nested_vari_head(nest_level)
        nested_tape_head(nest_level) = 0
        nested_vari_head(nest_level) = 0
        nest_level = nest_level - 1

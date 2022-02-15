@@ -129,7 +129,7 @@ t_cvs_sens_rhs_test = executable('cvs_sens_rhs_test',
                             dependencies : [fazang_dep, libsundials_dep])
 test('cvs_sens_rhs', t_cvs_sens_rhs_test)
 
-# t_cvs_y0_test = executable('cvs_y0_test',
-#                             files('cvodes_y0_test.F90'),
-#                             dependencies : [fazang_dep, libsundials_dep])
-# test('cvs_y0', t_cvs_y0_test)
+t_cvs_y0_test = executable('cvs_y0_test',
+                            files('cvodes_y0_test.F90'),
+                            dependencies : [fazang_dep, libsundials_dep])
+test('cvs_y0', t_cvs_y0_test)

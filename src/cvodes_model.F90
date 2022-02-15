@@ -195,8 +195,6 @@ contains
           yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, j - 1)
           yiSvec => FN_VGetArrayPointer(yiS)
           yiSdotvec => FN_VGetArrayPointer(yiSdot)
-          ! write(*, *) "taki test: ", i, j
-          ! write(*, *) "taki test: ", yiSvec(1), yiSvec(2)
           yiSdotvec(i) = dot_product(yvar%adj(), yiSvec)
        end do
        call set_zero_nested_adj ()
@@ -229,7 +227,6 @@ contains
 
     type(cvs_rhs), pointer :: ode
 
-    ierr = -1
     call c_f_pointer(user_data, ode)
 
     ! get data arrays from SUNDIALS vectors
@@ -237,6 +234,7 @@ contains
     fvec => FN_VGetArrayPointer(f)
 
     call set_sens_rhs(Ns, t, yvec, fvec, yS, ySdot, ode)
+    ierr = 0
   end function CVSensRhsFn
 
 

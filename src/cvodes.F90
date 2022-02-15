@@ -188,8 +188,6 @@ contains
           print *, 'Error in FCVODE, ierr = ', ierr, '; halting'
           stop 1
        endif
-       yt(:, outstep) = yval
-
        ierr = FCVodeGetSens(serv % mem, tcur, serv % yS)
        do i = 1, serv % neq
           g = 0.d0

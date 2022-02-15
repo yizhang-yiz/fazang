@@ -6,6 +6,12 @@ module fazang_test_mod
   real(REAL32), parameter :: ulp_f = 1.19209290e-7
   real(REAL64), parameter :: ulp_d = 2.2204460492503131e-16
 
+  interface expect_float_eq_impl
+     module procedure :: expect_float_eq_impl_0
+     module procedure :: expect_float_eq_impl_1
+     module procedure :: expect_float_eq_impl_2
+  end interface expect_float_eq_impl
+
   interface expect_dbl_eq_impl
      module procedure :: expect_dbl_eq_impl_0
      module procedure :: expect_dbl_eq_impl_1
@@ -26,7 +32,7 @@ contains
     end if
   end subroutine expect_near_impl
 
-  subroutine expect_float_eq_impl (a, b, file, line)
+  subroutine expect_float_eq_impl_0 (a, b, file, line)
     real(REAL64), intent(in) :: a, b
     character (*) :: file
     integer(int32) :: line
@@ -34,9 +40,39 @@ contains
        write(*, *) file, "   line:", line
        write(*, *)
        write(*, *) "|", a, "-", b, "| >", 4.d0 * ulp_f
-       stop 2
+       stop 5
     end if
-  end subroutine expect_float_eq_impl
+  end subroutine expect_float_eq_impl_0
+
+  subroutine expect_float_eq_impl_1 (a, b, file, line)
+    real(REAL64), intent(in) :: a(:), b(:)
+    character (*) :: file
+    integer(int32) :: line, i
+    do i = 1, size(a)
+       if ( abs(a(i) - b(i)) >= 4.d0 * ulp_f ) then
+          write(*, *) file, "   line:", line, "   i=", i
+          write(*, *)
+          write(*, *) "|", a(i), "-", b(i), "| >", 4.d0 * ulp_f
+          stop 5
+       end if
+    end do
+  end subroutine expect_float_eq_impl_1
+
+  subroutine expect_float_eq_impl_2 (a, b, file, line)
+    real(REAL64), intent(in) :: a(:, :), b(:, :)
+    character (*) :: file
+    integer(int32) :: line, i, j
+    do i = 1, size(a, 2)
+       do j = 1, size(a, 1)
+          if ( abs(a(j, i) - b(j, i)) >= 4.d0 * ulp_f ) then
+             write(*, *) file, "   line:", line, "   row=", j, " col=", i
+             write(*, *)
+             write(*, *) "|", a(j, i), "-", b(j, i), "| >", 4.d0 * ulp_f
+             stop 5
+          end if
+       end do
+    end do
+  end subroutine expect_float_eq_impl_2
 
   subroutine expect_eq_impl (a, b, file, line)
     integer(int32), intent(in) :: a, b
