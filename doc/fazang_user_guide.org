@@ -350,7 +350,7 @@ stores the index of a =vari= in the =varis= array.
 #+end_src
 After the forward pass, when adjoints are desired, we call =grad= or
 =gradient= procedure. This initiates a /backward pass/, in which  the
-=varis= array is transversed backward
+=varis= array is traversed backward
 so that each =vari='s =chain= procedure is called to update the
 operand adjoints.
 #+begin_src fortran

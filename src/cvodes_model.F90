@@ -154,7 +154,7 @@ contains
     call ode % f_yvar(t, yvar, fvar)
     do i = 1, n
        call set_zero_nested_adj ()
-       call fvar(i)%grad()
+       call fvar(i)%grad_nested()
        do j = 1, n
           jac(i + (j - 1) * n) = yvar(j)%adj()
        end do
@@ -189,7 +189,7 @@ contains
     fvar = var([(0.d0, i = 1, size(y))])
     call ode % f_yvar(t, yvar, fvar)
     do i = 1, n
-       call fvar(i)%grad()
+       call fvar(i)%grad_nested()
        do j = 1, ode % ns
           yiS => FN_VGetVecAtIndexVectorArray(yS, j - 1)
           yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, j - 1)

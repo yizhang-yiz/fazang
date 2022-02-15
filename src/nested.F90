@@ -6,6 +6,7 @@ module fazang_nested_tape_mod
 
   private
   public :: set_zero_nested_adj, begin_nested, end_nested
+  public :: curr_nested_vari_head
   
   integer, parameter :: max_nested_stack = 10
   integer :: nested_tape_head(max_nested_stack) = 0
@@ -41,5 +42,12 @@ contains
        nest_level = nest_level - 1
     end if
   end subroutine end_nested
+
+  integer(ik) function curr_nested_vari_head()
+    curr_nested_vari_head = 0
+    if (nest_level > 0) then
+       curr_nested_vari_head = nested_vari_head(nest_level)
+    end if
+  end function curr_nested_vari_head
 
 end module fazang_nested_tape_mod

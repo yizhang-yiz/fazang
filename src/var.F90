@@ -18,7 +18,7 @@ module fazang_var_mod
    contains
      procedure :: val
      procedure :: adj
-     procedure :: grad
+     procedure :: grad, grad_nested
      procedure :: vi_index
      procedure :: set_chain
   end type var
@@ -174,5 +174,16 @@ contains
        call callstack%varis(i)%chain()
     end do
   end subroutine grad
+
+  ! only traverse the top nested tape
+  subroutine grad_nested(this)
+    use fazang_nested_tape_mod
+    class(var), intent(in) :: this
+    integer i
+    call callstack % varis (this%vi) % init_dependent()
+    do i = callstack%head - 1, curr_nested_vari_head(), -1
+       call callstack%varis(i)%chain()
+    end do
+  end subroutine grad_nested
 
 end module fazang_var_mod
