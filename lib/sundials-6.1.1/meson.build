@@ -132,7 +132,7 @@ sundials_f_sources = files(
     'src/sunmatrix/dense/fmod/fsunmatrix_dense_mod.f90',
     'src/sunmatrix/sparse/fmod/fsunmatrix_sparse_mod.f90',
     'src/sundials/fmod/fsundials_types_mod.f90',
-    'src/sundials/fmod/fsundials_context_mod.F90', # use .F90 not f90 for C-preprocessor
+    'src/sundials/fmod/fsundials_context_mod.f90', # use .F90 not f90 for C-preprocessor
     'src/sundials/fmod/fsundials_futils_mod.f90',
     'src/sundials/fmod/fsundials_matrix_mod.f90',
     'src/sundials/fmod/fsundials_profiler_mod.f90',
