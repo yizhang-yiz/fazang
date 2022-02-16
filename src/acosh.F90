@@ -14,6 +14,7 @@ module fazang_acosh_v_mod
 
 contains
   subroutine chain_acosh(this)
+    implicit none
     class(vari), intent(in) :: this
     real(rk) :: adj(1)
     real(rk) :: val(1)
@@ -23,6 +24,7 @@ contains
   end subroutine chain_acosh
 
   impure elemental function acosh_v(v) result(s)
+    implicit none
     type(var), intent(in) :: v
     type(var) :: s
     if ( is_nan(v) ) then

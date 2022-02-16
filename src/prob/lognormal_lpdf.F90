@@ -23,9 +23,8 @@ contains
     type(var), intent(in) :: mu
     type(var), intent(in) :: sigma
     type(var) :: v
-    v = var(sum(logp(y, mu, sigma)), [mu, sigma], &
+    v = var_with_partials(sum(logp(y, mu, sigma)), [mu, sigma], &
          [sum(grad_mu(y, mu, sigma)), sum(grad_sigma(y, mu, sigma))])
-    call v%set_chain(chain_eager_adj)
   end function lognormal_lpdf_vv
   
   function lognormal_lpdf_vd(y, mu, sigma) result(v)
@@ -33,8 +32,7 @@ contains
     type(var), intent(in) :: mu
     real(rk), intent(in) :: sigma
     type(var) :: v
-    v = var(sum(logp(y, mu, sigma)), [mu], [sum(grad_mu(y, mu, sigma))])
-    call v%set_chain(chain_eager_adj)
+    v = var_with_partials(sum(logp(y, mu, sigma)), [mu], [sum(grad_mu(y, mu, sigma))])
   end function lognormal_lpdf_vd
 
   function lognormal_lpdf_dv(y, mu, sigma) result(v)
@@ -42,8 +40,7 @@ contains
     real(rk), intent(in) :: mu
     type(var), intent(in) :: sigma
     type(var) :: v
-    v = var(sum(logp(y, mu, sigma)), [sigma], [sum(grad_sigma(y, mu, sigma))])
-    call v%set_chain(chain_eager_adj)
+    v = var_with_partials(sum(logp(y, mu, sigma)), [sigma], [sum(grad_sigma(y, mu, sigma))])
   end function lognormal_lpdf_dv
 
   function lognormal_lpdf_dd(y, mu, sigma) result(v)

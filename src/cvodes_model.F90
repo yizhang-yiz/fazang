@@ -13,7 +13,8 @@ module fazang_cvodes_model_mod
      procedure(RhsFn), nopass, pointer :: cvs_f => null()
      procedure(CVSensRhsFn), nopass, pointer :: cvs_sens => null()
      logical :: ys = .false.
-     integer(ik) :: ns = 0
+     integer :: ns = 0
+     real(rk), pointer :: pval(:) => null()
    contains
      procedure, nopass :: RhsFn
      procedure, nopass :: CVSensRhsFn
@@ -23,7 +24,7 @@ module fazang_cvodes_model_mod
      subroutine cvs_rhs_func(t, y, fy)
        import c_double
        real(c_double), intent(in) :: t, y(:)
-       real(c_double), intent(out) :: fy(size(y))
+       real(c_double), intent(inout) :: fy(size(y))
      end subroutine cvs_rhs_func
 
      subroutine cvs_rhs_func_yvar(t, y, f)
@@ -39,22 +40,12 @@ module fazang_cvodes_model_mod
        type(var), intent(in) :: y(:), p(:)
        type(var), intent(inout) :: f(size(y))
      end subroutine cvs_rhs_func_pvar
-
-     ! integer(c_int) function CVLsJacFn(tn, sunvec_y, sunvec_f, jac,&
-     !      & user_data, tmp1, tmp2, tmp3) result(ierr) bind(C,name='CVLsJacFn')
-     !   import c_int, c_double, c_ptr, N_Vector, SUNMatrix
-     !   real(c_double), value :: tn        ! current time
-     !   type(N_Vector)        :: sunvec_y  ! solution N_Vector
-     !   type(N_Vector)        :: sunvec_f  ! rhs N_Vector
-     !   type(SUNMatrix) :: jac
-     !   type(N_Vector)        :: tmp1, tmp2, tmp3
-     !   type(c_ptr),    value :: user_data ! user-defined data
-     ! end function CVLsJacFn
   end interface
 
   interface cvs_rhs
      module procedure :: new_cvs_rhs
      module procedure :: new_cvs_rhs_yvar
+     module procedure :: new_cvs_rhs_pvar
   end interface cvs_rhs
 contains
 
@@ -79,19 +70,21 @@ contains
     rhs % cvs_sens => CVSensRhsFn
   end function new_cvs_rhs_yvar
 
-  ! function new_cvs_rhs_pvar(func1, func2, nsens) result(rhs)
-  !   procedure(cvs_rhs_func) :: func1
-  !   procedure(cvs_rhs_func_pvar) :: func2
-  !   integer(ik), intent(in) :: nsens
-  !   type(cvs_rhs), target :: rhs
-  !   rhs % f => func1
-  !   rhs % cvs_f => RhsFn
-  !   rhs % f_pvar => func2
-  !   rhs % cvs_jac_yvar => CVLsJacFn
-  !   rhs % y0_is_var = .true.
-  !   rhs % nsens = nsens
-  ! end function new_cvs_rhs_pvar
-
+  function new_cvs_rhs_pvar(ys, ns, p, func1, func2) result(rhs)
+    logical, intent(in) :: ys
+    integer, intent(in) :: ns
+    real(rk), target, intent(in) :: p(:)
+    procedure(cvs_rhs_func) :: func1
+    procedure(cvs_rhs_func_pvar) :: func2
+    type(cvs_rhs), target :: rhs
+    rhs % ys = ys
+    rhs % ns = ns
+    rhs % f => func1
+    rhs % cvs_f => RhsFn
+    rhs % f_pvar => func2
+    rhs % cvs_sens => CVSensRhsFn
+    rhs % pval => p
+  end function new_cvs_rhs_pvar
 
   ! ----------------------------------------------------------------
   ! RhsFn provides the right hand side function for the
@@ -167,7 +160,7 @@ contains
     use fazang_nested_tape_mod
     implicit none
 
-    integer(c_long), intent(in) :: n
+    integer(ik), intent(in) :: n
     real(c_double), intent(in) :: t
     real(c_double), intent(in) :: y(n)
     real(c_double), intent(in) :: f(n)
@@ -177,17 +170,29 @@ contains
 
     type(var) :: yvar(n)
     type(var) :: fvar(n)
-    integer(c_long) :: i
-    integer(ik) :: j
+    integer :: i, j
     type(N_Vector), pointer :: yiS
     real(c_double), pointer :: yiSvec(:)
     type(N_Vector), pointer :: yiSdot
     real(c_double), pointer :: yiSdotvec(:)
+    logical :: par_is_var
+    type(var) :: pvar(3)
+    integer m               ! # of var params
+
+    m = merge(ode % ns - n, ode % ns, ode % ys)
+
+    par_is_var = .not.(ode % ys .and. ode % ns == size(y))
 
     call begin_nested()
     yvar = var(y)
     fvar = var([(0.d0, i = 1, size(y))])
-    call ode % f_yvar(t, yvar, fvar)
+    if ( par_is_var ) then
+       pvar = var(ode % pval)
+       call ode % f_pvar(t, yvar, fvar, pvar)
+    else
+       call ode % f_yvar(t, yvar, fvar)
+    endif
+
     do i = 1, n
        call fvar(i)%grad_nested()
        do j = 1, ode % ns
@@ -197,6 +202,14 @@ contains
           yiSdotvec => FN_VGetArrayPointer(yiSdot)
           yiSdotvec(i) = dot_product(yvar%adj(), yiSvec)
        end do
+       
+       if ( par_is_var ) then
+          do j = 1, m
+             yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, ode % ns - m + j - 1)
+             yiSdotvec => FN_VGetArrayPointer(yiSdot)
+             yiSdotvec(i) = yiSdotvec(i) + pvar(j) % adj();
+          enddo
+       end if
        call set_zero_nested_adj ()
     end do
     call end_nested()
@@ -220,6 +233,7 @@ contains
     type(c_ptr), value :: ySdot
     type(c_ptr),    value :: user_data ! user-defined data
     type(N_Vector)        :: tmp1, tmp2
+    integer(int32) :: n
 
     ! pointers to data in SUNDIALS vectors
     real(c_double), pointer :: yvec(:)
@@ -232,50 +246,9 @@ contains
     ! get data arrays from SUNDIALS vectors
     yvec => FN_VGetArrayPointer(y)
     fvec => FN_VGetArrayPointer(f)
-
-    call set_sens_rhs(Ns, t, yvec, fvec, yS, ySdot, ode)
+    n = int(FN_VGetLength(y), kind=int32)
+    call set_sens_rhs(n, t, yvec, fvec, yS, ySdot, ode)
     ierr = 0
   end function CVSensRhsFn
-
-
-  ! integer(c_int) function CVLsJacFn_yvar(tn, sunvec_y, sunvec_f, jac,&
-  !      & user_data, tmp1, tmp2, tmp3) result(ierr) bind(C,name='CVLsJacFn')
-  !   use, intrinsic :: iso_c_binding
-  !   use fsundials_nvector_mod
-  !   use fsundials_matrix_mod
-  !   use fsunmatrix_dense_mod
-
-  !   use fazang_nested_tape_mod
-  !   implicit none
-
-  !   real(c_double), value :: tn        ! current time
-  !   type(N_Vector)        :: sunvec_y  ! solution N_Vector
-  !   type(N_Vector)        :: sunvec_f  ! rhs N_Vector
-  !   type(SUNMatrix) :: jac
-  !   type(N_Vector)        :: tmp1, tmp2, tmp3
-  !   type(c_ptr),    value :: user_data ! user-defined data
-
-  !   ! pointers to data in SUNDIALS vectors
-  !   real(c_double), pointer :: yvec(:)
-  !   real(c_double), pointer :: fvec(:)
-  !   real(c_double), pointer :: Jdata(:)
-
-  !   type(cvs_rhs), pointer :: ode
-
-  !   integer(c_long) :: n
-
-  !   ierr = -1
-  !   ! call c_f_pointer(user_data, ode)
-
-  !   ! write(*, *) "taki test: ", user_data
-
-  !   ! get data arrays from SUNDIALS vectors
-  !   yvec => FN_VGetArrayPointer(sunvec_y)
-  !   fvec => FN_VGetArrayPointer(sunvec_f)
-  !   Jdata => FSUNDenseMatrix_Data(jac)
-
-  !   n = FN_VGetLength(sunvec_y)
-  !   ! call calc_jac_yvar(n, tn, yvec, fvec, Jdata, ode)
-  ! end function CVLsJacFn_yvar
 
 end module fazang_cvodes_model_mod

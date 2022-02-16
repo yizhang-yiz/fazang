@@ -41,10 +41,14 @@ module fazang_cvodes_mod
      module procedure :: new_cvodes_service
   end interface cvodes_service
 
+  interface cvodes_bdf
+     module procedure :: cvodes_bdf_data
+     module procedure :: cvodes_bdf_y0_sens
+  end interface cvodes_bdf
+
 contains
   function new_cvodes_service(t0, y, ode) result(serv)
     implicit none
-    
     type(cvodes_service) :: serv
     integer :: ierr, is
     real(c_double) :: t0
@@ -157,7 +161,7 @@ contains
     procedure(cvs_rhs_func_yvar) :: rhs_yvar
     real(c_double), intent(in) :: ts(:), t
     class(cvodes_options), intent(in) :: cvs_options
-    type(var), intent(in) :: y(:)
+    type(var), intent(inout) :: y(:)
     type(var) :: yt(size(y), size(ts))
 
     ! local variables
@@ -197,10 +201,62 @@ contains
              g(is + 1) = yiSvec(i)
           end do
           yiSvec => FN_VGetArrayPointer(serv % sunvec_y)
-          yt(i, outstep) = var(yiSvec(i), y, g)
-          call yt(i, outstep)%set_chain(chain_eager_adj)
+          yt(i, outstep) = var_with_partials(yiSvec(i), y, g)
        enddo
     enddo
   end function cvodes_bdf_y0_sens
+
+  function cvodes_bdf_par_sens(t, y, ts, rhs, rhs_pvar, param, cvs_options) result(yt)
+    implicit none
+
+    procedure(cvs_rhs_func) :: rhs
+    procedure(cvs_rhs_func_pvar) :: rhs_pvar
+    real(c_double), intent(in) :: ts(:), t
+    class(cvodes_options), intent(in) :: cvs_options
+    real(rk), intent(inout) :: y(:)
+    type(var), target, intent(in) :: param(:)
+
+    type(var) :: yt(size(y), size(ts))
+
+    ! local variables
+    real(c_double) :: tcur(1)
+    type(cvs_rhs), target :: ode
+    type(cvodes_service) :: serv
+    integer :: ierr, outstep, nout, is
+    integer(c_long) :: i
+    real(rk) :: g(size(param)), pval(size(param))
+    type(N_Vector), pointer :: yiS
+    real(c_double), pointer :: yiSvec(:)
+
+    integer(c_int), parameter :: err_con = 1
+
+    ode = cvs_rhs(.false., size(param), pval, rhs, rhs_pvar)
+    serv = new_cvodes_service(t, y, ode)
+
+    ierr = FCVodeSensEEtolerances(serv % mem)
+
+    call cvs_options % set(serv % mem)
+
+    nout = size(ts)
+    tcur = t
+    do outstep = 1, nout
+       ierr = FCVode(serv % mem, ts(outstep), serv % sunvec_y, tcur, CV_NORMAL)
+       if (ierr /= 0) then
+          print *, 'Error in FCVODE, ierr = ', ierr, '; halting'
+          stop 1
+       endif
+       ierr = FCVodeGetSens(serv % mem, tcur, serv % yS)
+       do i = 1, serv % neq
+          g = 0.d0
+          do is = 0, ode % ns - 1
+             yiS => FN_VGetVecAtIndexVectorArray(serv % yS, is)
+             yiSvec => FN_VGetArrayPointer(yiS)
+             g(is + 1) = yiSvec(i)
+          end do
+          yiSvec => FN_VGetArrayPointer(serv % sunvec_y)
+          yt(i, outstep) = var_with_partials(yiSvec(i), param, g)
+       enddo
+    enddo
+  end function cvodes_bdf_par_sens
 
 end module fazang_cvodes_mod

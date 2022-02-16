@@ -12,7 +12,7 @@ module osci_ode_mod
 contains
   subroutine eval_rhs(t, y, fy)
     real(c_double), intent(in) :: t, y(:)
-    real(c_double), intent(out) :: fy(size(y))
+    real(c_double), intent(inout) :: fy(size(y))
     fy(1) = y(2)
     fy(2) = sin(omega * t)
   end subroutine eval_rhs

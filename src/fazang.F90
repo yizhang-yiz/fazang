@@ -8,6 +8,7 @@ module fazang
   use fazang_vari_mod, only : vari, adstack, callstack
   use fazang_var_mod
   use fazang_value_of_mod
+  use fazang_eager_adj_mod
 
   ! gradient & jacobian
   use fazang_grad_mod

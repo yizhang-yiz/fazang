@@ -14,6 +14,7 @@ module fazang_cosh_v_mod
 
 contains
   subroutine chain_cosh(this)
+    implicit none
     class(vari), intent(in) :: this
     real(rk) :: adj(1)
     real(rk) :: val(1)
@@ -23,6 +24,7 @@ contains
   end subroutine chain_cosh
 
   impure elemental function cosh_v(v) result(s)
+    implicit none
     type(var), intent(in) :: v
     type(var) :: s
     s = var(cosh(v%val()), [v])

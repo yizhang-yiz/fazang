@@ -25,6 +25,7 @@ contains
   end subroutine chain_add_vv
 
   impure elemental function add_vv(v1, v2) result(s)
+    implicit none
     type(var), intent(in) :: v1, v2
     type(var) :: s
     s = var(v1%val() + v2%val(), [v1, v2])
@@ -32,6 +33,7 @@ contains
   end function add_vv
 
   subroutine chain_add_vd(this)
+    implicit none
     class(vari), intent(in) :: this
     real(rk) :: adj(1)
     adj(1) = this%adj()

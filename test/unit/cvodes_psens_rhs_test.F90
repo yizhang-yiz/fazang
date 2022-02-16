@@ -6,25 +6,26 @@ module task_mod
   implicit none
 
   real(rk), parameter :: omega = 0.3d0
+  real(rk), parameter :: d1 = 4.2d0
+  real(rk), parameter :: d2 = 1.3d0
 
 contains
   subroutine eval_rhs(t, y, fy)
     implicit none
     real(c_double), intent(in) :: t, y(:)
-    real(c_double), intent(out) :: fy(size(y))
+    real(c_double), intent(inout) :: fy(size(y))
     fy(1) = y(2)
-    fy(2) = sin(omega * t)
+    fy(2) = sin(product([omega, d1, d2]) * t)
   end subroutine eval_rhs
 
-  subroutine eval_rhs_yvar(t, y, fy)
+  subroutine eval_rhs_pvar(t, y, fy, p)
     implicit none
     real(c_double), intent(in) :: t
-    type(var), intent(in) :: y(:)
+    type(var), intent(in) :: y(:), p(:)
     type(var), intent(inout) :: fy(size(y))
-    fy(1) = y(1) * y(2)
-    fy(2) = y(2) * y(2) * y(1)
-  end subroutine eval_rhs_yvar
-
+    fy(1) = y(2)
+    fy(2) = sin(p(1) * p(2) * p(3) * t)
+  end subroutine eval_rhs_pvar
 end module task_mod
 
 program cvodes_rhs_callback_test
@@ -51,6 +52,9 @@ program cvodes_rhs_callback_test
   type(c_ptr) :: yS, ySdot
   type(N_Vector), pointer :: yiS, yiSdot
   real(c_double), pointer :: yiSvec(:), yiSdotvec(:)
+  type(var) :: p(3)
+  real(rk), target :: pval(3)
+  real(rk), parameter :: time = 2.d0
 
   ierr = FSUNContext_Create(c_null_ptr, ctx)
 
@@ -58,33 +62,39 @@ program cvodes_rhs_callback_test
   fvec = 0.d0
   sunvec_y => FN_VMake_Serial(2_c_long, yvec, ctx)
   sunvec_f => FN_VMake_Serial(2_c_long, fvec, ctx)
-  ode = cvs_rhs(.true., 2, eval_rhs, eval_rhs_yvar)
+
+  p = var([omega, d1, d2])
+  pval = p % val()
+  
+  ode = cvs_rhs(.false., 3, pval, eval_rhs, eval_rhs_pvar)
 
   user_data = c_loc(ode)
 
-  EXPECT_EQ(ode % ns, 2)
+  EXPECT_EQ(ode % ns, 3)
 
   yS = FN_VCloneVectorArray(ode % ns, sunvec_y) 
   ySdot = FN_VCloneVectorArray(ode % ns, sunvec_y)
   do is = 0, ode % ns - 1
      yiS => FN_VGetVecAtIndexVectorArray(yS, is)
      call FN_VConst(0.d0, yiS)
-     yiSvec => FN_VGetArrayPointer(yiS)
-     yiSvec(is + 1) = 1.0;
      yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, is)
      call FN_VConst(0.d0, yiSdot)
   end do
 
-  ierr = ode % cvs_sens(2_8, 2.d0, sunvec_y, sunvec_f, yS, ySdot, user_data, sunvec_f, sunvec_f)
+  ierr = ode % cvs_sens(2_8, time, sunvec_y, sunvec_f, yS, ySdot, user_data, sunvec_f, sunvec_f)
 
   yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, 0)
   yiSvec => FN_VGetArrayPointer(yiSdot)
-  EXPECT_DBL_EQ(yiSvec(1), 3.d0)
-  EXPECT_DBL_EQ(yiSvec(2), 9.d0)
+  EXPECT_DBL_EQ(yiSvec(1), 0.d0)
+  EXPECT_DBL_EQ(yiSvec(2), cos(product([omega, d1, d2]) * time) * d1 * d2 * time)
   yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, 1)
   yiSvec => FN_VGetArrayPointer(yiSdot)
-  EXPECT_DBL_EQ(yiSvec(1), 2.d0)
-  EXPECT_DBL_EQ(yiSvec(2), 12.d0)
+  EXPECT_DBL_EQ(yiSvec(1), 0.d0)
+  EXPECT_DBL_EQ(yiSvec(2), cos(product([omega, d1, d2]) * time) * omega * d2 * time)
+  yiSdot => FN_VGetVecAtIndexVectorArray(ySdot, 2)
+  yiSvec => FN_VGetArrayPointer(yiSdot)
+  EXPECT_DBL_EQ(yiSvec(1), 0.d0)
+  EXPECT_DBL_EQ(yiSvec(2), cos(product([omega, d1, d2]) * time) * omega * d1 * time)
 
   call FN_VDestroy(sunvec_y)
   call FN_VDestroy(sunvec_f)

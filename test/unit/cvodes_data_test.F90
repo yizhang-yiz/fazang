@@ -11,7 +11,7 @@ module ode_mod
 contains
   subroutine eval_rhs(t, y, fy)
     real(c_double), intent(in) :: t, y(:)
-    real(c_double), intent(out) :: fy(size(y))
+    real(c_double), intent(inout) :: fy(size(y))
     fy(1) = y(2)
     fy(2) = t * y(1) * sum(params%val())
   end subroutine eval_rhs
