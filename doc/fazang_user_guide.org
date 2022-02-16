@@ -1,5 +1,5 @@
 #+TITLE: \texttt{Fazang}: A Reverse-mode Automatic differentiation tool in Fortran
-#+SUBTITLE: User's Guide @@latex:\\@@ @@html:<br>@@ (Version pre-release)
+#+SUBTITLE: User's Guide @@latex:\\@@ @@html:<br>@@ (Version 0.1.0)
 #+LATEX_CLASS: amsbook
 #+LATEX_CLASS_OPTIONS: [12pt, reqno, oneside]
 
@@ -394,8 +394,8 @@ end program cvodes_demo
 #+end_src
 Note that now the call to =cvodes_sol= includes additional argument
 =param= as the sensitivity parameters, as well as the RHS function for
-=var= inputs. When the sensitivities are desired, one can take the
-gradient of the result in the same way.
+=var= inputs. The sensitivities are obtained the same way by calling
+=grad= and =adj= functions.
 #+begin_src fortran
   call yt(1, 1) % grad()
   write(*, *) "dy_1/ d_omega at time ts(1):", param(1)%adj()
