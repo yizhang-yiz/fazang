@@ -39,8 +39,7 @@ program cvodes_demo
   real(rk), parameter :: ts(3) = [1.2d0, 2.4d0, 4.8d0]
   real(rk), parameter :: y00(2) = [0.2d0, 0.8d0]
   type(var) :: param(3)
-  real(rk) :: y0(2), ga(2)
-  integer :: i, j
+  real(rk) :: y0(2)
 
   y0 = y00                      ! init condition
   param = var([omega, d1, d2])  ! parameters

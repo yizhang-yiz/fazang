@@ -12,7 +12,7 @@ contains
     real(c_double), intent(in) :: t, y(:)
     real(c_double), intent(inout) :: fy(size(y))
     fy(1) = y(2)
-    fy(2) = t * y(1) * sum(params%val())
+    fy(2) = t * y(1) * sum(params)
   end subroutine eval_rhs
 end module ode_mod
 
