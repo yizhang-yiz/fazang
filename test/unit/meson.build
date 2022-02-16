@@ -138,3 +138,8 @@ t_cvs_y0_test = executable('cvs_y0_test',
                             files('cvodes_y0_test.F90'),
                             dependencies : [fazang_dep, libsundials_dep])
 test('cvs_y0', t_cvs_y0_test)
+
+t_cvs_param_test = executable('cvs_param_test',
+                            files('cvodes_param_test.F90'),
+                            dependencies : [fazang_dep, libsundials_dep])
+test('cvs_param', t_cvs_param_test)

@@ -41,16 +41,18 @@ module fazang_cvodes_mod
      module procedure :: new_cvodes_service
   end interface cvodes_service
 
-  interface cvodes_bdf
-     module procedure :: cvodes_bdf_data
-     module procedure :: cvodes_bdf_y0_sens
-  end interface cvodes_bdf
+  interface cvodes_sol
+     module procedure :: cvodes_sol_data
+     module procedure :: cvodes_sol_y0_sens
+     module procedure :: cvodes_sol_par_sens
+  end interface cvodes_sol
 
 contains
-  function new_cvodes_service(t0, y, ode) result(serv)
+  function new_cvodes_service(t0, y, ode, cv_method) result(serv)
     implicit none
     type(cvodes_service) :: serv
     integer :: ierr, is
+    integer, intent(in) :: cv_method
     real(c_double) :: t0
     real(c_double), intent(inout) :: y(:)
     type(cvs_rhs), target, intent(in) :: ode
@@ -74,7 +76,7 @@ contains
          serv % sunmat_A, serv % ctx)
 
     ! create CVode memory
-    serv % mem = FCVodeCreate(CV_BDF, serv % ctx)
+    serv % mem = FCVodeCreate(cv_method, serv % ctx)
     if (.not. c_associated(serv % mem)) then
        print *, 'ERROR: mem = NULL'
        stop 1
@@ -125,7 +127,7 @@ contains
     ierr = FSUNContext_Free(this % ctx)
   end subroutine free_cvodes_service
 
-  function cvodes_bdf_data(t, y, ts, rhs, cvs_options) result(yt)
+  function cvodes_sol_data(t, y, ts, rhs, cvs_options) result(yt)
     implicit none
 
     procedure(cvs_rhs_func) :: rhs
@@ -139,7 +141,7 @@ contains
     integer :: ierr, outstep, nout
 
     ode = cvs_rhs(rhs)
-    serv = new_cvodes_service(t, y, ode)
+    serv = new_cvodes_service(t, y, ode, cvs_options % cv_method)
     call cvs_options % set(serv % mem)
 
     nout = size(ts)
@@ -152,9 +154,9 @@ contains
        endif
        yt(:, outstep) = y
     enddo
-  end function cvodes_bdf_data
+  end function cvodes_sol_data
 
-  function cvodes_bdf_y0_sens(t, y, ts, rhs, rhs_yvar, cvs_options) result(yt)
+  function cvodes_sol_y0_sens(t, y, ts, rhs, rhs_yvar, cvs_options) result(yt)
     implicit none
 
     procedure(cvs_rhs_func) :: rhs
@@ -178,7 +180,7 @@ contains
 
     ode = cvs_rhs(.true., size(y), rhs, rhs_yvar)
     yval = y%val()
-    serv = new_cvodes_service(t, yval, ode)
+    serv = new_cvodes_service(t, yval, ode, cvs_options % cv_method)
 
     ierr = FCVodeSensEEtolerances(serv % mem)       
 
@@ -204,9 +206,9 @@ contains
           yt(i, outstep) = var_with_partials(yiSvec(i), y, g)
        enddo
     enddo
-  end function cvodes_bdf_y0_sens
+  end function cvodes_sol_y0_sens
 
-  function cvodes_bdf_par_sens(t, y, ts, rhs, rhs_pvar, param, cvs_options) result(yt)
+  function cvodes_sol_par_sens(t, y, ts, param, rhs, rhs_pvar, cvs_options) result(yt)
     implicit none
 
     procedure(cvs_rhs_func) :: rhs
@@ -230,8 +232,9 @@ contains
 
     integer(c_int), parameter :: err_con = 1
 
+    pval = param % val()
     ode = cvs_rhs(.false., size(param), pval, rhs, rhs_pvar)
-    serv = new_cvodes_service(t, y, ode)
+    serv = new_cvodes_service(t, y, ode, cvs_options % cv_method)
 
     ierr = FCVodeSensEEtolerances(serv % mem)
 
@@ -253,10 +256,10 @@ contains
              yiSvec => FN_VGetArrayPointer(yiS)
              g(is + 1) = yiSvec(i)
           end do
-          yiSvec => FN_VGetArrayPointer(serv % sunvec_y)
+          yiSvec => FN_VGetArrayPointer(serv % sunvec_y)          
           yt(i, outstep) = var_with_partials(yiSvec(i), param, g)
        enddo
     enddo
-  end function cvodes_bdf_par_sens
+  end function cvodes_sol_par_sens
 
 end module fazang_cvodes_mod

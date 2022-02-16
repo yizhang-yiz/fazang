@@ -41,7 +41,7 @@ program cvodes_solve_data_test
   use fazang_env_mod
   use fazang_cvodes_mod
   use fazang_grad_mod
-  use fazang_vari_mod
+  use fazang_cvodes_options_mod
 
   use fsundials_nvector_mod
   use fsundials_context_mod         ! Fortran interface to SUNContext
@@ -53,13 +53,11 @@ program cvodes_solve_data_test
   real(rk), parameter :: y0val(2) = [0.2d0, 0.8d0]
   real(rk), parameter :: ts(3) = [1.2d0, 2.4d0, 4.8d0]
   
-  tol = cvodes_tol(1.d-10, 1.d-10, 1000_8)
+  tol = cvodes_tol(CV_BDF, 1.d-10, 1.d-10, 1000_8)
 
   y0 = var(y0val)
-  yt = cvodes_bdf_y0_sens(0.d0, y0, ts, eval_rhs,&
+  yt = cvodes_sol(0.d0, y0, ts, eval_rhs,&
        & eval_rhs_yvar, tol)
-
-  EXPECT_EQ(size(yt), 6)
 
   EXPECT_FLOAT_EQ(yt(:, 1)%val(), (sol(y0val, ts(1))))
   EXPECT_FLOAT_EQ(yt(:, 2)%val(), (sol(y0val, ts(2))))

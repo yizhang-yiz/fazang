@@ -15,6 +15,7 @@ module fazang_cvodes_options_mod
   implicit none
 
   type, abstract :: cvodes_options
+     integer :: cv_method = -1
    contains
      procedure(set_cvodes), deferred :: set
   end type cvodes_options
