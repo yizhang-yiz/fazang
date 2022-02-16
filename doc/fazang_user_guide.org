@@ -269,6 +269,240 @@ other the =var= type.
 
 Probability distributions supported by {{{fz}}} are list in Appendix [[ref:appendix:likelihood]].
 
+** Ordinary differential equations
+{{{fz}}} supports ODE solutions through CVODES from SUNDIALS library
+cite:hindmarsh2005sundials. One can solve ODE like this.
+
+#+begin_src fortran
+! user defined ODE
+module ode_mod
+  use fazang
+  use, intrinsic :: iso_c_binding
+  implicit none
+
+  real(rk), parameter :: params(2) = [0.2d0, 0.1d0]
+
+contains
+  ! user defined right-hand-side
+  subroutine eval_rhs(t, y, fy)
+    real(c_double), intent(in) :: t, y(:)
+    real(c_double), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = t * y(1) * sum(params%val())
+  end subroutine eval_rhs
+end module ode_mod
+
+program cvodes_solve_data
+  use ode_mod                   ! import ODE
+  use fazang                    ! import Fazang
+
+  implicit none
+
+  real(rk) :: yt(2, 3)          ! output array
+  real(rk) :: y0(2)             ! initial condition
+  type(cvodes_tol) :: tol       ! basic solver control
+  
+  ! use BDF method with given relative tolerance, absolute tolerance,
+  ! and max number of steps between outputs
+  tol = cvodes_tol(CV_BDF, 1.d-10, 1.d-10, 1000_8)
+
+  ! initial condition
+  y0 = [1.2d0, 1.8d0]
+
+  ! solve the ODE with initial time 0.d0 and
+  ! output time 1.d0, 2.d0, 3.d0
+  yt = cvodes_sol(0.d0, y0, [1.d0, 2.d0, 3.d0], eval_rhs, tol)
+
+end program cvodes_solve_data
+#+end_src
+In the above example, we first define an ODE following {{{fz}}}'s
+interface on the RHS. The defined RHS function =eval_rhs= will be later used as an
+argument to =cvodes_sol=. In addition to initial condition, one must
+also define an object for solver control. Such an object must be of a
+type that =extend= the =cvodes_options= abstract type. Here we use {{{fz}}}'s
+basic type =cvodes_tol=, which gives: the integration scheme (=CV_BDF=
+for BDF method or =CV_ADAMS= for Adams-Moulton method), relative
+tolerance, absolution tolerance, and the maximum number of steps
+allowed between output.
+
+Then to the solver interface =cvodes_sol= we give the initial time,
+initial condition, array for output time, the RHS subroutine, and the
+solver control. It returns a 2D array with each column at a requested
+output time.
+
+*** Forward sensitivity
+Combining the sensitivity capability of =CVODES= and AD from {{{fz}}},
+we can solve for ODE sensitivity with respect to given parameters
+without explicitly supplying Jacobian. For that the user-defined ODE
+must include an additional RHS definition with =var= parameters,
+following {{{fz}}}'s RHS interface.
+#+begin_src fortran
+module ode_mod
+  use fazang
+  use, intrinsic :: iso_c_binding
+  implicit none
+
+  real(rk), parameter :: omega = 0.5d0
+  real(rk), parameter :: d1 = 1.0d0
+  real(rk), parameter :: d2 = 1.0d0
+
+contains
+  ! right-hand-side for data input
+  subroutine eval_rhs(t, y, fy)
+    implicit none
+    real(c_double), intent(in) :: t, y(:)
+    real(c_double), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = sin(omega * d1 * d2 * t)
+  end subroutine eval_rhs
+
+  ! right-hand-side for var input with parameters
+  ! y, p, and output fy must all be of var type
+  subroutine eval_rhs_pvar(t, y, fy, p)
+    implicit none
+    real(c_double), intent(in) :: t
+    type(var), intent(in) :: y(:), p(:)
+    type(var), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = sin(p(1) * p(2) * p(3) * t)
+  end subroutine eval_rhs_pvar
+end module ode_mod
+#+end_src
+Now we can solve the defined ODE in a similar way.
+#+begin_src fortran
+program cvodes_demo
+  use ode_mod
+  use fazang
+  implicit none
+
+  type(var) :: yt(2, 3)
+  type(cvodes_tol) :: tol
+  real(rk), parameter :: ts(3) = [1.2d0, 2.4d0, 4.8d0]
+  real(rk), parameter :: y00(2) = [0.2d0, 0.8d0]
+  type(var) :: param(3)
+  real(rk) :: y0(2), ga(2)
+  integer :: i, j
+
+  y0 = y00                      ! init condition
+  param = var([omega, d1, d2])  ! parameters
+  tol = cvodes_tol(CV_BDF, 1.d-10, 1.d-10, 1000_8)
+
+  yt = cvodes_sol(0.d0, y0, ts, param, eval_rhs,&
+       & eval_rhs_pvar, tol)
+! ...
+end program cvodes_demo
+#+end_src
+Note that now the call to =cvodes_sol= includes additional argument
+=param= as the sensitivity parameters, as well as the RHS function for
+=var= inputs. When the sensitivities are desired, one can take the
+gradient of the result in the same way.
+#+begin_src fortran
+  call yt(1, 1) % grad()
+  write(*, *) "dy_1/ d_omega at time ts(1):", param(1)%adj()
+#+end_src
+
+*** Functions
+**** Data solution     
+#+begin_src fortran
+function cvodes_sol(t, y, ts, rhs, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    real(real64), intent(inout) :: y(:)    ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    procedure(cvs_rhs_func) :: rhs         ! RHS definition (see below)
+    class(cvodes_options), intent(in) :: cvs_options ! solver control
+    real(real64) :: yt(size(y), size(ts))  ! solution
+#+end_src
+
+**** Sensitivity solution  with respect to the initial condition
+#+begin_src fortran
+function cvodes_sol(t, y, ts, rhs, rhs_yvar, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    type(var), intent(inout) :: y(:)       ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    procedure(cvs_rhs_func) :: rhs         ! data-only RHS (see below)
+    procedure(cvs_rhs_func_yvar) :: rhs_yvar ! var-type RHS (see below)
+    class(cvodes_options), intent(in) :: cvs_options  ! solver control
+    type(var) :: yt(size(y), size(ts))     ! solution
+#+end_src
+
+**** Sensitivity solution  with respect to the parameters
+#+begin_src fortran
+function cvodes_sol(t, y, ts, param, rhs, rhs_pvar, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    real(real64), intent(inout) :: y(:)    ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    type(var), target, intent(in) :: param(:) ! parameters
+    procedure(cvs_rhs_func) :: rhs         ! data-only RHS (see below)
+    procedure(cvs_rhs_func_pvar) :: rhs_pvar ! var-type RHS (see below)
+    class(cvodes_options), intent(in) :: cvs_options  ! solver control
+    type(var) :: yt(size(y), size(ts))     ! solution
+#+end_src
+
+**** Interfaces for different solvers
+#+begin_src fortran
+  abstract interface
+     subroutine cvs_rhs_func(t, y, fy)
+       import c_double
+       real(c_double), intent(in) :: t, y(:)
+       real(c_double), intent(inout) :: fy(size(y))
+     end subroutine cvs_rhs_func
+
+     subroutine cvs_rhs_func_yvar(t, y, f)
+       import c_double, var
+       real(c_double), intent(in) :: t
+       type(var), intent(in) :: y(:)
+       type(var), intent(inout) :: f(size(y))
+     end subroutine cvs_rhs_func_yvar
+
+     subroutine cvs_rhs_func_pvar(t, y, f, p)
+       import c_double, var
+       real(c_double), intent(in) :: t
+       type(var), intent(in) :: y(:), p(:)
+       type(var), intent(inout) :: f(size(y))
+     end subroutine cvs_rhs_func_pvar
+  end interface
+#+end_src
+
+**** Solver controls
+The last argument of the solver call is a solver control
+object. User-defined type must be able to follow =CVODES= user guide
+to modify =CVODES= memory object, by extending the abstract type =cvodes_options=.
+#+begin_src fortran
+  type, abstract :: cvodes_options
+     integer :: cv_method = -1
+   contains
+     procedure(set_cvodes), deferred :: set
+  end type cvodes_options
+
+  abstract interface
+     subroutine set_cvodes(this, mem)
+       import c_ptr, cvodes_options
+       class(cvodes_options), intent(in) :: this
+       type(c_ptr), intent(inout) :: mem ! CVODES memory
+     end subroutine set_cvodes
+  end interface
+#+end_src
+One can follow {{{fz}}} 's tolerance control type as an example.
+#+begin_src fortran
+  type, extends(cvodes_options) :: cvodes_tol
+     real(c_double) :: rtol, atol
+     integer(c_long) :: max_nstep
+  contains
+    procedure :: set
+ end type cvodes_tol
+
+contains
+
+  subroutine set(this, mem)
+    class(cvodes_tol), intent(in) :: this
+    type(c_ptr), intent(inout) :: mem ! CVODES memory
+    integer :: ierr
+! call cvodes functions
+    ierr = FCVodeSStolerances(mem, this % rtol, this % atol)
+    ierr = FCVodeSetMaxNumSteps(mem, this % max_nstep)
+  end subroutine set
+#+end_src
+
 * Design
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. {{{fz}}} achieves this

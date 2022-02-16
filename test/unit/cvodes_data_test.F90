@@ -18,16 +18,13 @@ contains
 
 end module ode_mod
 
-program cvodes_solve_data_test
+program cvodes_solve_data
   use, intrinsic :: iso_c_binding
   use ode_mod
   use fazang_test_mod
   use fazang_env_mod
   use fazang_cvodes_mod
 
-  use fsundials_nvector_mod
-  use fsundials_context_mod         ! Fortran interface to SUNContext
-  use fnvector_serial_mod           ! Fortran interface to serial N_Vector
   implicit none
 
   real(c_double) :: yt(2, 3), y0(2)
@@ -49,4 +46,4 @@ program cvodes_solve_data_test
   EXPECT_NEAR(yt(1, 3), 13.124382d0, 1.d-5)
   EXPECT_NEAR(yt(2, 3), 11.181090d0, 1.d-5)
 
-end program cvodes_solve_data_test
+end program cvodes_solve_data

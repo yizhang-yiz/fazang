@@ -1,4 +1,4 @@
-% Created 2022-02-15 Tue 14:56
+% Created 2022-02-16 Wed 14:35
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt, reqno, oneside]{amsbook}
               \usepackage[letterpaper, width=6.5in, height=9in]{geometry}
@@ -50,7 +50,7 @@ Copyright 2022, Yi Zhang
 \end{titlepage}
 
 \chapter{Introduction}
-\label{sec:org0f0e073}
+\label{sec:orgc7b7ece}
 \texttt{Fazang} is a reverse-mode automatic differentiation (AD) tool. The
 project is heavily influenced by \texttt{Stan/Math} \cite{Carpenter:2015}, a project the author
 is also involved in. \texttt{Fazang} is intended to support general scientific
@@ -61,7 +61,7 @@ User should be aware that the project is at early stage and still
 under development. For any questions, suggestions, and
 contributions, please visit the project at \url{https://github.com/yizhang-yiz/fazang}.
 \chapter{Quick Start}
-\label{sec:orgb4bf968}
+\label{sec:org040c749}
 Currently \texttt{Fazang} has been tested on Linux and MacOS platform, with
 Fortran compiler Intel Fortran 19.0.1+ and GNU Fortran 11.2.0+.
 
@@ -125,7 +125,7 @@ end program log_demo
 \end{minted}
 
 \chapter{Use \texttt{Fazang}}
-\label{sec:org4eb68c6}
+\label{sec:orgccdf103}
 \texttt{Fazang} uses \texttt{var} type to record numerical and gradient
 operations. The type supports three functions
 \begin{itemize}
@@ -134,7 +134,7 @@ operations. The type supports three functions
 \item \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var%grad()} : takes gradient operation with respect to the current \mintinline[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}{var} variable.
 \end{itemize}
 \section{Constructors}
-\label{sec:org3baa1d9}
+\label{sec:orgee5eb6c}
 \texttt{var} can be constructed using overloaded \texttt{var} interface.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 real(real64) :: a, b(3), c(2, 3)
@@ -147,7 +147,7 @@ y = var(b)                ! y%val() == b
 z = var(c)                ! z%val() == c
 \end{minted}
 \section{Assignment}
-\label{sec:org432bf1a}
+\label{sec:org77ba296}
 \texttt{var} can be assigned from consistent \texttt{var} and \texttt{real(real64)}.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 ! ....
@@ -157,7 +157,7 @@ z = new_c                 ! z%val() == new_c
 \end{minted}
 
 \section{Gradient}
-\label{sec:org4fd926a}
+\label{sec:orgb394458}
    \label{sec:gradient}
 Consider a variable \(z\) calculated by the composition of a series of operations
 \begin{equation*}
@@ -230,7 +230,7 @@ involve explicitly setting up \texttt{var} variables. \texttt{Fazang} achieves t
 by using a \emph{nested} AD envionment.
 
 \section{Nested AD envionment}
-\label{sec:org2b307b9}
+\label{sec:org7f31a5d}
    \label{sec:nested}
 Let us take a look of the internals of \texttt{Fazang}'s \texttt{gradient} function.
 The \texttt{dependent\_function} interface requires \(f\) to follow the above
@@ -265,7 +265,7 @@ end\_nested()}. User can use this function pair to construct a local
 gradient evaluation procedure.
 
 \section{Jacobian}
-\label{sec:org576f30d}
+\label{sec:org127a01b}
    \label{sec:jacobian}
 Similar to \texttt{gradient}, using the same nested technique \texttt{Fazang}
 provides a \texttt{jacobian} function that calculates the Jacobian matrix of
@@ -290,7 +290,7 @@ has dimension \(n\times(m+1)\), with the first column being the function
 results and the rest columns the adjoints.
 
 \section{Functions}
-\label{sec:org80d38b1}
+\label{sec:org99b01eb}
 Numeric functions supported by \texttt{Fazang} are listed in Appendix \ref{appendix:func}. All unary and
 binary functions are \texttt{elemental}. The binary functions allow mixed
 argument types, namely, either argument can be \texttt{real64} type while the
@@ -298,14 +298,258 @@ other the \texttt{var} type.
 
 Probability distributions supported by \texttt{Fazang} are list in Appendix \ref{appendix:likelihood}.
 
+\section{Ordinary differential equations}
+\label{sec:orgadcba86}
+\texttt{Fazang} supports ODE solutions through CVODES from SUNDIALS library
+\cite{hindmarsh2005sundials}. One can solve ODE like this.
+
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+! user defined ODE
+module ode_mod
+  use fazang
+  use, intrinsic :: iso_c_binding
+  implicit none
+
+  real(rk), parameter :: params(2) = [0.2d0, 0.1d0]
+
+contains
+  ! user defined right-hand-side
+  subroutine eval_rhs(t, y, fy)
+    real(c_double), intent(in) :: t, y(:)
+    real(c_double), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = t * y(1) * sum(params%val())
+  end subroutine eval_rhs
+end module ode_mod
+
+program cvodes_solve_data
+  use ode_mod                   ! import ODE
+  use fazang                    ! import Fazang
+
+  implicit none
+
+  real(rk) :: yt(2, 3)          ! output array
+  real(rk) :: y0(2)             ! initial condition
+  type(cvodes_tol) :: tol       ! basic solver control
+
+  ! use BDF method with given relative tolerance, absolute tolerance,
+  ! and max number of steps between outputs
+  tol = cvodes_tol(CV_BDF, 1.d-10, 1.d-10, 1000_8)
+
+  ! initial condition
+  y0 = [1.2d0, 1.8d0]
+
+  ! solve the ODE with initial time 0.d0 and
+  ! output time 1.d0, 2.d0, 3.d0
+  yt = cvodes_sol(0.d0, y0, [1.d0, 2.d0, 3.d0], eval_rhs, tol)
+
+end program cvodes_solve_data
+\end{minted}
+In the above example, we first define an ODE following \texttt{Fazang}'s
+interface on the RHS. The defined RHS function \texttt{eval\_rhs} will be later used as an
+argument to \texttt{cvodes\_sol}. In addition to initial condition, one must
+also define an object for solver control. Such an object must be of a
+type that \texttt{extend} the \texttt{cvodes\_options} abstract type. Here we use \texttt{Fazang}'s
+basic type \texttt{cvodes\_tol}, which gives: the integration scheme (\texttt{CV\_BDF}
+for BDF method or \texttt{CV\_ADAMS} for Adams-Moulton method), relative
+tolerance, absolution tolerance, and the maximum number of steps
+allowed between output.
+
+Then to the solver interface \texttt{cvodes\_sol} we give the initial time,
+initial condition, array for output time, the RHS subroutine, and the
+solver control. It returns a 2D array with each column at a requested
+output time.
+
+\subsection{Forward sensitivity}
+\label{sec:orgadfef3f}
+Combining the sensitivity capability of \texttt{CVODES} and AD from \texttt{Fazang},
+we can solve for ODE sensitivity with respect to given parameters
+without explicitly supplying Jacobian. For that the user-defined ODE
+must include an additional RHS definition with \texttt{var} parameters,
+following \texttt{Fazang}'s RHS interface.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+module ode_mod
+  use fazang
+  use, intrinsic :: iso_c_binding
+  implicit none
+
+  real(rk), parameter :: omega = 0.5d0
+  real(rk), parameter :: d1 = 1.0d0
+  real(rk), parameter :: d2 = 1.0d0
+
+contains
+  ! right-hand-side for data input
+  subroutine eval_rhs(t, y, fy)
+    implicit none
+    real(c_double), intent(in) :: t, y(:)
+    real(c_double), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = sin(omega * d1 * d2 * t)
+  end subroutine eval_rhs
+
+  ! right-hand-side for var input with parameters
+  ! y, p, and output fy must all be of var type
+  subroutine eval_rhs_pvar(t, y, fy, p)
+    implicit none
+    real(c_double), intent(in) :: t
+    type(var), intent(in) :: y(:), p(:)
+    type(var), intent(inout) :: fy(size(y))
+    fy(1) = y(2)
+    fy(2) = sin(p(1) * p(2) * p(3) * t)
+  end subroutine eval_rhs_pvar
+end module ode_mod
+\end{minted}
+Now we can solve the defined ODE in a similar way.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+program cvodes_demo
+  use ode_mod
+  use fazang
+  implicit none
+
+  type(var) :: yt(2, 3)
+  type(cvodes_tol) :: tol
+  real(rk), parameter :: ts(3) = [1.2d0, 2.4d0, 4.8d0]
+  real(rk), parameter :: y00(2) = [0.2d0, 0.8d0]
+  type(var) :: param(3)
+  real(rk) :: y0(2), ga(2)
+  integer :: i, j
+
+  y0 = y00                      ! init condition
+  param = var([omega, d1, d2])  ! parameters
+  tol = cvodes_tol(CV_BDF, 1.d-10, 1.d-10, 1000_8)
+
+  yt = cvodes_sol(0.d0, y0, ts, param, eval_rhs,&
+       & eval_rhs_pvar, tol)
+! ...
+end program cvodes_demo
+\end{minted}
+Note that now the call to \texttt{cvodes\_sol} includes additional argument
+\texttt{param} as the sensitivity parameters, as well as the RHS function for
+\texttt{var} inputs. When the sensitivities are desired, one can take the
+gradient of the result in the same way.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+call yt(1, 1) % grad()
+write(*, *) "dy_1/ d_omega at time ts(1):", param(1)%adj()
+\end{minted}
+
+\subsection{Functions}
+\label{sec:org60fa4bb}
+\begin{enumerate}
+\item Data solution
+\label{sec:orgcc001a7}
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+function cvodes_sol(t, y, ts, rhs, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    real(real64), intent(inout) :: y(:)    ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    procedure(cvs_rhs_func) :: rhs         ! RHS definition (see below)
+    class(cvodes_options), intent(in) :: cvs_options ! solver control
+    real(real64) :: yt(size(y), size(ts))  ! solution
+\end{minted}
+
+\item Sensitivity solution  with respect to the initial condition
+\label{sec:org583f3a8}
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+function cvodes_sol(t, y, ts, rhs, rhs_yvar, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    type(var), intent(inout) :: y(:)       ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    procedure(cvs_rhs_func) :: rhs         ! data-only RHS (see below)
+    procedure(cvs_rhs_func_yvar) :: rhs_yvar ! var-type RHS (see below)
+    class(cvodes_options), intent(in) :: cvs_options  ! solver control
+    type(var) :: yt(size(y), size(ts))     ! solution
+\end{minted}
+
+\item Sensitivity solution  with respect to the parameters
+\label{sec:orgff72f9e}
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+function cvodes_sol(t, y, ts, param, rhs, rhs_pvar, cvs_options) result(yt)
+    real(real64), intent(in) :: t          ! initial time
+    real(real64), intent(inout) :: y(:)    ! initial condition
+    real(real64), intent(in) :: ts(:)      ! output time
+    type(var), target, intent(in) :: param(:) ! parameters
+    procedure(cvs_rhs_func) :: rhs         ! data-only RHS (see below)
+    procedure(cvs_rhs_func_pvar) :: rhs_pvar ! var-type RHS (see below)
+    class(cvodes_options), intent(in) :: cvs_options  ! solver control
+    type(var) :: yt(size(y), size(ts))     ! solution
+\end{minted}
+
+\item Interfaces for different solvers
+\label{sec:org040f879}
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+abstract interface
+   subroutine cvs_rhs_func(t, y, fy)
+     import c_double
+     real(c_double), intent(in) :: t, y(:)
+     real(c_double), intent(inout) :: fy(size(y))
+   end subroutine cvs_rhs_func
+
+   subroutine cvs_rhs_func_yvar(t, y, f)
+     import c_double, var
+     real(c_double), intent(in) :: t
+     type(var), intent(in) :: y(:)
+     type(var), intent(inout) :: f(size(y))
+   end subroutine cvs_rhs_func_yvar
+
+   subroutine cvs_rhs_func_pvar(t, y, f, p)
+     import c_double, var
+     real(c_double), intent(in) :: t
+     type(var), intent(in) :: y(:), p(:)
+     type(var), intent(inout) :: f(size(y))
+   end subroutine cvs_rhs_func_pvar
+end interface
+\end{minted}
+
+\item Solver controls
+\label{sec:org572e26b}
+The last argument of the solver call is a solver control
+object. User-defined type must be able to follow \texttt{CVODES} user guide
+to modify \texttt{CVODES} memory object, by extending the abstract type \texttt{cvodes\_options}.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+type, abstract :: cvodes_options
+   integer :: cv_method = -1
+ contains
+   procedure(set_cvodes), deferred :: set
+end type cvodes_options
+
+abstract interface
+   subroutine set_cvodes(this, mem)
+     import c_ptr, cvodes_options
+     class(cvodes_options), intent(in) :: this
+     type(c_ptr), intent(inout) :: mem ! CVODES memory
+   end subroutine set_cvodes
+end interface
+\end{minted}
+One can follow \texttt{Fazang} 's tolerance control type as an example.
+\begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
+  type, extends(cvodes_options) :: cvodes_tol
+     real(c_double) :: rtol, atol
+     integer(c_long) :: max_nstep
+  contains
+    procedure :: set
+ end type cvodes_tol
+
+contains
+
+  subroutine set(this, mem)
+    class(cvodes_tol), intent(in) :: this
+    type(c_ptr), intent(inout) :: mem ! CVODES memory
+    integer :: ierr
+! call cvodes functions
+    ierr = FCVodeSStolerances(mem, this % rtol, this % atol)
+    ierr = FCVodeSetMaxNumSteps(mem, this % max_nstep)
+  end subroutine set
+\end{minted}
+\end{enumerate}
+
 \chapter{Design}
-\label{sec:org8e542e5}
+\label{sec:org56161c2}
 The core of any reverse-mode automatic differentiation is the data
 structure to store and visit the callstack. \texttt{Fazang} achieves this
 through two derived types, \texttt{tape} and \texttt{vari}.
 
 \section{\texttt{tape} data structure}
-\label{sec:org16032bd}
+\label{sec:org79f6067}
 A \texttt{tape} is an \texttt{int32} array emulating a stack, with an integer marker \texttt{head} pointing to the
 head to the current stack top.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -334,7 +578,7 @@ the array after saving its current value to a \texttt{vari} type variable
 for future retrieval.
 
 \section{\texttt{vari} type}
-\label{sec:org868fd06}
+\label{sec:org32a7776}
 The \texttt{vari} type is simply a proxy of a node's storage location in the tape
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
 type :: vari
@@ -370,7 +614,7 @@ stored in array \texttt{varis}. Each entry in \texttt{varis} is a dependent
 (operation output) of one or more previous entries.
 
 \section{\texttt{var} type}
-\label{sec:org7e4db66}
+\label{sec:org68afdb6}
 The user-facing \texttt{var} type serves as proxy to \texttt{vari}. Each \texttt{var}
 stores the index of a \texttt{vari} in the \texttt{varis} array.
 \begin{minted}[breaklines=true,fontsize=\footnotesize,breakanywhere=true]{fortran}
@@ -402,7 +646,7 @@ Here \texttt{callstack} is the module variable that encapsulate \texttt{tape} an
 \texttt{varis} arrays.
 
 \section{Nested tape}
-\label{sec:orgf6c9d58}
+\label{sec:org3118fbe}
 \texttt{Fazang} use \texttt{begin\_nested()} and \texttt{end\_nested()} to record and
 terminate a nested tape. With \texttt{call begin\_nested()} \texttt{Fazang} records
 the current \texttt{tape} and \texttt{varis} array head. When \texttt{end\_nested()} is
@@ -411,7 +655,7 @@ wiped, and the head is moved back to the recorded location. Multiple
 levels of nested envionment are supported this way.
 
 \chapter{Add operation functions}
-\label{sec:org44a1389}
+\label{sec:orgea55628}
 Adding an operation \(f_i\) involves creating functions for forward
 pass and backward pass. Let us first use \texttt{log} function as a simple
 example.
@@ -523,7 +767,7 @@ The third scenario is treated similarly.
 
 \appendix
 \chapter{\texttt{Fazang} Functions \label{sec:func_list}}
-\label{sec:org7b2cd28}
+\label{sec:orgfdc19d8}
 \label{appendix:func}  
 \begin{center}
 \begin{tabular}{lll}
@@ -569,10 +813,10 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{center}
 
 \chapter{\texttt{Fazang} Probability distributions \label{sec:likelihood_list}}
-\label{sec:orgdb94362}
+\label{sec:org6fc9d00}
 \label{appendix:likelihood}  
 \section{Normal distribution}
-\label{sec:org5ddda6c}
+\label{sec:org473a555}
 \begin{equation}
 \text{Normal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\exp{
   \left(
@@ -596,7 +840,7 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{itemize}
 
 \section{LogNormal distribution}
-\label{sec:orgbdbea26}
+\label{sec:orge126600}
 \begin{equation}
 \text{LogNormal}(y, \mu, \sigma) = \prod_{i=1}^n\frac{1}{\sqrt{2\pi}\sigma}\frac{1}{y_i}\exp{
   \left(
@@ -619,7 +863,7 @@ operator (\texttt{**}) & scalars & same as intrinsic\\
 \end{itemize}
 \end{itemize}
 \section{{\bfseries\sffamily TODO} additional distributions}
-\label{sec:org45756f4}
+\label{sec:org055bf1f}
 
 
 \bibliographystyle{plain}

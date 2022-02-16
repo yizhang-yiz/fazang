@@ -156,7 +156,6 @@ contains
   end subroutine calc_jac_yvar
 
   subroutine set_sens_rhs(n, t, y, f, yS, ySdot, ode)
-    use fazang
     use fazang_nested_tape_mod
     implicit none
 

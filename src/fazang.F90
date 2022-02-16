@@ -59,6 +59,11 @@ module fazang
   use fazang_normal_lpdf_mod
   use fazang_lognormal_lpdf_mod
 
+  ! prob
+  use fazang_cvodes_mod
+  use fazang_cvodes_model_mod
+  use fazang_cvodes_options_mod
+
   implicit none
 
 end module fazang
