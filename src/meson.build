@@ -50,13 +50,16 @@ sources += files('env.F90',
                  'fazang.F90')
 
 # CVODES interface
-sources += files('cvodes_model.F90', 'cvodes.F90', 'cvodes_options.F90')
+# sources += files('cvodes_model.F90', 'cvodes.F90', 'cvodes_options.F90')
 
 subdir('prob')
 
+# fazanglib = library('fazang', sources,
+#                     install: true,
+#                     dependencies : libsundials_dep)
+
 fazanglib = library('fazang', sources,
-                    install: true,
-                    dependencies : libsundials_dep)
+                    install: true)
 
 fazang_dep = declare_dependency(link_with: fazanglib)
 

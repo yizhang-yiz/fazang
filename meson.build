@@ -12,7 +12,7 @@ endif
 
 sources = files()
 
-subdir('lib/sundials-6.1.1')
+# subdir('lib/sundials-6.1.1')
 subdir('src')
 subdir('test/unit')
 subdir('test/unit/prob')
