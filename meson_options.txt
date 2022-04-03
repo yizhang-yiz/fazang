@@ -1,0 +1,1 @@
+option('sundials', type : 'boolean', value : true, description: 'build SUNDIALS library')

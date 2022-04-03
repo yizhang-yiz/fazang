@@ -8,12 +8,23 @@ if meson.get_compiler('fortran').get_id() == 'gcc'
   add_project_arguments('-ffree-line-length-none', language : 'fortran')
 endif
 
+if get_option('sundials')
+  add_project_arguments('-DUSE_SUNDIALS', language : 'fortran')
+endif
+
 # libsundials_dep = dependency('sundials', fallback : ['sundials', 'libsundials_dep'])
 
 sources = files()
 
-subdir('lib/sundials-6.1.1')
+if get_option('sundials')
+  subdir('lib/sundials-6.1.1')
+endif
+
 subdir('src')
 subdir('test/unit')
 subdir('test/unit/prob')
-subdir('example/ode')
+
+# ODE solver example using SUNDIALS::CVODES
+if get_option('sundials')
+  subdir('example/ode')
+endif
