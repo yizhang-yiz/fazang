@@ -40,7 +40,8 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 
 set(fz_src
   src/env.f90
-  src/vari.f90)
+  src/vari.f90
+  src/var.f90)
 
 add_library(fz ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)

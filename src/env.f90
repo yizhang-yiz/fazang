@@ -15,37 +15,25 @@ module fazang_env
   ! int KIND
   integer, parameter :: ik = int32
 
-  byte, target :: core_adstack(adsize) = 0
+  type :: adstack
+     byte :: s(adsize) = 0
+     integer(ik) :: i = 1       ! current (vacant) location
+     integer(ik) :: j = 0       ! previous (just filled) location
+   contains
+     procedure incr
+  end type adstack
+
+  type(adstack), target :: core_adstack
 
 contains
 
-  ! first 4 bytes of stack is stack pointer
-  integer(int32) function adstack_index(stack)
-    byte, intent(in) :: stack(:)
-    adstack_index = transfer(stack(1:4), 0_int32)
-  end function adstack_index
-
-  ! first 4 bytes of stack is stack pointer
-  subroutine set_adstack_index(stack, i)
-    byte, intent(inout) :: stack(:)
-    integer(int32), intent(in) :: i
-    stack(1:4) = transfer(i, stack(1), 4)
-  end subroutine set_adstack_index
-
-  ! first 4 bytes of stack is stack pointer
-  subroutine init_adstack(stack)
-    byte, intent(inout) :: stack(:)
-    call set_adstack_index(stack, 5)
-  end subroutine init_adstack
-
   ! move according to inserted object size
-  subroutine incr_adstack(stack, len)
-    byte, intent(inout) :: stack(:)
+  subroutine incr(stack, len)
+    class(adstack), intent(inout) :: stack
     integer(int32), intent(in) :: len
-    integer(int32) :: i
-    i = adstack_index(stack)
-    call set_adstack_index(stack, i + len)
-  end subroutine incr_adstack
+    stack%j = stack%i
+    stack%i = stack%i + len
+  end subroutine incr
 
 !   elemental subroutine incr(var, inc)
 !     integer,intent(inout) :: var
