@@ -118,7 +118,4 @@ contains
     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
   end subroutine pop_int_array
 
-  ! subroutine chain()
-
-
 end module fazang_env

@@ -121,6 +121,19 @@ contains
     integer(ik), intent(in) :: i
   end function chain_dummy
 
+  subroutine reset_chain(id)
+    integer(ik), intent(in) :: id
+    type(vari) :: vi
+    integer(ik) :: k
+    k = id
+    do while (k/=0)
+       call recover(vi, k)
+       vi%adj_ = 0.d0
+       k = vi%j
+       call push(vi)
+    enddo
+  end subroutine reset_chain
+
   subroutine chain(id)
     integer(ik), intent(in) :: id
     type(vari) :: vi
@@ -154,5 +167,29 @@ contains
 
   DEF_CHAIN_OP1(chain_sin, (cos(a%val_)))
   DEF_OP1(sin_vi, dsin, chain_sin)
+
+  DEF_CHAIN_OP1(chain_cos, (-sin(a%val_)))
+  DEF_OP1(cos_vi, dcos, chain_cos)
+
+  DEF_CHAIN_OP1(chain_tan, (1.d0/(cos(a%val_)*cos(a%val_))))
+  DEF_OP1(tan_vi, dtan, chain_tan)
+
+  DEF_CHAIN_OP1(chain_asin, (1.d0/sqrt(1.d0-a%val_*a%val_)))
+  DEF_OP1(asin_vi, dasin, chain_asin)
+
+  DEF_CHAIN_OP1(chain_acos, (-1.d0/sqrt(1.d0-a%val_*a%val_)))
+  DEF_OP1(acos_vi, dacos, chain_acos)
+
+  DEF_CHAIN_OP1(chain_atan, (1.d0/(1.d0+a%val_*a%val_)))
+  DEF_OP1(atan_vi, datan, chain_atan)
+
+  DEF_CHAIN_OP1(chain_log, (1.d0/a%val_))
+  DEF_OP1(log_vi, dlog, chain_log)
+
+  DEF_CHAIN_OP1(chain_log10, (1.d0/(a%val_*dlog(10.d0))))
+  DEF_OP1(log10_vi, dlog10, chain_log10)
+
+  DEF_CHAIN_OP1(chain_sqrt, (0.5d0/dsqrt(a%val_)))
+  DEF_OP1(sqrt_vi, dsqrt, chain_sqrt)
 
 end module fazang_vari

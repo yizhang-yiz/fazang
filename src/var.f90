@@ -1,3 +1,21 @@
+#ifndef DEF_VAR_OP_DEFINED
+#define DEF_VAR_OP_DEFINED
+
+#define DEF_OP1( NAME ) \
+  function NAME/**/_v(x) result(v); \
+    type(var), intent(in) :: x; \
+    type(var) :: v; \
+    v%i = NAME/**/_vi(x%i); \
+  end function NAME/**/_v
+
+#define DEF_INTERFACE( NAME ) \
+  interface NAME; \
+     module procedure NAME/**/_v ; \
+  end interface NAME; \
+  public :: NAME
+
+#endif
+
 module fazang_var
   use, intrinsic :: iso_fortran_env
   use fazang_env
@@ -5,8 +23,7 @@ module fazang_var
   implicit none
 
   private
-  public :: var, val, adj, grad
-  public :: assignment(=), exp, sin
+  public :: var, val, adj, grad, reset, assignment(=)
 
   type :: var
      integer(ik) :: i = 0       ! point to a vari in adstack
@@ -18,19 +35,34 @@ module fazang_var
   end interface assignment(=)
 
   interface grad
-     module procedure grad_v
+     module procedure grad_of
      module procedure grad_all
   end interface grad
 
-  interface exp
-     module procedure exp_v
-  end interface exp
+  interface reset
+     module procedure reset_from
+     module procedure reset_all
+  end interface reset
 
-  interface sin
-     module procedure sin_v
-  end interface sin
+  DEF_INTERFACE(exp)
 
+  DEF_INTERFACE(sin)
 
+  DEF_INTERFACE(cos)
+
+  DEF_INTERFACE(tan)
+
+  DEF_INTERFACE(asin)
+
+  DEF_INTERFACE(acos)
+
+  DEF_INTERFACE(atan)
+
+  DEF_INTERFACE(log)
+
+  DEF_INTERFACE(log10)
+
+  DEF_INTERFACE(sqrt)
 
 contains
 
@@ -52,18 +84,6 @@ contains
     this%i = v%i
   end subroutine set_var_real32
 
-  function exp_v(x) result(v)
-    type(var), intent(in) :: x
-    type(var) :: v
-    v%i = exp_vi(x%i)
-  end function exp_v
-
-  function sin_v(x) result(v)
-    type(var), intent(in) :: x
-    type(var) :: v
-    v%i = sin_vi(x%i)
-  end function sin_v
-
   real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
@@ -80,13 +100,43 @@ contains
     adj = vi_adj(vi)
   end function adj
 
-  subroutine grad_v(v)
+  subroutine grad_of(v)
     type(var), intent(in) :: v
     call chain(v%i)
-  end subroutine grad_v
+  end subroutine grad_of
 
   subroutine grad_all()
     call chain(core_adstack%j_)
   end subroutine grad_all
+
+  subroutine reset_from(v)
+    type(var), intent(in) :: v
+    call reset_chain(v%i)
+  end subroutine reset_from
+
+  subroutine reset_all()
+    call reset_chain(core_adstack%j_)
+  end subroutine reset_all
+
+  DEF_OP1(exp)
+
+  DEF_OP1(sin)
+
+  DEF_OP1(cos)
+
+  DEF_OP1(tan)
+
+  DEF_OP1(asin)
+
+  DEF_OP1(acos)
+
+  DEF_OP1(atan)
+
+  DEF_OP1(log)
+
+  DEF_OP1(log10)
+
+  DEF_OP1(sqrt)
+
 
 end module fazang_var
