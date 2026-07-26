@@ -45,21 +45,21 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install meson
+    - name: Install cmake
       run: pip3 install ${{ env.PACKAGES }}
       env:
         PACKAGES: >-
-          meson==0.59
+          cmake==2.38
           ninja
 
     - name: Configure build
-      run: meson setup _build --prefix=$PWD/fazang --default-library=static
+      run: cmake $PWD/fazang -B _build -GNinja -Dtest=ON
 
     - name: Build project
-      run: meson compile -C _build
+      run: cmake --build _build
 
     - name: Run tests
-      run: meson test -C _build --print-errorlogs --no-rebuild
+      run: ctest
 
     - name: Install project
-      run: meson install -C _build --no-rebuild
+      run: cmake --install _build
