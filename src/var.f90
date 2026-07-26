@@ -35,10 +35,10 @@
 
 #endif
 
-module fazang_var
+module fz_var
   use, intrinsic :: iso_fortran_env
-  use fazang_env
-  use fazang_vari, vi_val => val, vi_adj => adj
+  use fz_env
+  use fz_vari, vi_val => val, vi_adj => adj
   implicit none
 
   private
@@ -58,6 +58,7 @@ module fazang_var
      module procedure add_dv
      module procedure add_vd
      module procedure add_vv
+     module procedure :: pos_v
   end interface operator(+)
 
   interface operator(-)
@@ -185,6 +186,8 @@ contains
 
   DEF_OP1(neg)
 
+  DEF_OP1(pos)
+
   ! OP2
   DEF_OP2(add)
 
@@ -194,4 +197,4 @@ contains
 
   DEF_OP2(divide)
 
-end module fazang_var
+end module fz_var

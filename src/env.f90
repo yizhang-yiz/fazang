@@ -1,4 +1,4 @@
-module fazang_env
+module fz_env
   use, intrinsic :: iso_fortran_env
 
   implicit none
@@ -117,4 +117,4 @@ contains
     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
   end subroutine pop_int_array
 
-end module fazang_env
+end module fz_env

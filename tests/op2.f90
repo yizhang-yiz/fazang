@@ -1,9 +1,9 @@
 #include "assert_inc.f90"
 
 program fz_op2_test
-  use fazang_env
-  use fazang_var
-  use fazang_vari, only: visize, iksize, rksize
+  use fz_env
+  use fz_var
+  use fz_vari, only: visize, iksize, rksize
 
   implicit none
 

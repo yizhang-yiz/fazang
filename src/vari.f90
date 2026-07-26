@@ -84,9 +84,9 @@
 
 #endif
 
-module fazang_vari
+module fz_vari
   use, intrinsic :: iso_fortran_env
-  use fazang_env
+  use fz_env
 
   type :: vari
      sequence
@@ -106,12 +106,12 @@ module fazang_vari
 
   abstract interface
      real(rk) function op1(x)
-       use fazang_env
+       use fz_env
        real(rk), intent(in) :: x
      end function op1
 
      real(rk) function op2(a, b)
-       use fazang_env
+       use fz_env
        real(rk), intent(in) :: a, b
      end function op2
   end interface
@@ -302,6 +302,17 @@ contains
     neg_vi = op1_vi(ia, neg_helper, chain_neg )
   end function neg_vi
 
+  real(rk) function pos_helper(a)
+    real(rk), intent(in) :: a
+    pos_helper = a
+  end function pos_helper
+  DEF_CHAIN_OP1(chain_pos, (1.d0))
+  integer(ik) function pos_vi (ia)
+    implicit none;
+    integer(ik), intent(in) :: ia
+    pos_vi = op1_vi(ia, neg_helper, chain_pos )
+  end function pos_vi
+
   integer(ik) function op2_vv(ia, ib, op, chain_op2)
     implicit none
     integer(ik), intent(in) :: ia, ib
@@ -377,4 +388,4 @@ contains
   DEF_CHAIN_OP2_VV(chain_divide_vi_vi, (1.d0/b%val_), (-this%val_/b%val_))
   DEF_OP2(divide_helper, divide_vi_d, chain_divide_vi_d, divide_d_vi, chain_divide_d_vi, divide_vi_vi, chain_divide_vi_vi)
 
-end module fazang_vari
+end module fz_vari
