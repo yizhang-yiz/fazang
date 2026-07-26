@@ -1,12 +1,12 @@
 #ifndef DEF_VARI_OP1_DEFINED
 #define DEF_VARI_OP1_DEFINED
 
-#define DEF_OP1(NAME, FUNC, CHAIN) \
+#define DEF_OP1(FUNC, NAME, CHAIN) \
   integer(ik) function NAME (ia); \
     implicit none; \
     intrinsic :: FUNC; \
     integer(ik), intent(in) :: ia; \
-    NAME = op1_vi(ia, FUNC, CHAIN ); \
+    NAME = op1_vi(ia, FUNC, CHAIN); \
   end function NAME
 
 #define DEF_CHAIN_OP1(NAME, DYDX) \
@@ -15,11 +15,72 @@
     integer(ik), intent(in) :: i; \
     type(vari) :: this, a; \
     call recover(this, i); \
-    call recover(a, int_after_vi(i)); \
+    call recover_op1_v(a, i); \
     a%adj_ = a%adj_ + this%adj_ * DYDX; \
     call push(a); \
     NAME = this%j; \
   end function NAME
+
+#define DEF_CHAIN_OP2_VD(NAME, DYDX) \
+  integer(ik) function NAME (i); \
+    implicit none; \
+    integer(ik), intent(in) :: i; \
+    type(vari) :: this, a; \
+    real(rk) :: b; \
+    call recover(this, i); \
+    call recover_op2_v1(a, i); \
+    call recover_op2_b(b ,i); \
+    a%adj_ = a%adj_ + this%adj_ * DYDX; \
+    call push(a); \
+    NAME = this%j; \
+  end function NAME
+
+#define DEF_CHAIN_OP2_VV(NAME, DYDA, DYDB) \
+  integer(ik) function NAME (i); \
+    implicit none; \
+    integer(ik), intent(in) :: i; \
+    type(vari) :: this, a, b; \
+    call recover(this, i); \
+    call recover_op2_v1(a, i); \
+    call recover_op2_v2(b, i); \
+    a%adj_ = a%adj_ + this%adj_ * DYDA; \
+    b%adj_ = b%adj_ + this%adj_ * DYDB; \
+    call push(a); \
+    call push(b); \
+    NAME = this%j; \
+  end function NAME
+
+#define DEF_OP2(FUNC, NAMEvd, CHAINvd, NAMEdv, CHAINdv, NAMEvv, CHAINvv) \
+  integer(ik) function NAMEvd(i, b); \
+    integer(ik), intent(in) :: i; \
+    real(rk), intent(in) :: b; \
+    NAMEvd = op2_vd(i, b, FUNC, CHAINvd, .false., .true.); \
+  end function NAMEvd; \
+  integer(ik) function NAMEdv(b, i); \
+    integer(ik), intent(in) :: i; \
+    real(rk), intent(in) :: b; \
+    NAMEdv = op2_vd(i, b, FUNC, CHAINdv, .true., .true.); \
+  end function NAMEdv; \
+  integer(ik) function NAMEvv(i, j); \
+    integer(ik), intent(in) :: i, j; \
+    NAMEvv = op2_vv(i, j, FUNC, CHAINvv); \
+  end function NAMEvv
+
+#define DEF_OP2_SKIP_REAL(FUNC, NAMEvd, CHAINvd, NAMEdv, CHAINdv, NAMEvv, CHAINvv) \
+  integer(ik) function NAMEvd(i, b); \
+    integer(ik), intent(in) :: i; \
+    real(rk), intent(in) :: b; \
+    NAMEvd = op2_vd(i, b, FUNC, CHAINvd, .false., .false.); \
+  end function NAMEvd; \
+  integer(ik) function NAMEdv(b, i); \
+    integer(ik), intent(in) :: i; \
+    real(rk), intent(in) :: b; \
+    NAMEdv = op2_vd(i, b, FUNC, CHAINdv, .true., .false.); \
+  end function NAMEdv; \
+  integer(ik) function NAMEvv(i, j); \
+    integer(ik), intent(in) :: i, j; \
+    NAMEvv = op2_vv(i, j, FUNC, CHAINvv); \
+  end function NAMEvv
 
 #endif
 
@@ -28,6 +89,7 @@ module fazang_vari
   use fazang_env
 
   type :: vari
+     sequence
      real(rk) :: val_
      real(rk) :: adj_ = 0d0
      integer(ik) :: i = 0 ! my index in storage
@@ -47,6 +109,11 @@ module fazang_vari
        use fazang_env
        real(rk), intent(in) :: x
      end function op1
+
+     real(rk) function op2(a, b)
+       use fazang_env
+       real(rk), intent(in) :: a, b
+     end function op2
   end interface
 
 contains
@@ -56,6 +123,42 @@ contains
     integer(ik), intent(in) :: i
     this = transfer(core_adstack%s_(i:(i+visize-1)), this)
   end subroutine recover
+
+  subroutine recover_prev_id(id, i)
+    integer(ik), intent(out) :: id
+    integer(ik), intent(in) :: i
+    ! skip val, adj, i, and jump to j
+    call core_adstack%pop(i + rksize + rksize + iksize, id)
+  end subroutine recover_prev_id
+
+  ! recover operand
+  subroutine recover_op1_v(this, i)
+    type(vari), intent(inout) :: this
+    integer(ik), intent(in) :: i
+    integer(ik) :: j
+    call core_adstack%pop(i+visize, j)
+    call recover(this, j)
+  end subroutine recover_op1_v
+
+  subroutine recover_op2_v1(this, i)
+    type(vari), intent(inout) :: this
+    integer(ik), intent(in) :: i
+    call recover_op1_v(this, i)
+  end subroutine recover_op2_v1
+
+  subroutine recover_op2_b(b, i)
+    real(rk), intent(out) :: b
+    integer(ik), intent(in) :: i
+    call core_adstack%pop(i+visize+iksize, b) ! skip vi & vi arg
+  end subroutine recover_op2_b
+
+  subroutine recover_op2_v2(this, i)
+    type(vari), intent(inout) :: this
+    integer(ik), intent(in) :: i
+    integer(ik) :: j
+    call core_adstack%pop(i+visize+iksize, j)
+    call recover(this, j)
+  end subroutine recover_op2_v2
 
   real(rk) function val(this)
     type(vari), intent(in) :: this
@@ -111,14 +214,10 @@ contains
     endif
   end subroutine push
 
-  integer(ik) function int_after_vi(i)
-    integer(ik), intent(in) :: i
-    type(vari) :: vi
-    call core_adstack%pop(i+visize, int_after_vi)
-  end function int_after_vi
-
+  ! skip chain and return previous vi in AD stack
   integer(ik) function chain_dummy(i)
     integer(ik), intent(in) :: i
+    call recover_prev_id(chain_dummy, i)
   end function chain_dummy
 
   subroutine reset_chain(id)
@@ -148,14 +247,14 @@ contains
     enddo
   end subroutine chain
 
-  integer(ik) function op1_vi(ia, op, chain_op1)
+  integer(ik) function op1_vi (ia, op, chain_op1)
     implicit none
     integer(ik), intent(in) :: ia
     procedure(op1) :: op
     procedure(chain_op) :: chain_op1
-    type(vari) :: v0, v1
-    call recover(v0, ia)
-    v1%val_ = op(v0%val_)
+    type(vari) :: vi, v1
+    call recover(vi, ia)
+    v1%val_ = op(vi%val_)
     v1%chain => chain_op1
     call push(v1)
     call core_adstack%push(ia)
@@ -163,33 +262,119 @@ contains
   end function op1_vi
 
   DEF_CHAIN_OP1(chain_exp, (this%val_))
-  DEF_OP1(exp_vi, dexp, chain_exp)
+  DEF_OP1(dexp, exp_vi, chain_exp)
 
   DEF_CHAIN_OP1(chain_sin, (cos(a%val_)))
-  DEF_OP1(sin_vi, dsin, chain_sin)
+  DEF_OP1(dsin, sin_vi, chain_sin)
 
   DEF_CHAIN_OP1(chain_cos, (-sin(a%val_)))
-  DEF_OP1(cos_vi, dcos, chain_cos)
+  DEF_OP1(dcos, cos_vi, chain_cos)
 
   DEF_CHAIN_OP1(chain_tan, (1.d0/(cos(a%val_)*cos(a%val_))))
-  DEF_OP1(tan_vi, dtan, chain_tan)
+  DEF_OP1(dtan, tan_vi, chain_tan)
 
   DEF_CHAIN_OP1(chain_asin, (1.d0/sqrt(1.d0-a%val_*a%val_)))
-  DEF_OP1(asin_vi, dasin, chain_asin)
+  DEF_OP1(dasin, asin_vi, chain_asin)
 
   DEF_CHAIN_OP1(chain_acos, (-1.d0/sqrt(1.d0-a%val_*a%val_)))
-  DEF_OP1(acos_vi, dacos, chain_acos)
+  DEF_OP1(dacos, acos_vi, chain_acos)
 
   DEF_CHAIN_OP1(chain_atan, (1.d0/(1.d0+a%val_*a%val_)))
-  DEF_OP1(atan_vi, datan, chain_atan)
+  DEF_OP1(datan, atan_vi, chain_atan)
 
   DEF_CHAIN_OP1(chain_log, (1.d0/a%val_))
-  DEF_OP1(log_vi, dlog, chain_log)
+  DEF_OP1(dlog, log_vi, chain_log)
 
   DEF_CHAIN_OP1(chain_log10, (1.d0/(a%val_*dlog(10.d0))))
-  DEF_OP1(log10_vi, dlog10, chain_log10)
+  DEF_OP1(dlog10, log10_vi, chain_log10)
 
   DEF_CHAIN_OP1(chain_sqrt, (0.5d0/dsqrt(a%val_)))
-  DEF_OP1(sqrt_vi, dsqrt, chain_sqrt)
+  DEF_OP1(dsqrt, sqrt_vi, chain_sqrt)
+
+  real(rk) function neg_helper(a)
+    real(rk), intent(in) :: a
+    neg_helper = -a
+  end function neg_helper
+  DEF_CHAIN_OP1(chain_neg, (-1.d0))
+  integer(ik) function neg_vi (ia)
+    implicit none;
+    integer(ik), intent(in) :: ia
+    neg_vi = op1_vi(ia, neg_helper, chain_neg )
+  end function neg_vi
+
+  integer(ik) function op2_vv(ia, ib, op, chain_op2)
+    implicit none
+    integer(ik), intent(in) :: ia, ib
+    procedure(op2) :: op
+    procedure(chain_op) :: chain_op2
+    type(vari) :: va, vb, v1
+    call recover(va, ia)
+    call recover(vb, ib)
+    v1%val_ = op(va%val_, vb%val_)
+    v1%chain => chain_op2
+    call push(v1)
+    call core_adstack%push(ia)  ! push operand
+    call core_adstack%push(ib)  ! push operand
+    op2_vv = v1%i
+  end function op2_vv
+
+  integer(ik) function op2_vd(ia, b, op, chain_op2, reverse_op, save_real)
+    implicit none
+    integer(ik), intent(in) :: ia
+    real(rk), intent(in) :: b
+    logical, intent(in) :: reverse_op, save_real
+    procedure(op2) :: op
+    procedure(chain_op) :: chain_op2
+    type(vari) :: va, v1
+    call recover(va, ia)
+    if (reverse_op) then
+       v1%val_ = op(b, va%val_)
+    else
+       v1%val_ = op(va%val_, b)
+    endif
+    v1%chain => chain_op2
+    call push(v1)
+    call core_adstack%push(ia)  ! push operand
+    op2_vd = v1%i
+    if (save_real) call core_adstack%push(b) ! push data operand
+  end function op2_vd
+
+  real(rk) function add_helper(a, b)
+    real(rk), intent(in) :: a, b
+    add_helper = a + b
+  end function add_helper
+
+  DEF_CHAIN_OP2_VD(chain_add_vi_d, (1.d0))
+  DEF_CHAIN_OP2_VD(chain_add_d_vi, (1.d0))
+  DEF_CHAIN_OP2_VV(chain_add_vi_vi, (1.d0), (1.d0))
+  DEF_OP2_SKIP_REAL(add_helper, add_vi_d, chain_add_vi_d, add_d_vi, chain_add_d_vi, add_vi_vi, chain_add_vi_vi)
+
+  real(rk) function substract_helper(a, b)
+    real(rk), intent(in) :: a, b
+    substract_helper = a - b
+  end function substract_helper
+
+  DEF_CHAIN_OP2_VD(chain_substract_vi_d, (1.d0))
+  DEF_CHAIN_OP2_VD(chain_substract_d_vi, (-1.d0))
+  DEF_CHAIN_OP2_VV(chain_substract_vi_vi, (1.d0), (-1.d0))
+  DEF_OP2_SKIP_REAL(substract_helper, substract_vi_d, chain_substract_vi_d, substract_d_vi, chain_substract_d_vi, substract_vi_vi, chain_substract_vi_vi)
+
+  real(rk) function multiply_helper(a, b)
+    real(rk), intent(in) :: a, b
+    multiply_helper = a * b
+  end function multiply_helper
+  DEF_CHAIN_OP2_VD(chain_multiply_vi_d, (b))
+  DEF_CHAIN_OP2_VD(chain_multiply_d_vi, (b))
+  DEF_CHAIN_OP2_VV(chain_multiply_vi_vi, (b%val_), (a%val_))
+  DEF_OP2(multiply_helper, multiply_vi_d, chain_multiply_vi_d, multiply_d_vi, chain_multiply_d_vi, multiply_vi_vi, chain_multiply_vi_vi)
+
+  real(rk) function divide_helper(a, b)
+    real(rk), intent(in) :: a, b
+    divide_helper = a / b
+  end function divide_helper
+  DEF_CHAIN_OP2_VD(chain_divide_vi_d, (1.d0/b))
+  DEF_CHAIN_OP2_VD(chain_divide_d_vi, (-this%val_/a%val_))
+  DEF_CHAIN_OP2_VV(chain_divide_vi_vi, (1.d0/b%val_), (-this%val_/b%val_))
+  DEF_OP2(divide_helper, divide_vi_d, chain_divide_vi_d, divide_d_vi, chain_divide_d_vi, divide_vi_vi, chain_divide_vi_vi)
 
 end module fazang_vari

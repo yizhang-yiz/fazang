@@ -1,17 +1,9 @@
-#ifndef FZ_ASSERT_DEFINED
-#define FZ_ASSERT_DEFINED
-
-#define ASSERT_TOL( A, B, TOL ) \
-  if (.not. abs( (A) - (B) ) < (TOL) ) then; \
-     write(*, *) "test failed at:", __LINE__ ;\
-     error stop ;\
-  endif
-
-#endif
+#include "assert_inc.f90"
 
 program fz_op1_test
   use fazang_env
   use fazang_var
+  use fazang_vari, only: visize, iksize, rksize
 
   implicit none
 
@@ -21,13 +13,20 @@ program fz_op1_test
 
   a = 0.5d0
   b = exp(a)
+  d = 0.5d0
   c = sin(b)
   call grad(c)
-
   ASSERT_TOL( val(c), dsin(dexp(val(a))), 1.d-12 )
   ASSERT_TOL( adj(a), -0.1283465274185981d0, 1.d-12 )
+  ASSERT(a%i == 1)
+  ASSERT( (b%i - 1) == visize )
+  ASSERT( (d%i - 1) == visize + visize + iksize )
+  ASSERT( (c%i - 1) == visize + visize + iksize + visize )
+  ASSERT( core_adstack%j_ == c%i )
 
   d = log(cos(c))
+  ASSERT( d%i == c%i + visize + iksize + visize + iksize )
+  ASSERT( core_adstack%i_ == d%i + visize + iksize )
   call reset()
   ASSERT_TOL( adj(d), 0.d0, 1.d-12 )
   ASSERT_TOL( adj(c), 0.d0, 1.d-12 )

@@ -14,6 +14,25 @@
   end interface NAME; \
   public :: NAME
 
+#define DEF_OP2( NAME ) \
+  function NAME/**/_vd(x, b) result(v); \
+    type(var), intent(in) :: x; \
+    real(rk), intent(in) :: b; \
+    type(var) :: v; \
+    v%i = NAME/**/_vi_d(x%i, b); \
+  end function NAME/**/_vd; \
+  function NAME/**/_dv(b, x) result(v); \
+    type(var), intent(in) :: x; \
+    real(rk), intent(in) :: b; \
+    type(var) :: v; \
+    v%i = NAME/**/_d_vi(b, x%i); \
+  end function NAME/**/_dv; \
+  function NAME/**/_vv(x, y) result(v); \
+    type(var), intent(in) :: x, y; \
+    type(var) :: v; \
+    v%i = NAME/**/_vi_vi(x%i, y%i); \
+  end function NAME/**/_vv;
+
 #endif
 
 module fazang_var
@@ -24,6 +43,7 @@ module fazang_var
 
   private
   public :: var, val, adj, grad, reset, assignment(=)
+  public :: operator(+), operator(-), operator(*), operator(/)
 
   type :: var
      integer(ik) :: i = 0       ! point to a vari in adstack
@@ -33,6 +53,31 @@ module fazang_var
      module procedure set_var_val
      module procedure set_var_real32
   end interface assignment(=)
+
+  interface operator(+)
+     module procedure add_dv
+     module procedure add_vd
+     module procedure add_vv
+  end interface operator(+)
+
+  interface operator(-)
+     module procedure substract_dv
+     module procedure substract_vd
+     module procedure substract_vv
+     module procedure neg_v
+  end interface operator(-)
+
+  interface operator(*)
+     module procedure multiply_dv
+     module procedure multiply_vd
+     module procedure multiply_vv
+  end interface operator(*)
+
+  interface operator(/)
+     module procedure divide_dv
+     module procedure divide_vd
+     module procedure divide_vv
+  end interface operator(/)
 
   interface grad
      module procedure grad_of
@@ -138,5 +183,15 @@ contains
 
   DEF_OP1(sqrt)
 
+  DEF_OP1(neg)
+
+  ! OP2
+  DEF_OP2(add)
+
+  DEF_OP2(substract)
+
+  DEF_OP2(multiply)
+
+  DEF_OP2(divide)
 
 end module fazang_var

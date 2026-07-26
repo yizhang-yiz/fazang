@@ -9,11 +9,10 @@ module fazang_env
   integer(int32), parameter :: adsize = 50 * (1048576)
 #endif
 
-  ! real KIND
   integer, parameter :: rk = real64
-
-  ! int KIND
   integer, parameter :: ik = int32
+  integer(ik), parameter :: iksize = storage_size(0_int32)/8
+  integer(ik), parameter :: rksize = storage_size(0_real64)/8
 
   type :: adstack
      integer(int8) :: s_(adsize) = 0      ! int8 serves as byte
