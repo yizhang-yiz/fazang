@@ -7,3 +7,7 @@ add_test(NAME op1 COMMAND op1)
 add_executable(op2 op2.f90 )
 target_link_libraries(op2 PRIVATE fz)
 add_test(NAME op2 COMMAND op2)
+
+add_executable(vec vec.f90 )
+target_link_libraries(vec PRIVATE fz)
+add_test(NAME vec COMMAND vec)

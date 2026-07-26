@@ -58,7 +58,7 @@ module fz_var
      module procedure add_dv
      module procedure add_vd
      module procedure add_vv
-     module procedure :: pos_v
+     module procedure pos_v
   end interface operator(+)
 
   interface operator(-)
@@ -110,6 +110,12 @@ module fz_var
 
   DEF_INTERFACE(sqrt)
 
+  DEF_INTERFACE(sinh)
+
+  DEF_INTERFACE(cosh)
+
+  DEF_INTERFACE(tanh)
+
 contains
 
   subroutine set_var_val(this, val)
@@ -130,7 +136,7 @@ contains
     this%i = v%i
   end subroutine set_var_real32
 
-  real(rk) function val(v)
+  elemental real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
     type(vari) :: vi
@@ -138,7 +144,7 @@ contains
     val = vi_val(vi)
   end function val
 
-  real(rk) function adj(v)
+  elemental real(rk) function adj(v)
     implicit none
     type(var), intent(in) :: v
     type(vari) :: vi
@@ -187,6 +193,12 @@ contains
   DEF_OP1(neg)
 
   DEF_OP1(pos)
+
+  DEF_OP1(sinh)
+
+  DEF_OP1(cosh)
+
+  DEF_OP1(tanh)
 
   ! OP2
   DEF_OP2(add)

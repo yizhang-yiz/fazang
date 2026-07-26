@@ -4,9 +4,16 @@
 #define DEF_OP1(FUNC, NAME, CHAIN) \
   integer(ik) function NAME (ia); \
     implicit none; \
-    intrinsic :: FUNC; \
     integer(ik), intent(in) :: ia; \
-    NAME = op1_vi(ia, FUNC, CHAIN); \
+    procedure(op1) :: op; \
+    procedure(chain_op) :: chain_op1; \
+    type(vari) :: vi, v1; \
+    call recover(vi, ia); \
+    v1%val_ = FUNC(vi%val_); \
+    v1%chain => CHAIN; \
+    call push(v1); \
+    call core_adstack%push(ia); \
+    NAME = v1%i; \
   end function NAME
 
 #define DEF_CHAIN_OP1(NAME, DYDX) \
@@ -118,7 +125,7 @@ module fz_vari
 
 contains
 
-  subroutine recover(this, i)
+  pure subroutine recover(this, i)
     type(vari), intent(inout) :: this
     integer(ik), intent(in) :: i
     this = transfer(core_adstack%s_(i:(i+visize-1)), this)
@@ -160,7 +167,7 @@ contains
     call recover(this, j)
   end subroutine recover_op2_v2
 
-  real(rk) function val(this)
+  elemental real(rk) function val(this)
     type(vari), intent(in) :: this
     type(vari) :: vi
     integer(ik) :: i
@@ -169,7 +176,7 @@ contains
     val = vi%val_
   end function val
 
-  real(rk) function adj(this)
+  elemental real(rk) function adj(this)
     type(vari), intent(in) :: this
     type(vari) :: vi
     integer(ik) :: i
@@ -247,20 +254,6 @@ contains
     enddo
   end subroutine chain
 
-  integer(ik) function op1_vi (ia, op, chain_op1)
-    implicit none
-    integer(ik), intent(in) :: ia
-    procedure(op1) :: op
-    procedure(chain_op) :: chain_op1
-    type(vari) :: vi, v1
-    call recover(vi, ia)
-    v1%val_ = op(vi%val_)
-    v1%chain => chain_op1
-    call push(v1)
-    call core_adstack%push(ia)
-    op1_vi = v1%i
-  end function op1_vi
-
   DEF_CHAIN_OP1(chain_exp, (this%val_))
   DEF_OP1(dexp, exp_vi, chain_exp)
 
@@ -291,27 +284,20 @@ contains
   DEF_CHAIN_OP1(chain_sqrt, (0.5d0/dsqrt(a%val_)))
   DEF_OP1(dsqrt, sqrt_vi, chain_sqrt)
 
-  real(rk) function neg_helper(a)
-    real(rk), intent(in) :: a
-    neg_helper = -a
-  end function neg_helper
   DEF_CHAIN_OP1(chain_neg, (-1.d0))
-  integer(ik) function neg_vi (ia)
-    implicit none;
-    integer(ik), intent(in) :: ia
-    neg_vi = op1_vi(ia, neg_helper, chain_neg )
-  end function neg_vi
+  DEF_OP1(-1*, neg_vi, chain_neg)
 
-  real(rk) function pos_helper(a)
-    real(rk), intent(in) :: a
-    pos_helper = a
-  end function pos_helper
   DEF_CHAIN_OP1(chain_pos, (1.d0))
-  integer(ik) function pos_vi (ia)
-    implicit none;
-    integer(ik), intent(in) :: ia
-    pos_vi = op1_vi(ia, neg_helper, chain_pos )
-  end function pos_vi
+  DEF_OP1(1*, pos_vi, chain_pos)
+
+  DEF_CHAIN_OP1(chain_sinh, (dcosh(a%val_)))
+  DEF_OP1(dsinh, sinh_vi, chain_sinh)
+
+  DEF_CHAIN_OP1(chain_cosh, (dsinh(a%val_)))
+  DEF_OP1(dcosh, cosh_vi, chain_cosh)
+
+  DEF_CHAIN_OP1(chain_tanh, (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
+  DEF_OP1(dtanh, tanh_vi, chain_tanh)
 
   integer(ik) function op2_vv(ia, ib, op, chain_op2)
     implicit none
