@@ -6,7 +6,7 @@ program fz_op1_test
   use fz_vari, only: visize, iksize, rksize
 
   implicit none
-  real(rk), parameter :: tol = 1.d-12
+  real(rk), parameter :: tol = 1.d-15
 
   type(var) :: a, b, c, d
   integer(ik) :: i, j

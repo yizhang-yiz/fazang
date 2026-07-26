@@ -3,6 +3,7 @@
 
 #define DEF_OP1( NAME ) \
   function NAME/**/_v(x) result(v); \
+    implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \
     v%i = NAME/**/_vi(x%i); \
@@ -16,18 +17,21 @@
 
 #define DEF_OP2( NAME ) \
   function NAME/**/_vd(x, b) result(v); \
+    implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
     v%i = NAME/**/_vi_d(x%i, b); \
   end function NAME/**/_vd; \
   function NAME/**/_dv(b, x) result(v); \
+    implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
     v%i = NAME/**/_d_vi(b, x%i); \
   end function NAME/**/_dv; \
   function NAME/**/_vv(x, y) result(v); \
+    implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
     v%i = NAME/**/_vi_vi(x%i, y%i); \
@@ -42,7 +46,7 @@ module fz_var
   implicit none
 
   private
-  public :: var, val, adj, grad, reset, assignment(=)
+  public :: var, val, adj, id, grad, reset, assignment(=)
   public :: operator(+), operator(-), operator(*), operator(/)
 
   type :: var
@@ -116,6 +120,9 @@ module fz_var
 
   DEF_INTERFACE(tanh)
 
+  ! vec op
+  DEF_INTERFACE(sum)
+
 contains
 
   subroutine set_var_val(this, val)
@@ -152,21 +159,31 @@ contains
     adj = vi_adj(vi)
   end function adj
 
+  elemental integer(ik) function id(v)
+    implicit none
+    type(var), intent(in) :: v
+    id = v%i
+  end function id
+
   subroutine grad_of(v)
+    implicit none
     type(var), intent(in) :: v
     call chain(v%i)
   end subroutine grad_of
 
   subroutine grad_all()
+    implicit none
     call chain(core_adstack%j_)
   end subroutine grad_all
 
   subroutine reset_from(v)
+    implicit none
     type(var), intent(in) :: v
     call reset_chain(v%i)
   end subroutine reset_from
 
   subroutine reset_all()
+    implicit none
     call reset_chain(core_adstack%j_)
   end subroutine reset_all
 
@@ -208,5 +225,13 @@ contains
   DEF_OP2(multiply)
 
   DEF_OP2(divide)
+
+  ! vec op
+  function sum_v(x) result(v)
+    implicit none
+    type(var), intent(in) :: x(:)
+    type(var) :: v
+    v%i = sum_vi(id(x))
+  end function sum_v
 
 end module fz_var

@@ -131,6 +131,12 @@ contains
     this = transfer(core_adstack%s_(i:(i+visize-1)), this)
   end subroutine recover
 
+  pure subroutine recover_int(k, i)
+    integer(ik), intent(out) :: k
+    integer(ik), intent(in) :: i
+    call core_adstack%pop(i, k)
+  end subroutine recover_int
+
   subroutine recover_prev_id(id, i)
     integer(ik), intent(out) :: id
     integer(ik), intent(in) :: i
@@ -159,6 +165,12 @@ contains
     call core_adstack%pop(i+visize+iksize, b) ! skip vi & vi arg
   end subroutine recover_op2_b
 
+  subroutine recover_vec_op_size(k, i)
+    integer(ik), intent(out) :: k
+    integer(ik), intent(in) :: i
+    call recover_int(k, i + visize)
+  end subroutine recover_vec_op_size
+
   subroutine recover_op2_v2(this, i)
     type(vari), intent(inout) :: this
     integer(ik), intent(in) :: i
@@ -167,22 +179,28 @@ contains
     call recover(this, j)
   end subroutine recover_op2_v2
 
+  elemental real(rk) function val_from_id(i)
+    integer(ik), intent(in) :: i
+    type(vari) :: vi
+    call recover(vi, i)
+    val_from_id = vi%val_
+  end function val_from_id
+
   elemental real(rk) function val(this)
     type(vari), intent(in) :: this
-    type(vari) :: vi
-    integer(ik) :: i
-    i = this%i
-    call recover(vi, i)
-    val = vi%val_
+    val = val_from_id(this%i)
   end function val
+
+  elemental real(rk) function adj_from_id(i)
+    integer(ik), intent(in) :: i
+    type(vari) :: vi
+    call recover(vi, i)
+    adj_from_id = vi%adj_
+  end function adj_from_id
 
   elemental real(rk) function adj(this)
     type(vari), intent(in) :: this
-    type(vari) :: vi
-    integer(ik) :: i
-    i = this%i
-    call recover(vi, i)
-    adj = vi%adj_
+    adj = adj_from_id(this%i)
   end function adj
 
   subroutine set_vari_val(this, val)
@@ -373,5 +391,32 @@ contains
   DEF_CHAIN_OP2_VD(chain_divide_d_vi, (-this%val_/a%val_))
   DEF_CHAIN_OP2_VV(chain_divide_vi_vi, (1.d0/b%val_), (-this%val_/b%val_))
   DEF_OP2(divide_helper, divide_vi_d, chain_divide_vi_d, divide_d_vi, chain_divide_d_vi, divide_vi_vi, chain_divide_vi_vi)
+
+  integer(ik) function chain_sum (i)
+    implicit none
+    integer(ik), intent(in) :: i
+    type(vari) :: this, a
+    integer(ik) :: k, j, n
+    call recover(this, i)
+    call recover_vec_op_size(n, i)
+    do j = 1, n
+       call recover_int(k, i + visize + j*iksize)
+       call recover(a, k)
+       a%adj_ = a%adj_ + this%adj_
+       call push(a)
+    end do
+    chain_sum = this%j
+  end function chain_sum
+
+  integer(ik) function sum_vi(iv)
+    integer(ik), intent(in) :: iv(:)
+    type(vari) :: vi
+    vi = sum(val_from_id(iv))
+    vi%chain => chain_sum
+    call push(vi)
+    call core_adstack%push(size(iv))
+    call core_adstack%push(iv)
+    sum_vi = vi%i
+  end function sum_vi
 
 end module fz_vari

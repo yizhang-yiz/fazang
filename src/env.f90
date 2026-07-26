@@ -85,7 +85,7 @@ contains
     call stack%incr(n*size(a), .false.)
   end subroutine push_int_array
 
-  subroutine pop_real(stack, i, a)
+  elemental subroutine pop_real(stack, i, a)
     class(adstack), intent(in) :: stack
     integer(ik), intent(in) :: i
     real(rk), intent(out) :: a
@@ -93,7 +93,7 @@ contains
     a = transfer(stack%s_(i:(i+n-1)), a)
   end subroutine pop_real
 
-  subroutine pop_real_array(stack, i, a)
+  pure subroutine pop_real_array(stack, i, a)
     class(adstack), intent(in) :: stack
     integer(ik), intent(in) :: i
     real(rk), intent(out) :: a(:)
@@ -101,7 +101,7 @@ contains
     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
   end subroutine pop_real_array
 
-  subroutine pop_int(stack, i, a)
+  elemental subroutine pop_int(stack, i, a)
     class(adstack), intent(in) :: stack
     integer(ik), intent(in) :: i
     integer(ik), intent(out) :: a
@@ -109,7 +109,7 @@ contains
     a = transfer(stack%s_(i:(i+n-1)), a)
   end subroutine pop_int
 
-  subroutine pop_int_array(stack, i, a)
+  pure subroutine pop_int_array(stack, i, a)
     class(adstack), intent(in) :: stack
     integer(ik), intent(in) :: i
     integer(ik), intent(out) :: a(:)

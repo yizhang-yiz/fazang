@@ -6,7 +6,7 @@ program fz_vec_test
   use fz_vari, only: visize, iksize, rksize
 
   implicit none
-  real(rk), parameter :: tol = 1.d-12
+  real(rk), parameter :: tol = 1.d-15
 
   type(var) :: a, b, c
   type(var) :: d(3)
@@ -27,5 +27,18 @@ program fz_vec_test
   ASSERT_TOL(d_adj(1), 0.6d0, tol)
   ASSERT_TOL(d_adj(2), 0.5d0, tol)
   ASSERT_TOL(d_adj(3), 1.0d0, tol)
+
+  call reset()
+  d(1) = 0.5d0
+  d(2) = 0.6d0
+  d(3) = 0.7d0
+  a = sum(d)*2.d0
+  ASSERT_TOL(val(a), 3.6d0, tol)
+  call grad(a)
+  d_adj = adj(d)
+  ASSERT_TOL(d_adj(1), 2.0d0, tol)
+  ASSERT_TOL(d_adj(2), 2.0d0, tol)
+  ASSERT_TOL(d_adj(3), 2.0d0, tol)
+
 
 end program fz_vec_test

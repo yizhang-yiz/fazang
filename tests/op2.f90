@@ -7,7 +7,7 @@ program fz_op2_test
 
   implicit none
 
-  real(rk), parameter :: tol = 1.d-12
+  real(rk), parameter :: tol = 1.d-15
   type(var) :: a, b, c, d, p, q
   integer(ik) :: i, j
   integer(ik) :: k
