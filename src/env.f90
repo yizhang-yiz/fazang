@@ -53,6 +53,7 @@ contains
     integer(int32), intent(in) :: len
     logical, intent(in) :: update_tail
     if (update_tail) stack%j_ = stack%i_
+    if (stack%i_ + len > adsize) error stop
     stack%i_ = stack%i_ + len
   end subroutine incr
 

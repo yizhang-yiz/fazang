@@ -18,29 +18,24 @@ program fz_eval_test
 
   call random_number(x)
 
-  do i = 5, 10
+  do i = 4, 10
      narg = 2**i
 
      ! ad
      call system_clock(count_rate=clock_rate)
      call system_clock(count=clock_start)
 
-     do j = 1, 100
-        call reboot_chain()
-        res_ad(1:(1+narg)) = eval(logit_inv_logit_var, x(1:narg))
-     enddo
+     call reboot_chain()
+     res_ad(1:(1+narg)) = eval(logit_inv_logit_var, x(1:narg))
 
      call system_clock(count=clock_stop)
      elapsed_time = real(clock_stop - clock_start) / real(clock_rate)
      write(*, *) "time ad: ", narg, elapsed_time
 
      ! fd
-     call system_clock(count_rate=clock_rate)
      call system_clock(count=clock_start)
 
-     do j = 1, 100
-        res_fd(1:(1+narg)) = eval(logit_inv_logit, x(1:narg), 1.d-5)
-     enddo
+     res_fd(1:(1+narg)) = eval(logit_inv_logit, x(1:narg), 1.d-5)
 
      call system_clock(count=clock_stop)
      elapsed_time = real(clock_stop - clock_start) / real(clock_rate)
@@ -48,17 +43,17 @@ program fz_eval_test
 
   end do
 
-  write(*, *) "taki debug: ", res_ad(1:10)
-  write(*, *) "taki debug: ", res_fd(1:10)
-
 contains
   type(var) function logit_inv_logit_var(x)
     implicit none
     type(var), intent(in) :: x(:)
-    integer(ik) :: i
+    integer(ik) :: i, j
     type(var) :: v(size(x))
     do i = 1, size(x)
-       v(i) = inv_logit(logit(inv_logit(logit(x(i)))))
+       v(i) = sinh(x(i))
+       do j = 1, 100
+          v(i) = asin(v(i))
+       enddo
     enddo
     logit_inv_logit_var = sum(v)
   end function logit_inv_logit_var
@@ -66,10 +61,14 @@ contains
   real(rk) function logit_inv_logit(x)
     implicit none
     real(rk), intent(in) :: x(:)
-    integer(ik) :: i
+    integer(ik) :: i, j
     real(rk) :: v(size(x))
+
     do i = 1, size(x)
-       v(i) = inv_logit(logit(inv_logit(logit(x(i)))))
+       v(i) = sinh(x(i))
+       do j = 1, 100
+          v(i) = asin(v(i))
+       enddo
     enddo
     logit_inv_logit = sum(v)
   end function logit_inv_logit
