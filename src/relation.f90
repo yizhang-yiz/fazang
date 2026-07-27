@@ -1,7 +1,7 @@
-module fazang_rel_operator_mod
+module fz_relation
   use iso_fortran_env
-  use fazang_env_mod
-  use fazang_var_mod, only : var
+  use fz_env
+  use fz_var
 
   implicit none
 
@@ -22,9 +22,9 @@ module fazang_rel_operator_mod
 
 contains
 
-#define FUNC_REL_OP_VV(S, F) elemental function F (a, b) result(r); type(var), intent(in) :: a, b; logical :: r; r = a%val() S b%val(); end function F
-#define FUNC_REL_OP_VD(S, F) elemental function F (a, b) result(r); type(var), intent(in) :: a; real(rk), intent(in) :: b; logical :: r; r = a%val() S b; end function F
-#define FUNC_REL_OP_DV(S, F) elemental function F (a, b) result(r); real(rk), intent(in) :: a; type(var), intent(in) :: b; logical :: r; r = b%val() S a; end function F
+#define FUNC_REL_OP_VV(S, F) elemental logical function F (a, b) ; type(var), intent(in) :: a, b; F = val(a) S val(b); end function F
+#define FUNC_REL_OP_VD(S, F) elemental logical function F (a, b) ; type(var), intent(in) :: a; real(rk), intent(in) :: b; F = val(a) S b; end function F
+#define FUNC_REL_OP_DV(S, F) elemental logical function F (a, b) ; real(rk), intent(in) :: a; type(var), intent(in) :: b; F = a S val(b); end function F
 
   FUNC_REL_OP_VV(==, var_eq)
   FUNC_REL_OP_VD(==, vd_eq)
@@ -50,4 +50,4 @@ contains
   FUNC_REL_OP_VD(<=, vd_le)
   FUNC_REL_OP_DV(<=, dv_le)
 
-end module fazang_rel_operator_mod
+end module fz_relation

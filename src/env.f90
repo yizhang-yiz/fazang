@@ -13,11 +13,13 @@ module fz_env
   integer, parameter :: ik = int32
   integer(ik), parameter :: iksize = storage_size(0_int32)/8
   integer(ik), parameter :: rksize = storage_size(0_real64)/8
+  integer(ik), parameter :: max_nest_level = 9
 
   type :: adstack
      integer(int8) :: s_(adsize) = 0      ! int8 serves as byte
      integer(ik) :: i_ = 1       ! current (vacant) location
      integer(ik) :: j_ = 0       ! previous (just filled) location
+     integer(ik) :: nest_level = 0, i_nest(max_nest_level)
    contains
      private
      procedure push_real

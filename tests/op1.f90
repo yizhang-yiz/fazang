@@ -48,4 +48,18 @@ program fz_op1_test
   b = +a
   call grad(b)
   ASSERT_TOL( adj(a), 1.d0, tol )
+
+  a = 0.8d0
+  c = logit(a)
+  call reset()
+  call grad(c)
+  ASSERT_TOL( val(c), log(0.8d0/0.2d0), tol )
+  ASSERT_TOL( adj(a), 1.d0/(0.8d0 - 0.64d0), 1.d-14 )
+
+  a = 0.8d0
+  c = inv_logit(a)
+    call reset()
+  call grad(c)
+  ASSERT_TOL( val(c), 1.d0/(1.d0 + exp(-0.8d0)), tol )
+  ASSERT_TOL( adj(a), val(c)*(1.d0 - val(c)), tol )
 end program fz_op1_test

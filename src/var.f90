@@ -120,6 +120,19 @@ module fz_var
 
   DEF_INTERFACE(tanh)
 
+  interface logit
+     module procedure logit_d
+     module procedure logit_v
+  end interface logit
+  public :: logit
+
+  interface inv_logit
+     module procedure inv_logit_d
+     module procedure inv_logit_v
+  end interface inv_logit
+  public :: inv_logit
+
+
   ! vec op
   DEF_INTERFACE(sum)
 
@@ -216,6 +229,10 @@ contains
   DEF_OP1(cosh)
 
   DEF_OP1(tanh)
+
+  DEF_OP1(logit)
+
+  DEF_OP1(inv_logit)
 
   ! OP2
   DEF_OP2(add)

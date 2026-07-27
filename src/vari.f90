@@ -317,6 +317,33 @@ contains
   DEF_CHAIN_OP1(chain_tanh, (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
   DEF_OP1(dtanh, tanh_vi, chain_tanh)
 
+  elemental real(rk) function logit_d(d)
+    implicit none
+    real(rk), intent(in) :: d
+    logit_d = log(d / (1.d0 - d))
+  end function logit_d
+  DEF_CHAIN_OP1(chain_logit, (1.d0 / (a%val_ - a%val_ * a%val_)) )
+  DEF_OP1(logit_d, logit_vi, chain_logit)
+
+  elemental function inv_logit_d(d) result(s)
+    use fz_constants, only : log_eps
+    implicit none
+    real(rk), intent(in) :: d
+    real(rk) :: s, exp_d
+    if ( d < 0.d0 ) then
+       exp_d = exp(d)
+       if (d < log_eps) then
+          s = exp_d
+       else
+          s = exp_d / (1.d0 + exp_d);
+       endif
+    else
+       s = 1.d0/(1.d0 + exp(-d))
+    endif
+  end function inv_logit_d
+  DEF_CHAIN_OP1(chain_inv_logit, (this%val_ * (1.d0 - this%val_)) )
+  DEF_OP1(inv_logit_d, inv_logit_vi, chain_inv_logit)
+
   integer(ik) function op2_vv(ia, ib, op, chain_op2)
     implicit none
     integer(ik), intent(in) :: ia, ib

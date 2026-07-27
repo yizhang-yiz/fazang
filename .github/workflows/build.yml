@@ -49,7 +49,7 @@ jobs:
       run: pip3 install ${{ env.PACKAGES }}
       env:
         PACKAGES: >-
-          cmake==2.38
+          cmake==3.31.0
           ninja
 
     - name: Configure build
