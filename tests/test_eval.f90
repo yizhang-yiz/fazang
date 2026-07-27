@@ -50,9 +50,9 @@ contains
     integer(ik) :: i, j
     type(var) :: v(size(x))
     do i = 1, size(x)
-       v(i) = sinh(x(i))
-       do j = 1, 100
-          v(i) = asin(v(i))
+       v(i) = sin(x(i))
+       do j = 1, 20
+          v(i) = sin(v(i))
        enddo
     enddo
     logit_inv_logit_var = sum(v)
@@ -65,9 +65,9 @@ contains
     real(rk) :: v(size(x))
 
     do i = 1, size(x)
-       v(i) = sinh(x(i))
-       do j = 1, 100
-          v(i) = asin(v(i))
+       v(i) = sin(x(i))
+       do j = 1, 20
+          v(i) = sin(v(i))
        enddo
     enddo
     logit_inv_logit = sum(v)
