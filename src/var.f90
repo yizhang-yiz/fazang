@@ -48,6 +48,7 @@ module fz_var
   private
   public :: var, val, adj, id, grad, reset, assignment(=)
   public :: operator(+), operator(-), operator(*), operator(/)
+  public :: reboot_chain
 
   type :: var
      integer(ik) :: i = 0       ! point to a vari in adstack
@@ -199,6 +200,11 @@ contains
     implicit none
     call reset_chain(core_adstack%j_)
   end subroutine reset_all
+
+  subroutine reboot_chain()
+    implicit none
+    call core_adstack%reboot()
+  end subroutine reboot_chain
 
   DEF_OP1(exp)
 

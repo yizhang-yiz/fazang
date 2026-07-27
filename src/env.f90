@@ -33,6 +33,7 @@ module fz_env
      procedure, public :: incr
      generic, public :: push => push_real,push_real_array,push_int,push_int_array
      generic, public :: pop => pop_real,pop_real_array,pop_int,pop_int_array
+     procedure, public :: reboot
   end type adstack
 
   type(adstack), target :: core_adstack
@@ -119,4 +120,13 @@ contains
     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
   end subroutine pop_int_array
 
+  subroutine reboot(this)
+    implicit none
+    class(adstack), intent(inout) :: this
+     this%s_ = 0
+     this%i_ = 1
+     this%j_ = 0
+     this%nest_level = 0
+     this%i_nest = 0
+   end subroutine reboot
 end module fz_env

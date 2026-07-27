@@ -8,7 +8,7 @@ module fz_eval
   public :: ad_op, fd_op, eval
 
   abstract interface
-     real(rk) function ad_op(x)
+     type(var) function ad_op(x)
        use fz_var
        use fz_env
        type(var), intent(in) :: x(:)

@@ -11,3 +11,7 @@ add_test(NAME op2 COMMAND op2)
 add_executable(vec vec.f90 )
 target_link_libraries(vec PRIVATE fz)
 add_test(NAME vec COMMAND vec)
+
+add_executable(eval eval.f90 )
+target_link_libraries(eval PRIVATE fz)
+add_test(NAME eval COMMAND eval)
