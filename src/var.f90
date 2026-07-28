@@ -6,7 +6,7 @@
     implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \
-    v%i = NAME/**/_vi(x%i); \
+    v%p => NAME/**/_vi(x%p); \
   end function NAME/**/_v
 
 #define DEF_INTERFACE( NAME ) \
@@ -21,20 +21,20 @@
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%i = NAME/**/_vi_d(x%i, b); \
+    v%p => NAME/**/_vi_d(x%p, b); \
   end function NAME/**/_vd; \
   function NAME/**/_dv(b, x) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%i = NAME/**/_d_vi(b, x%i); \
+    v%p => NAME/**/_d_vi(b, x%p); \
   end function NAME/**/_dv; \
   function NAME/**/_vv(x, y) result(v); \
     implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
-    v%i = NAME/**/_vi_vi(x%i, y%i); \
+    v%p => NAME/**/_vi_vi(x%p, y%p); \
   end function NAME/**/_vv;
 
 #endif
@@ -46,17 +46,18 @@ module fz_var
   implicit none
 
   private
-  public :: var, val, adj, id, grad, reset, assignment(=)
+  public :: var, val, adj, grad, reset, assignment(=)
   public :: operator(+), operator(-), operator(*), operator(/)
   public :: reboot_chain
 
   type :: var
-     integer(ik) :: i = 0       ! point to a vari in adstack
+     type(vari), pointer :: p => null() ! point to a vari in adstack
   end type var
 
   interface assignment(=)
-     module procedure set_var_val
-     module procedure set_var_real32
+     module procedure new_var_val
+     module procedure new_var_real32
+     module procedure set_var
   end interface assignment(=)
 
   interface operator(+)
@@ -67,22 +68,22 @@ module fz_var
   end interface operator(+)
 
   interface operator(-)
-     module procedure substract_dv
-     module procedure substract_vd
-     module procedure substract_vv
+     module procedure sub_dv
+     module procedure sub_vd
+     module procedure sub_vv
      module procedure neg_v
   end interface operator(-)
 
   interface operator(*)
-     module procedure multiply_dv
-     module procedure multiply_vd
-     module procedure multiply_vv
+     module procedure mul_dv
+     module procedure mul_vd
+     module procedure mul_vv
   end interface operator(*)
 
   interface operator(/)
-     module procedure divide_dv
-     module procedure divide_vd
-     module procedure divide_vv
+     module procedure div_dv
+     module procedure div_vd
+     module procedure div_vv
   end interface operator(/)
 
   interface grad
@@ -133,72 +134,72 @@ module fz_var
   end interface inv_logit
   public :: inv_logit
 
-
   ! vec op
   DEF_INTERFACE(sum)
 
 contains
 
-  subroutine set_var_val(this, val)
+  subroutine new_var_val(this, val)
     implicit none
     type(var), intent(out) :: this
     real(rk), intent(in) :: val
-    type(vari) :: v
+    type(vari), pointer :: v
     v = val
-    this%i = v%i
-  end subroutine set_var_val
+    this%p => v
+  end subroutine new_var_val
 
-  subroutine set_var_real32(this, val)
+  subroutine new_var_real32(this, val)
     implicit none
     type(var), intent(out) :: this
     real(real32), intent(in) :: val
-    type(vari) :: v
+    type(vari), pointer :: v
     v = val
-    this%i = v%i
-  end subroutine set_var_real32
+    this%p => v
+  end subroutine new_var_real32
+
+  subroutine set_var(this, that)
+    implicit none
+    type(var), intent(out) :: this
+    type(var), intent(in) :: that
+    this%p => that%p
+  end subroutine set_var
 
   elemental real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
-    type(vari) :: vi
-    vi%i = v%i
-    val = vi_val(vi)
+    val = vi_val(v%p)
   end function val
 
   elemental real(rk) function adj(v)
     implicit none
     type(var), intent(in) :: v
-    type(vari) :: vi
-    vi%i = v%i
-    adj = vi_adj(vi)
+    adj = vi_adj(v%p)
   end function adj
-
-  elemental integer(ik) function id(v)
-    implicit none
-    type(var), intent(in) :: v
-    id = v%i
-  end function id
 
   subroutine grad_of(v)
     implicit none
     type(var), intent(in) :: v
-    call chain(v%i)
+    call chain(v%p)
   end subroutine grad_of
 
   subroutine grad_all()
     implicit none
-    call chain(core_adstack%j_)
+    type(vari), pointer :: p
+    call recover(p, core_adstack%j_)
+    call chain(p)
   end subroutine grad_all
 
   subroutine reset_from(v)
     implicit none
     type(var), intent(in) :: v
-    call reset_chain(v%i)
+    call reset_chain(v%p)
   end subroutine reset_from
 
   subroutine reset_all()
     implicit none
-    call reset_chain(core_adstack%j_)
+    type(vari), pointer :: p
+    call recover(p, core_adstack%j_)
+    call reset_chain(p)
   end subroutine reset_all
 
   subroutine reboot_chain()
@@ -243,18 +244,24 @@ contains
   ! OP2
   DEF_OP2(add)
 
-  DEF_OP2(substract)
+  DEF_OP2(sub)
 
-  DEF_OP2(multiply)
+  DEF_OP2(mul)
 
-  DEF_OP2(divide)
+  DEF_OP2(div)
 
   ! vec op
   function sum_v(x) result(v)
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
-    v%i = sum_vi(id(x))
+    integer(ik) :: i, j
+    v%p = sum(val(x))
+    v%p%chain = c_funloc(chain_sum)
+    call core_adstack%push(size(x))
+    do i = 1, size(x)
+       call core_adstack%push(x(i)%p%i)
+    end do
   end function sum_v
 
 end module fz_var

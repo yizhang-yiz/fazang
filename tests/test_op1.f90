@@ -19,15 +19,15 @@ program fz_op1_test
   call grad(c)
   ASSERT_TOL( val(c), dsin(dexp(val(a))), tol )
   ASSERT_TOL( adj(a), -0.1283465274185981d0, tol )
-  ASSERT(a%i == 1)
-  ASSERT( (b%i - 1) == visize )
-  ASSERT( (d%i - 1) == visize + visize + iksize )
-  ASSERT( (c%i - 1) == visize + visize + iksize + visize )
-  ASSERT( core_adstack%j_ == c%i )
+  ASSERT(a%p%i == 1)
+  ASSERT( (b%p%i - 1) == visize )
+  ASSERT( (d%p%i - 1) == visize + visize + iksize )
+  ASSERT( (c%p%i - 1) == visize + visize + iksize + visize )
+  ASSERT( core_adstack%j_ == c%p%i )
 
   d = log(cos(c))
-  ASSERT( d%i == c%i + visize + iksize + visize + iksize )
-  ASSERT( core_adstack%i_ == d%i + visize + iksize )
+  ASSERT( d%p%i == c%p%i + visize + iksize + visize + iksize )
+  ASSERT( core_adstack%i_ == d%p%i + visize + iksize )
   call reset()
   ASSERT_TOL( adj(d), 0.d0, tol )
   ASSERT_TOL( adj(c), 0.d0, tol )
@@ -62,4 +62,5 @@ program fz_op1_test
   call grad(c)
   ASSERT_TOL( val(c), 1.d0/(1.d0 + exp(-0.8d0)), tol )
   ASSERT_TOL( adj(a), val(c)*(1.d0 - val(c)), tol )
+
 end program fz_op1_test

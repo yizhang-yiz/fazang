@@ -43,12 +43,17 @@ set(fz_src
   src/vari.f90
   src/var.f90
   src/eval.f90
-  src/relation.f90
-  src/constants.f90)
+  # src/relation.f90
+  src/constants.f90
+  )
 
 add_library(fz STATIC ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)
 target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
+
+add_executable(ftest ftest.f90)
+target_link_libraries(ftest PUBLIC fz fcompiler_flags)
+target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
 
 if(test)
   include(CTest)

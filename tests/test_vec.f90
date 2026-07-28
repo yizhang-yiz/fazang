@@ -12,8 +12,6 @@ program fz_vec_test
   type(var) :: d(3)
   real(rk) :: d_adj(3)
 
-  ASSERT(all(val(d) == 0.d0))
-
   a = 0.5d0
   b = 0.6d0
   d(1) = a
