@@ -1,9 +1,7 @@
 #include "assert_inc.f90"
 
 program fz_eval_test
-  use fz_env
-  use fz_var
-  use fz_eval
+  use fazang
 
   implicit none
   real(rk), parameter :: tol = 1.d-15

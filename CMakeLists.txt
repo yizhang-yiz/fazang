@@ -43,8 +43,9 @@ set(fz_src
   src/vari.f90
   src/var.f90
   src/eval.f90
-  # src/relation.f90
+  src/relation.f90
   src/constants.f90
+  src/fazang.f90
   )
 
 add_library(fz STATIC ${fz_src})
