@@ -36,11 +36,7 @@ contains
     integer(ik) :: i, n
     type(var) :: vx(size(x))
 
-    n = size(x)
-    do i = 1, n
-       vx(i) = x(i)
-    end do
-
+    vx = x
     v = f(vx)
     call grad(v)
     res(1) = val(v)
