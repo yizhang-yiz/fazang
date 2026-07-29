@@ -46,7 +46,7 @@ module fz_var
   implicit none
 
   private
-  public :: var, val, adj, grad, reset, assignment(=)
+  public :: var, val, adj, grad, reset_adj, assignment(=)
   public :: operator(+), operator(-), operator(*), operator(/)
   public :: reboot_chain
 
@@ -91,10 +91,10 @@ module fz_var
      module procedure grad_all
   end interface grad
 
-  interface reset
-     module procedure reset_from
-     module procedure reset_all
-  end interface reset
+  interface reset_adj
+     module procedure reset_adj_from
+     module procedure reset_all_adj
+  end interface reset_adj
 
   DEF_INTERFACE(exp)
 
@@ -139,7 +139,7 @@ module fz_var
 
 contains
 
-  subroutine new_var_val(this, val)
+  impure elemental subroutine new_var_val(this, val)
     implicit none
     type(var), intent(out) :: this
     real(rk), intent(in) :: val
@@ -148,7 +148,7 @@ contains
     this%p => v
   end subroutine new_var_val
 
-  subroutine new_var_real32(this, val)
+  impure subroutine new_var_real32(this, val)
     implicit none
     type(var), intent(out) :: this
     real(real32), intent(in) :: val
@@ -157,7 +157,7 @@ contains
     this%p => v
   end subroutine new_var_real32
 
-  subroutine set_var(this, that)
+  impure subroutine set_var(this, that)
     implicit none
     type(var), intent(out) :: this
     type(var), intent(in) :: that
@@ -189,18 +189,18 @@ contains
     call chain(p)
   end subroutine grad_all
 
-  subroutine reset_from(v)
+  subroutine reset_adj_from(v)
     implicit none
     type(var), intent(in) :: v
     call reset_chain(v%p)
-  end subroutine reset_from
+  end subroutine reset_adj_from
 
-  subroutine reset_all()
+  subroutine reset_all_adj()
     implicit none
     type(vari), pointer :: p
     call recover(p, core_adstack%j_)
     call reset_chain(p)
-  end subroutine reset_all
+  end subroutine reset_all_adj
 
   subroutine reboot_chain()
     implicit none

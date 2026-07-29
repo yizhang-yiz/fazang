@@ -28,7 +28,7 @@ program fz_op1_test
   d = log(cos(c))
   ASSERT( d%p%i == c%p%i + visize + iksize + visize + iksize )
   ASSERT( core_adstack%i_ == d%p%i + visize + iksize )
-  call reset()
+  call reset_adj()
   ASSERT_TOL( adj(d), 0.d0, tol )
   ASSERT_TOL( adj(c), 0.d0, tol )
   ASSERT_TOL( adj(a), 0.d0, tol )
@@ -51,14 +51,14 @@ program fz_op1_test
 
   a = 0.8d0
   c = logit(a)
-  call reset()
+  call reset_adj()
   call grad(c)
   ASSERT_TOL( val(c), log(0.8d0/0.2d0), tol )
   ASSERT_TOL( adj(a), 1.d0/(0.8d0 - 0.64d0), 1.d-14 )
 
   a = 0.8d0
   c = inv_logit(a)
-    call reset()
+    call reset_adj()
   call grad(c)
   ASSERT_TOL( val(c), 1.d0/(1.d0 + exp(-0.8d0)), tol )
   ASSERT_TOL( adj(a), val(c)*(1.d0 - val(c)), tol )
