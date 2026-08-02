@@ -28,7 +28,7 @@ program fz_fvar_op1_test
   d = log(cos(c))
   ASSERT( d%p%i == c%p%i + visize + iksize + visize + iksize )
   ASSERT( core_adstack%i_ == d%p%i + visize + iksize )
-  call reset_adj()
+  call reset_all_deriv()
   ASSERT_TOL( adj(d), 0.d0, tol )
   ASSERT_TOL( adj(c), 0.d0, tol )
   ASSERT_TOL( adj(a), 0.d0, tol )

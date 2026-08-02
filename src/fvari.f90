@@ -145,7 +145,7 @@ contains
     c%dv = -b%dv
   end function
 
-  pure function mul_dd(a, b) result(c)
+  function mul_dd(a, b) result(c)
     implicit none
     type(dual), intent(in) :: a, b
     type(dual) :: c
@@ -165,7 +165,7 @@ contains
     real(rk), intent(in) :: a
     type(dual), intent(in) :: b
     type(dual) :: c
-    c = b * a
+    c = mul_dr(b, a)
   end function
 
   pure function div_dd(a, b) result(c)
@@ -292,7 +292,7 @@ contains
     type(dual) :: y
     y%v = acos(x%v)
     y%dv = -x%dv / sqrt(1.0 - x%v*x%v)
-  end function
+  end function acos_d
 
   subroutine recover(p, i)
     implicit none
@@ -306,24 +306,40 @@ contains
     end if
   end subroutine recover
 
-  elemental real(rk) function vi_val(this)
+  elemental function vi_val_v(this) result(v)
     implicit none
     type(fvari), intent(in) :: this
-    vi_val = this%val_%v
-  end function vi_val
+    real(rk) :: v
+    v = this%val_%v
+  end function vi_val_v
 
-  elemental real(rk) function vi_adj(this)
+  elemental function vi_val_dv(this) result(v)
     implicit none
     type(fvari), intent(in) :: this
-    vi_adj = this%adj_%v
-  end function vi_adj
+    real(rk) :: v
+    v = this%val_%dv
+  end function vi_val_dv
+
+  elemental function vi_adj_v(this) result(v)
+    implicit none
+    type(fvari), intent(in) :: this
+    real(rk) :: v
+    v = this%adj_%v
+  end function vi_adj_v
+
+  elemental function vi_adj_dv(this) result(v)
+    implicit none
+    type(fvari), intent(in) :: this
+    real(rk) :: v
+    v = this%adj_%dv
+  end function vi_adj_dv
 
   subroutine new_fvari_val(this, val)
     implicit none
     type(fvari), pointer, intent(out) :: this
     real(rk), intent(in) :: val
     call recover(this, core_adstack%i_)
-    this%val_ = dual(val, 1.d0)
+    this%val_ = dual(val, 0.d0)
     this%adj_ = dual(0.d0, 0.d0)
     this%i = core_adstack%i_
     this%j = core_adstack%j_
@@ -336,7 +352,7 @@ contains
     type(fvari), pointer, intent(out) :: this
     real(c_float), intent(in) :: val
     call recover(this, core_adstack%i_)
-    this%val_ = dual(val, 1.d0)
+    this%val_ = dual(val, 0.d0)
     this%adj_ = dual(0.d0, 0.d0)
     this%chain = c_funloc(chain_dummy)
     this%i = core_adstack%i_
@@ -369,6 +385,7 @@ contains
     type(fvari), pointer :: p1
     p1 => p
     do while (associated(p1))
+       p1%val_%dv = 0.d0
        p1%adj_ = dual(0.d0, 0.d0)
        call recover(p1, p1%j)
     enddo

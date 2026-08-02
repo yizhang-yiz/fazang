@@ -27,3 +27,7 @@ add_test(NAME fvar_op1 COMMAND fvar_op1)
 add_executable(fvar_op2 test_fvar_op2.f90 )
 target_link_libraries(fvar_op2 PRIVATE fz)
 add_test(NAME fvar_op2 COMMAND fvar_op2)
+
+add_executable(fvar_hessian test_fvar_hessian.f90 )
+target_link_libraries(fvar_hessian PRIVATE fz)
+add_test(NAME fvar_hessian COMMAND fvar_hessian)

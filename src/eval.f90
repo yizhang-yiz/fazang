@@ -5,7 +5,7 @@ module fz_eval
   implicit none
 
   private
-  public :: ad_op, fd_op, eval
+  public :: ad_op, fd_op, eval, hvp
 
   abstract interface
      type(var) function ad_op(x)
@@ -18,6 +18,12 @@ module fz_eval
        use fz_env
        real(rk), intent(in) :: x(:)
      end function fd_op
+
+     type(fvar) function hessian_op(x)
+       use fz_fvar
+       use fz_env
+       type(fvar), intent(in) :: x(:)
+     end function hessian_op
   end interface
 
   interface eval
@@ -88,5 +94,21 @@ contains
        x2(i) = x(i)
     end do
   end function eval_func_fd2
+
+  function hvp(f, x, v) result(res)
+    use fz_fvar
+    implicit none
+    procedure(hessian_op) :: f
+    real(rk), intent(in) :: x(:), v(:)
+    real(rk) :: res(size(x))
+    type(fvar) :: vx(size(x)), a, y
+
+    a = 0.d0
+    call init_deriv(a)
+    vx = x + a*v(1:size(x))
+    y = f(vx)
+    call grad(y)
+    res = adj_dv(vx)
+  end function hvp
 
 end module fz_eval

@@ -16,21 +16,21 @@
   public :: NAME
 
 #define DEF_OP2( NAME ) \
-  function NAME/**/_vd(x, b) result(v); \
+  impure elemental function NAME/**/_vd(x, b) result(v); \
     implicit none; \
     type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(fvar) :: v; \
     v%p => NAME/**/_vi_d(x%p, b); \
   end function NAME/**/_vd; \
-  function NAME/**/_dv(b, x) result(v); \
+  impure elemental function NAME/**/_dv(b, x) result(v); \
     implicit none; \
     type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(fvar) :: v; \
     v%p => NAME/**/_d_vi(b, x%p); \
   end function NAME/**/_dv; \
-  function NAME/**/_vv(x, y) result(v); \
+  impure elemental function NAME/**/_vv(x, y) result(v); \
     implicit none; \
     type(fvar), intent(in) :: x, y; \
     type(fvar) :: v; \
@@ -92,10 +92,10 @@ module fz_fvar
      module procedure grad_all
   end interface grad
 
-  interface reset_adj
-     module procedure reset_adj_from
-     module procedure reset_all_adj
-  end interface reset_adj
+  interface reset_deriv
+     module procedure reset_from
+     module procedure reset_all_deriv
+  end interface reset_deriv
 
   interface exp; module procedure exp_v; end interface
   interface log; module procedure log_v; end interface
@@ -153,17 +153,33 @@ contains
     this%p => that%p
   end subroutine set_fvar
 
-  elemental real(rk) function val(v)
+  elemental function val(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
-    val = vi_val(v%p)
+    real(rk) :: v1
+    v1 = vi_val_v(v%p)
   end function val
 
-  elemental real(rk) function adj(v)
+  elemental function val_dv(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
-    adj = vi_adj(v%p)
+    real(rk) :: v1
+    v1 = vi_val_dv(v%p)
+  end function val_dv
+
+  elemental function adj(v) result(v1)
+    implicit none
+    type(fvar), intent(in) :: v
+    real(rk) :: v1
+    v1 = vi_adj_v(v%p)
   end function adj
+
+  elemental function adj_dv(v) result(v1)
+    implicit none
+    type(fvar), intent(in) :: v
+    real(rk) :: v1
+    v1 = vi_adj_dv(v%p)
+  end function adj_dv
 
   subroutine grad_of(v)
     implicit none
@@ -178,18 +194,24 @@ contains
     call chain(p)
   end subroutine grad_all
 
-  subroutine reset_adj_from(v)
+  subroutine init_deriv(v)
+    implicit none
+    type(fvar), intent(inout) :: v
+    v%p%val_%dv = 1.d0
+  end subroutine init_deriv
+
+  subroutine reset_from(v)
     implicit none
     type(fvar), intent(in) :: v
     call reset_chain(v%p)
-  end subroutine reset_adj_from
+  end subroutine reset_from
 
-  subroutine reset_all_adj()
+  subroutine reset_all_deriv()
     implicit none
     type(fvari), pointer :: p
     call recover(p, core_adstack%j_)
     call reset_chain(p)
-  end subroutine reset_all_adj
+  end subroutine reset_all_deriv
 
   DEF_OP1(exp)
   DEF_OP1(sin)

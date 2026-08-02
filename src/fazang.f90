@@ -1,6 +1,8 @@
 module fazang
   use fz_env, only : ik, rk, eps, log_eps, reboot_chain
   use fz_var, only: var,new_var_val,new_var_real32,set_var,&
+    var_val           => val,&
+    var_adj           => adj,&
     var_add_dv        => add_dv,&
     var_add_vd        => add_vd,&
     var_add_vv        => add_vv,&
@@ -17,8 +19,8 @@ module fazang
     var_div_vv        => div_vv,&
     var_grad_of       => grad_of,&
     var_grad_all      => grad_all,&
-    var_reset_adj_from=> reset_adj_from,&
-    var_reset_all_adj => reset_all_adj,&
+    reset_adj_from,&
+    reset_all_adj,&
     var_exp_v         => exp_v,&
     var_log_v         => log_v,&
     var_log10_v       => log10_v,&
@@ -39,6 +41,9 @@ module fazang
     var_sum_v         => sum_v
 
   use fz_fvar, only: fvar, new_fvar_val,new_fvar_real32,set_fvar,&
+    val_dv, adj_dv, &
+    fvar_val           => val,&
+    fvar_adj           => adj,&
     fvar_add_dv        => add_dv,&
     fvar_add_vd        => add_vd,&
     fvar_add_vv        => add_vv,&
@@ -55,8 +60,9 @@ module fazang
     fvar_div_vv        => div_vv,&
     fvar_grad_of       => grad_of,&
     fvar_grad_all      => grad_all,&
-    fvar_reset_adj_from=> reset_adj_from,&
-    fvar_reset_all_adj => reset_all_adj,&
+    reset_from,&
+    reset_all_deriv,&
+    init_deriv,&
     fvar_exp_v         => exp_v,&
     fvar_log_v         => log_v,&
     fvar_log10_v       => log10_v,&
@@ -87,6 +93,16 @@ module fazang
 #endif
 
   implicit none
+
+  interface val
+     module procedure var_val
+     module procedure fvar_val
+  end interface val
+
+  interface adj
+     module procedure var_adj
+     module procedure fvar_adj
+  end interface adj
 
   interface assignment(=)
      module procedure new_var_val
@@ -139,17 +155,18 @@ module fazang
 
   interface grad
      module procedure var_grad_of
+     module procedure fvar_grad_of
      module procedure var_grad_all
   end interface grad
 
   interface reset_adj
-     module procedure var_reset_adj_from
-     module procedure var_reset_all_adj
+     module procedure reset_adj_from
+     module procedure reset_all_adj
   end interface
 
   interface reset_deriv
-     module procedure fvar_reset_adj_from
-     module procedure fvar_reset_all_adj
+     module procedure reset_from
+     module procedure reset_all_deriv
   end interface
 
   interface exp   ; module procedure var_exp_v;   module procedure fvar_exp_v;   end interface

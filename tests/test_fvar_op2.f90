@@ -25,7 +25,7 @@ program fz_fvar_op2_test
   ASSERT( c%p%i + visize + iksize + iksize == core_adstack%i_ )
   ASSERT( c%p%i  == core_adstack%j_ )
 
-  call reset_adj()
+  call reset_all_deriv()
   d = a
   ASSERT( a%p%i  == 1 )
   ASSERT( d%p%i  == 1 )
@@ -38,7 +38,7 @@ program fz_fvar_op2_test
   ASSERT_TOL( adj(c), 0.0d0, tol )
   ASSERT_TOL( adj(d), 1.824360635350064073d0, tol)
 
-  call reset_adj()
+  call reset_all_deriv()
   a = 0.5d0
   p = a
   b = exp(a)
