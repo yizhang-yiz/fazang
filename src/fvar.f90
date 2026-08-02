@@ -4,8 +4,8 @@
 #define DEF_OP1( NAME ) \
   function NAME/**/_v(x) result(v); \
     implicit none; \
-    type(var), intent(in) :: x; \
-    type(var) :: v; \
+    type(fvar), intent(in) :: x; \
+    type(fvar) :: v; \
     v%p => NAME/**/_vi(x%p); \
   end function NAME/**/_v
 
@@ -18,47 +18,47 @@
 #define DEF_OP2( NAME ) \
   function NAME/**/_vd(x, b) result(v); \
     implicit none; \
-    type(var), intent(in) :: x; \
+    type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
-    type(var) :: v; \
+    type(fvar) :: v; \
     v%p => NAME/**/_vi_d(x%p, b); \
   end function NAME/**/_vd; \
   function NAME/**/_dv(b, x) result(v); \
     implicit none; \
-    type(var), intent(in) :: x; \
+    type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
-    type(var) :: v; \
+    type(fvar) :: v; \
     v%p => NAME/**/_d_vi(b, x%p); \
   end function NAME/**/_dv; \
   function NAME/**/_vv(x, y) result(v); \
     implicit none; \
-    type(var), intent(in) :: x, y; \
-    type(var) :: v; \
+    type(fvar), intent(in) :: x, y; \
+    type(fvar) :: v; \
     v%p => NAME/**/_vi_vi(x%p, y%p); \
   end function NAME/**/_vv;
 
 #endif
 
-module fz_var
+module fz_fvar
   use, intrinsic :: iso_fortran_env
   use fz_env
-  use fz_vari
-  use fz_vari_op
+  use fz_fvari, only : fvari
+  use fz_fvari_op
   implicit none
 
   ! private
-  ! public :: var, val, adj, grad, reset_adj, assignment(=)
+  ! public :: fvar, val, adj, grad, reset_adj, assignment(=)
   ! public :: operator(+), operator(-), operator(*), operator(/)
   ! public :: reboot_chain
 
-  type :: var
-     type(vari), pointer :: p => null() ! point to a vari in adstack
-  end type var
+  type :: fvar
+     type(fvari), pointer :: p => null() ! point to a fvari in adstack
+  end type fvar
 
   interface assignment(=)
-     module procedure new_var_val
-     module procedure new_var_real32
-     module procedure set_var
+     module procedure new_fvar_val
+     module procedure new_fvar_real32
+     module procedure set_fvar
   end interface assignment(=)
 
   interface operator(+)
@@ -117,88 +117,88 @@ module fz_var
 
   DEF_INTERFACE(sqrt)
 
-  DEF_INTERFACE(sinh)
+  ! DEF_INTERFACE(sinh)
 
-  DEF_INTERFACE(cosh)
+  ! DEF_INTERFACE(cosh)
 
-  DEF_INTERFACE(tanh)
+  ! DEF_INTERFACE(tanh)
 
-  interface logit
-     module procedure logit_d
-     module procedure logit_v
-  end interface logit
-  public :: logit
+  ! interface logit
+  !    module procedure logit_d
+  !    module procedure logit_v
+  ! end interface logit
+  ! public :: logit
 
-  interface inv_logit
-     module procedure inv_logit_d
-     module procedure inv_logit_v
-  end interface inv_logit
-  public :: inv_logit
+  ! interface inv_logit
+  !    module procedure inv_logit_d
+  !    module procedure inv_logit_v
+  ! end interface inv_logit
+  ! public :: inv_logit
 
   ! vec op
   DEF_INTERFACE(sum)
 
 contains
 
-  impure elemental subroutine new_var_val(this, val)
+  impure elemental subroutine new_fvar_val(this, val)
     implicit none
-    type(var), intent(out) :: this
+    type(fvar), intent(out) :: this
     real(rk), intent(in) :: val
-    type(vari), pointer :: v
+    type(fvari), pointer :: v
     v = val
     this%p => v
-  end subroutine new_var_val
+  end subroutine new_fvar_val
 
-  impure subroutine new_var_real32(this, val)
+  impure subroutine new_fvar_real32(this, val)
     implicit none
-    type(var), intent(out) :: this
+    type(fvar), intent(out) :: this
     real(real32), intent(in) :: val
-    type(vari), pointer :: v
+    type(fvari), pointer :: v
     v = val
     this%p => v
-  end subroutine new_var_real32
+  end subroutine new_fvar_real32
 
-  impure subroutine set_var(this, that)
+  impure subroutine set_fvar(this, that)
     implicit none
-    type(var), intent(out) :: this
-    type(var), intent(in) :: that
+    type(fvar), intent(out) :: this
+    type(fvar), intent(in) :: that
     this%p => that%p
-  end subroutine set_var
+  end subroutine set_fvar
 
   elemental real(rk) function val(v)
     implicit none
-    type(var), intent(in) :: v
+    type(fvar), intent(in) :: v
     val = vi_val(v%p)
   end function val
 
   elemental real(rk) function adj(v)
     implicit none
-    type(var), intent(in) :: v
+    type(fvar), intent(in) :: v
     adj = vi_adj(v%p)
   end function adj
 
   subroutine grad_of(v)
     implicit none
-    type(var), intent(in) :: v
+    type(fvar), intent(in) :: v
     call chain(v%p)
   end subroutine grad_of
 
   subroutine grad_all()
     implicit none
-    type(vari), pointer :: p
+    type(fvari), pointer :: p
     call recover(p, core_adstack%j_)
     call chain(p)
   end subroutine grad_all
 
   subroutine reset_adj_from(v)
     implicit none
-    type(var), intent(in) :: v
+    type(fvar), intent(in) :: v
     call reset_chain(v%p)
   end subroutine reset_adj_from
 
   subroutine reset_all_adj()
     implicit none
-    type(vari), pointer :: p
+    type(fvari), pointer :: p
     call recover(p, core_adstack%j_)
     call reset_chain(p)
   end subroutine reset_all_adj
@@ -232,15 +232,15 @@ contains
 
   DEF_OP1(pos)
 
-  DEF_OP1(sinh)
+  ! DEF_OP1(sinh)
 
-  DEF_OP1(cosh)
+  ! DEF_OP1(cosh)
 
-  DEF_OP1(tanh)
+  ! DEF_OP1(tanh)
 
-  DEF_OP1(logit)
+  ! DEF_OP1(logit)
 
-  DEF_OP1(inv_logit)
+  ! DEF_OP1(inv_logit)
 
   ! OP2
   DEF_OP2(add)
@@ -254,8 +254,8 @@ contains
   ! vec op
   function sum_v(x) result(v)
     implicit none
-    type(var), intent(in) :: x(:)
-    type(var) :: v
+    type(fvar), intent(in) :: x(:)
+    type(fvar) :: v
     integer(ik) :: i, j
     v%p = sum(val(x))
     v%p%chain = c_funloc(chain_sum)
@@ -265,4 +265,4 @@ contains
     end do
   end function sum_v
 
-end module fz_var
+end module fz_fvar

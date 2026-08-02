@@ -39,16 +39,16 @@ include(compiler_flags)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 
 set(fz_src
+  OBJECT
   src/env.f90
-  src/vari.f90
-  src/var.f90
+  src/vari.f90 src/vari_op.f90 src/var.f90
+  src/fvari.f90 src/fvari_op.f90 src/fvar.f90
   src/eval.f90
   src/relation.f90
-  src/constants.f90
   src/fazang.f90
   )
 
-add_library(fz STATIC ${fz_src})
+  add_library(fz STATIC ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)
 target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
 

@@ -16,6 +16,12 @@ module fz_env
   integer(ik), parameter :: rksize = storage_size(0_c_double)/storage_size(0_c_int8_t)
   integer(ik), parameter :: max_nest_level = 9
 
+  ! smallest
+  real(rk), parameter :: eps = tiny(0.0d0)
+
+  ! log(smallest)
+  real(rk), parameter :: log_eps = log(eps)
+
   type :: adstack
      integer(c_int8_t) :: s_(adsize) = 0      ! int8 serves as byte
      integer(ik) :: i_ = 1       ! current (vacant) location
