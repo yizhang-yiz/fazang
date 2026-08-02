@@ -126,4 +126,11 @@ contains
      this%nest_level = 0
      this%i_nest = 0
    end subroutine reboot
+
+   subroutine reboot_chain()
+     implicit none
+     call core_adstack%reboot()
+   end subroutine reboot_chain
+
+
 end module fz_env

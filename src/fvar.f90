@@ -97,31 +97,19 @@ module fz_fvar
      module procedure reset_all_adj
   end interface reset_adj
 
-  DEF_INTERFACE(exp)
-
-  DEF_INTERFACE(sin)
-
-  DEF_INTERFACE(cos)
-
-  DEF_INTERFACE(tan)
-
-  DEF_INTERFACE(asin)
-
-  DEF_INTERFACE(acos)
-
-  DEF_INTERFACE(atan)
-
-  DEF_INTERFACE(log)
-
-  DEF_INTERFACE(log10)
-
-  DEF_INTERFACE(sqrt)
-
-  ! DEF_INTERFACE(sinh)
-
-  ! DEF_INTERFACE(cosh)
-
-  ! DEF_INTERFACE(tanh)
+  interface exp; module procedure exp_v; end interface
+  interface log; module procedure log_v; end interface
+  interface log10; module procedure log10_v; end interface
+  interface sin; module procedure sin_v; end interface
+  interface cos; module procedure cos_v; end interface
+  interface tan; module procedure tan_v; end interface
+  interface asin; module procedure asin_v; end interface
+  interface acos; module procedure acos_v; end interface
+  interface atan; module procedure atan_v; end interface
+  interface sqrt; module procedure sqrt_v; end interface
+  ! interface sinh; module procedure sinh_v; end interface
+  ! interface cosh; module procedure cosh_v; end interface
+  ! interface tanh; module procedure tanh_v; end interface
 
   ! interface logit
   !    module procedure logit_d
@@ -136,7 +124,7 @@ module fz_fvar
   ! public :: inv_logit
 
   ! vec op
-  DEF_INTERFACE(sum)
+  interface sum; module procedure sum_v; end interface
 
 contains
 
@@ -203,33 +191,17 @@ contains
     call reset_chain(p)
   end subroutine reset_all_adj
 
-  subroutine reboot_chain()
-    implicit none
-    call core_adstack%reboot()
-  end subroutine reboot_chain
-
   DEF_OP1(exp)
-
   DEF_OP1(sin)
-
   DEF_OP1(cos)
-
   DEF_OP1(tan)
-
   DEF_OP1(asin)
-
   DEF_OP1(acos)
-
   DEF_OP1(atan)
-
   DEF_OP1(log)
-
   DEF_OP1(log10)
-
   DEF_OP1(sqrt)
-
   DEF_OP1(neg)
-
   DEF_OP1(pos)
 
   ! DEF_OP1(sinh)
@@ -244,11 +216,8 @@ contains
 
   ! OP2
   DEF_OP2(add)
-
   DEF_OP2(sub)
-
   DEF_OP2(mul)
-
   DEF_OP2(div)
 
   ! vec op
