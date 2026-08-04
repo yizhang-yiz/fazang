@@ -57,6 +57,10 @@ add_executable(ftest ftest.f90)
 target_link_libraries(ftest PUBLIC fz fcompiler_flags)
 target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
 
+add_executable(htest htest.f90)
+target_link_libraries(htest PUBLIC fz fcompiler_flags)
+target_include_directories(htest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
+
 if(test)
   include(CTest)
   add_subdirectory(tests)

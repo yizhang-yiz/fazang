@@ -1,5 +1,5 @@
 module fazang
-  use fz_env, only : ik, rk, eps, log_eps, reboot_chain
+  use fz_env, only : ik, rk, eps, log_eps, pi, reboot_chain
   use fz_var, only: var,new_var_val,new_var_real32,set_var,&
     var_val           => val,&
     var_adj           => adj,&

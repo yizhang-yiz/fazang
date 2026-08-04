@@ -6,46 +6,26 @@ differentiation, inspired by [[https://mc-stan.org/users/interfaces/math][Stan/M
 ** Quick start
 =Fazang= provides user-facing variable =var= type. It is the type for dependent and independent variables
 of which derivatives will be calculated.
-#+begin_src fortran
-program var_grad_test
-  use fazang ! load Fazang library
 
-  implicit none
-
-  real(rk) :: y, fx_d
-  type(var) :: f, sigma, mu
-
-  ! data
-  y = 1.3d0
-
-  ! independent variables
-  mu = 0.5d0
-  sigma = 1.2d0
-
-  ! dependent
-  f = -0.5d0 * log(2 * pi)
-  f = f - log(sigma)
-  f = f - 0.5d0 * ((y - mu) / sigma) ** 2.d0;
-
-  ! use grad() to calculate df/d(mu) and df/d(sigma). Each var's
-  ! derivative (also called adjoint) can be access through var%adj().
-
-  call grad(f)
-  write(*, *) "df/d(mu): ", adj(mu)
-  write(*, *) "df/d(sigma): ", adj(sigma)
-end program var_grad_test
-#+end_src
+#+INCLUDE: "ftest.f90" src f90
 
 ** Use =Fazang=
 *** Build
-    =Fazang= uses =cmake= to build.
+    =Fazang= uses =cmake= to build. The ~CMakeLists.txt~ file has
+    a target ~ftest~ that compiles the above example. User may
+    replicate the steps to build new applications.
     #+begin_src bash
       mkdir build
       cd build
-      cmake /path/to/fazang -B. -GNinja -Dtest=ON
+      cmake /path/to/fazang -B. -GNinja
       cmake --build .
     #+end_src
-    Afterwards one can run the unit tests
+    The library also contains option ~test~ so that adding ~-Dtest=ON~
+    to the above configuration
+    #+begin_src bash
+      cmake /path/to/fazang -B. -GNinja -Dtest=ON
+    #+end_src
+    enables building tests. One can then run the unit tests with
     #+begin_src bash
       ctest
     #+end_src
@@ -58,7 +38,7 @@ end program var_grad_test
     #+end_src
     can be defined as
     #+begin_src fortran
-      x = d           ! using a real64 variable
+      x = d           ! assume "d" is a real64 variable
       x = 3.d0        ! using a constant
     #+end_src
 
@@ -76,7 +56,7 @@ end program var_grad_test
     The value and the adjoint (derivative) of a =var= can be accessed
     using =val()= and =adj()= functions, respectively.
     #+begin_src fortran
-      write(*, *) val(y)   ! equals to sin(x%val())
+      write(*, *) val(y)   ! equals to sin(val(x))
       write(*, *) adj(y)   ! equals to 0.d0 before any gradient operations
     #+end_src
 
@@ -85,7 +65,7 @@ end program var_grad_test
     #+begin_src fortran
       type(var) a(3), b, c(3), d
       a = ([1.d0, 2.d0, 3.d0])
-      b = (0.5d0)
+      b = 0.5d0
       c = 2.d0 * a
       d = log(b * a * exp(c))
     #+end_src
@@ -97,6 +77,36 @@ end program var_grad_test
     #+begin_src fortran
       write(*, *) adj(c)    ! should be [0.0, 1.0, 0.0]
     #+end_src
+
+*** User defined operators
+~Fazang~ provides a macro ~NEW_OP~ so that user can define a new ~var~
+operator. The syntax is
+#+begin_src f90
+  NEW_OP(operation_name, value_func, jacobian_func)
+#+end_src
+Here ~operation_name~ is the name of the function to be added;
+~value_func~ is the function that takes an assumed-shape
+~real(real64)~ array argument. It returns a ~real64~ that is the value
+of the new function. ~jacobian_func~ should accept the same
+argument of ~value_func~ and returns an real array that is the
+gradient of the new function. See ~tests/test_new_op.f90~ as an example.
+
+*** Hessian
+~Fazang~ provides a "front-over-reverse" approach to calculate
+Hessians, through another derived type ~fvar~. The work flow is
+similar to ~var~, but one must first use ~init_deriv~ to initialize
+the variable with respect to which that the 2nd-order derivate will be
+calculated. The corresponding function to retrieve hessian is
+~adj_dv~. Thus
+#+begin_src f90
+  call init_deriv(b)
+  ! ...
+  call grad(f)
+  write(*,*) adj_dv(a)
+#+end_src
+calculates ~d(df/da)/db~. See the following example (~htest.f90~) for
+details:
+#+INCLUDE: "htest.f90" src f90
 
 ** Name
 The library is named after ancient Chinese philosopher [[https://en.wikipedia.org/wiki/Fazang][Fazang]] (法藏), who
