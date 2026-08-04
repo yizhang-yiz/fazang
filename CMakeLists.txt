@@ -45,6 +45,7 @@ set(fz_src
   src/fvari.f90 src/fvari_op.f90 src/fvar.f90
   src/eval.f90
   src/relation.f90
+  src/vari_builder.f90
   src/fazang.f90
   )
 
@@ -54,7 +55,7 @@ target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJEC
 
 add_executable(ftest ftest.f90)
 target_link_libraries(ftest PUBLIC fz fcompiler_flags)
-target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
+target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
 
 if(test)
   include(CTest)

@@ -6,6 +6,8 @@ module fz_vari_op
   use fz_env
   use fz_vari
 
+  implicit none
+
 contains
 
   DEF_OP1(vari, exp, dexp(vi%val_), (this%val_))

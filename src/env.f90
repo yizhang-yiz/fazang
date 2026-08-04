@@ -43,6 +43,11 @@ module fz_env
 
   type(adstack), target :: core_adstack
 
+  interface pop_array
+     module procedure pop_int_array
+     module procedure pop_real_array
+  end interface pop_array
+
 contains
 
   ! move according to inserted object size
@@ -94,28 +99,12 @@ contains
     pop_real = transfer(stack%s_(i:(i+rksize-1)), pop_real)
   end function pop_real
 
-!   pure subroutine pop_real_array(stack, i, a)
-!     class(adstack), intent(in) :: stack
-!     integer(ik), intent(in) :: i
-!     real(rk), intent(out) :: a(:)
-!     integer(ik), parameter :: n = 8 ! 64/8=8
-!     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
-!   end subroutine pop_real_array
-
   elemental integer(ik) function pop_int(stack, i)
     implicit none
     class(adstack), intent(in) :: stack
     integer(ik), intent(in) :: i
     pop_int = transfer(stack%s_(i:(i+iksize-1)), pop_int)
   end function pop_int
-
-!   pure subroutine pop_int_array(stack, i, a)
-!     class(adstack), intent(in) :: stack
-!     integer(ik), intent(in) :: i
-!     integer(ik), intent(out) :: a(:)
-!     integer(ik), parameter :: n = 4 ! 32/8=8
-!     a = transfer(stack%s_(i:(i+n*size(a)-1)), a(1), size(a))
-!   end subroutine pop_int_array
 
   subroutine reboot(this)
     implicit none
@@ -132,5 +121,22 @@ contains
      call core_adstack%reboot()
    end subroutine reboot_chain
 
+   subroutine pop_real_array(p, n, i)
+     implicit none
+     real(rk), pointer :: p(:)
+     integer(ik), intent(in) :: n, i
+     type(c_ptr) :: cp
+     cp = c_loc(core_adstack%s_(i))
+     call c_f_pointer(cp, p, [(n)])
+   end subroutine pop_real_array
+
+   subroutine pop_int_array(p, n, i)
+     implicit none
+     integer(ik), pointer :: p(:)
+     integer(ik), intent(in) :: n, i
+     type(c_ptr) :: cp
+     cp = c_loc(core_adstack%s_(i))
+     call c_f_pointer(cp, p, [(n)])
+   end subroutine pop_int_array
 
 end module fz_env

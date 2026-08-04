@@ -56,6 +56,14 @@ contains
     vi_val = this%val_
   end function vi_val
 
+  impure elemental real(rk) function vi_val_at(i)
+    implicit none
+    integer(ik), intent(in) :: i
+    type(vari), pointer :: p
+    call recover(p, i)
+    vi_val_at = vi_val(p)
+  end function vi_val_at
+
   elemental real(rk) function vi_adj(this)
     implicit none
     type(vari), intent(in) :: this
