@@ -76,6 +76,12 @@ module fz_var
      module procedure div_vv
   end interface operator(/)
 
+  interface operator(**)
+     module procedure pow_dv
+     module procedure pow_vd
+     module procedure pow_vv
+  end interface operator(**)
+
   interface grad
      module procedure grad_of
      module procedure grad_all
@@ -201,6 +207,7 @@ contains
   DEF_OP2(sub)
   DEF_OP2(mul)
   DEF_OP2(div)
+  DEF_OP2(pow)
 
   ! vec op
   function sum_v(x) result(v)

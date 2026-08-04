@@ -31,3 +31,12 @@ add_test(NAME fvar_op2 COMMAND fvar_op2)
 add_executable(fvar_hessian test_fvar_hessian.f90 )
 target_link_libraries(fvar_hessian PRIVATE fz)
 add_test(NAME fvar_hessian COMMAND fvar_hessian)
+
+function(add_fz_test test_name)
+  add_executable(${test_name} test_${test_name}.f90)
+  target_link_libraries(${test_name} PRIVATE fz)
+  target_include_directories(${test_name} PUBLIC "${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
+  add_test(NAME ${test_name} COMMAND ${test_name})
+endfunction()
+
+add_fz_test(new_op)

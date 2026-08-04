@@ -17,6 +17,9 @@ module fazang
     var_div_dv        => div_dv,&
     var_div_vd        => div_vd,&
     var_div_vv        => div_vv,&
+    var_pow_dv        => pow_dv,&
+    var_pow_vd        => pow_vd,&
+    var_pow_vv        => pow_vv,&
     var_grad_of       => grad_of,&
     var_grad_all      => grad_all,&
     reset_adj_from,&
@@ -143,6 +146,12 @@ module fazang
      module procedure fvar_mul_vd
      module procedure fvar_mul_vv
   end interface operator(*)
+
+  interface operator(**)
+     module procedure var_pow_dv
+     module procedure var_pow_vd
+     module procedure var_pow_vv
+  end interface operator(**)
 
   interface operator(/)
      module procedure var_div_dv

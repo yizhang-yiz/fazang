@@ -81,6 +81,10 @@ contains
   DEF_OP2_DV(vari, div, (a/vb%val_), (-this%val_/vb%val_))
   DEF_OP2_VV(vari, div, (va%val_/vb%val_), (1.d0/vb%val_), (-this%val_/vb%val_))
 
+  DEF_OP2_VD(vari, pow, ((va%val_) ** (b)), (b*(va%val_)**(b-1)))
+  DEF_OP2_DV(vari, pow, ((a) ** (vb%val_)), (a**(vb%val_)*log(a)) )
+  DEF_OP2_VV(vari, pow, ((va%val_) ** (vb%val_)), ((vb%val_)*(va%val_)**(vb%val_-1)), ((va%val_)**(vb%val_)*log(va%val_)) )
+
   subroutine chain_sum (this)
     implicit none
     type(vari), pointer, intent(in) :: this
