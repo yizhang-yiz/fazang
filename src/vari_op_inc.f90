@@ -13,7 +13,10 @@ function NAME/**/_vi (vi) result(v1); \
   subroutine mychain (this); \
     implicit none; \
     type(VARITYPE), pointer :: this, a; \
-    call recover(a, core_adstack%pop_int(this%i+visize)); \
+    integer(ik) :: i, j; \
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call recover(a, j); \
     a%adj_ = a%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -34,8 +37,11 @@ function NAME/**/_vi_d(va, b) result(v1); \
     implicit none; \
     type(VARITYPE), pointer :: this, va; \
     real(rk) :: b; \
-    call recover(va, core_adstack%pop_int(this%i+visize)); \
-    b = core_adstack%pop_real(this%i+visize+iksize); \
+    integer(ik) :: i, j;\
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call core_adstack%pop(i, b); \
+    call recover(va, j); \
     va%adj_ = va%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -55,8 +61,11 @@ function NAME/**/_d_vi(a, vb) result(v1); \
     implicit none; \
     type(VARITYPE), pointer :: this, vb; \
     real(rk) :: a; \
-    call recover(vb, core_adstack%pop_int(this%i+visize)); \
-    a = core_adstack%pop_real(this%i+visize+iksize); \
+    integer(ik) :: i, j;\
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call core_adstack%pop(i, a); \
+    call recover(vb, j); \
     vb%adj_ = vb%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -74,8 +83,115 @@ function NAME/**/_vi_vi(va, vb) result(v1); \
   subroutine mychain (this); \
     implicit none; \
     type(VARITYPE), pointer :: this, va, vb; \
-    call recover(va, core_adstack%pop_int(this%i+visize)); \
-    call recover(vb, core_adstack%pop_int(this%i+visize+iksize)); \
+    integer(ik) :: i, j;\
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call recover(va, j); \
+    call core_adstack%pop(i, j); \
+    call recover(vb, j); \
+    va%adj_ = va%adj_ + this%adj_ * DYDA; \
+    vb%adj_ = vb%adj_ + this%adj_ * DYDB; \
+  end subroutine mychain; \
+end function
+
+#define DEF_OP2_VI(VARITYPE, NAME, OP, DYDX) \
+function NAME/**/_vi_d(va, b) result(v1); \
+  implicit none; \
+  type(VARITYPE), pointer, intent(in) :: va; \
+  integer(ik), intent(in) :: b; \
+  type(VARITYPE), pointer :: v1; \
+  v1 = OP; \
+  v1%chain = c_funloc( mychain ); \
+  call core_adstack%push(va%i); \
+  call core_adstack%push(b); \
+  contains; \
+  subroutine mychain (this); \
+    implicit none; \
+    type(VARITYPE), pointer :: this, va; \
+    integer(ik) :: b, i, j; \
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call core_adstack%pop(i, b); \
+    call recover(va, j); \
+    va%adj_ = va%adj_ + this%adj_ * DYDX; \
+  end subroutine mychain; \
+end function
+
+#define DEF_OP3_VDD(VARITYPE, NAME, OP, DYDX) \
+function NAME/**/_vi_d_d(va, b, c) result(v1); \
+  implicit none; \
+  type(VARITYPE), pointer, intent(in) :: va; \
+  real(rk), intent(in) :: b, c; \
+  type(VARITYPE), pointer :: v1; \
+  v1 = OP; \
+  v1%chain = c_funloc( mychain ); \
+  call core_adstack%push(va%i); \
+  call core_adstack%push(b); \
+  call core_adstack%push(c); \
+  contains; \
+  subroutine mychain (this); \
+    implicit none; \
+    type(VARITYPE), pointer :: this, va; \
+    real(rk) :: b, c; \
+    integer(ik) :: i, j; \
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call recover(va, j); \
+    call core_adstack%pop(i, b); \
+    call core_adstack%pop(i, c); \
+    va%adj_ = va%adj_ + this%adj_ * DYDX; \
+  end subroutine mychain; \
+end function
+
+#define DEF_OP3_DVD(VARITYPE, NAME, OP, DYDX) \
+function NAME/**/_d_vi_d(a, vb, c) result(v1); \
+  implicit none; \
+  type(VARITYPE), pointer, intent(in) :: vb; \
+  real(rk), intent(in) :: a, c; \
+  type(VARITYPE), pointer :: v1; \
+  v1 = OP; \
+  v1%chain = c_funloc( mychain ); \
+  call core_adstack%push(vb%i); \
+  call core_adstack%push(a); \
+  call core_adstack%push(c); \
+  contains; \
+  subroutine mychain (this); \
+    implicit none; \
+    type(VARITYPE), pointer :: this, vb; \
+    real(rk) :: a, c; \
+    integer(ik) :: i, j; \
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call recover(vb, j); \
+    call core_adstack%pop(i, a); \
+    call core_adstack%pop(i, c); \
+    vb%adj_ = vb%adj_ + this%adj_ * DYDX; \
+  end subroutine mychain; \
+end function
+
+#define DEF_OP3_VVD(VARITYPE, NAME, OP, DYDA, DYDB) \
+function NAME/**/_vi_vi_d(va, vb, c) result(v1); \
+  implicit none; \
+  type(VARITYPE), pointer, intent(in) :: va, vb; \
+  real(rk), intent(in) :: c; \
+  type(VARITYPE), pointer :: v1; \
+  v1 = OP; \
+  v1%chain = c_funloc( mychain ); \
+  call core_adstack%push(va%i); \
+  call core_adstack%push(vb%i); \
+  call core_adstack%push(c); \
+  contains; \
+  subroutine mychain (this); \
+    implicit none; \
+    type(VARITYPE), pointer :: this, va, vb; \
+    real(rk) :: c; \
+    integer(ik) :: i, j; \
+    i = this%i+visize; \
+    call core_adstack%pop(i, j); \
+    call recover(va, j); \
+    call core_adstack%pop(i, j); \
+    call recover(vb, j); \
+    call core_adstack%pop(i, c); \
     va%adj_ = va%adj_ + this%adj_ * DYDA; \
     vb%adj_ = vb%adj_ + this%adj_ * DYDB; \
   end subroutine mychain; \

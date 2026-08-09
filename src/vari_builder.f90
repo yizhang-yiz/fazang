@@ -1,7 +1,7 @@
 module fz_vari_builder
   use, intrinsic :: iso_fortran_env
   use, intrinsic :: iso_c_binding
-  use fz_env, only : ik, rk, iksize, rksize, adstack, core_adstack, pop_array
+  use fz_env, only : ik, rk, iksize, rksize, adstack, core_adstack
   use fz_vari, only: vari, assignment(=), vi_val_at
   use fz_var, only : var, visize, val, adj
   implicit none
@@ -156,19 +156,16 @@ contains
     type(vari_builder) :: this
     integer(kind=ik), intent(in) :: i
     integer(kind=ik) :: j
-    j = i + visize; this%nv = core_adstack%pop_int(j)
-    j = j + iksize; this%nr = core_adstack%pop_int(j)
-    j = j + iksize; this%ni = core_adstack%pop_int(j)
-    j = j + iksize
-    call pop_array(this%pv, this%nv, j)
-    j = j + this%nv * iksize
+    j = i + visize;
+    call core_adstack%pop(j, this%nv)
+    call core_adstack%pop(j, this%nr)
+    call core_adstack%pop(j, this%ni)
+    call core_adstack%pop(j, this%nv, this%pv)
     if (this%nr > 0) then
-       call pop_array(this%pr, this%nr, j)
-       j = j + this%nr * rksize
+       call core_adstack%pop(j, this%nr, this%pr)
     endif
     if (this%ni > 0) then
-       call pop_array(this%pj, this%ni, j)
-       j = j + this%ni * iksize
+       call core_adstack%pop(j, this%ni, this%pj)
     endif
   end function recover_builder_from_i
 
@@ -189,21 +186,21 @@ contains
     call builder%attach(x)
   end subroutine set_val_no_args
 
-subroutine set_adj_jac_no_args(jac, this_adj, vi_id, nv)
-  use fz_vari, only: recover_vari => recover
-  implicit none
-  procedure(jac_op_no_args), pointer, intent(in) :: jac
-  type(vari), pointer :: va
-  integer(ik), intent(in) :: nv
-  integer(ik), intent(in) :: vi_id(nv)
-  real(rk), intent(in) :: this_adj
-  integer(ik) :: i
-  real(rk) :: dydx(nv)
-  dydx = jac(vi_val_at(vi_id))
-  do i = 1, nv
-     call recover_vari(va, vi_id(i))
-     va%adj_ = va%adj_ + this_adj * dydx(i)
-  end do
-end subroutine set_adj_jac_no_args
+  subroutine set_adj_jac_no_args(jac, this_adj, vi_id, nv)
+    use fz_vari, only: recover_vari => recover
+    implicit none
+    procedure(jac_op_no_args), pointer, intent(in) :: jac
+    type(vari), pointer :: va
+    integer(ik), intent(in) :: nv
+    integer(ik), intent(in) :: vi_id(nv)
+    real(rk), intent(in) :: this_adj
+    integer(ik) :: i
+    real(rk) :: dydx(nv)
+    dydx = jac(vi_val_at(vi_id))
+    do i = 1, nv
+       call recover_vari(va, vi_id(i))
+       va%adj_ = va%adj_ + this_adj * dydx(i)
+    end do
+  end subroutine set_adj_jac_no_args
 
 end module fz_vari_builder

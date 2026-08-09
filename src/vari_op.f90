@@ -11,33 +11,19 @@ module fz_vari_op
 contains
 
   DEF_OP1(vari, exp, dexp(vi%val_), (this%val_))
-
   DEF_OP1(vari, sin, dsin(vi%val_), (cos(a%val_)))
-
   DEF_OP1(vari, cos, dcos(vi%val_), (-sin(a%val_)))
-
   DEF_OP1(vari, tan, dtan(vi%val_), (1.d0/(cos(a%val_)*cos(a%val_))))
-
   DEF_OP1(vari, asin, dasin(vi%val_), (1.d0/sqrt(1.d0-a%val_*a%val_)))
-
   DEF_OP1(vari, acos, dacos(vi%val_), (-1.d0/sqrt(1.d0-a%val_*a%val_)))
-
   DEF_OP1(vari, atan, datan(vi%val_), (1.d0/(1.d0+a%val_*a%val_)))
-
   DEF_OP1(vari, log, dlog(vi%val_), (1.d0/a%val_))
-
   DEF_OP1(vari, log10, dlog10(vi%val_), (1.d0/(a%val_*dlog(10.d0))))
-
   DEF_OP1(vari, sqrt, dsqrt(vi%val_), (0.5d0/dsqrt(a%val_)))
-
   DEF_OP1(vari, neg, (-vi%val_), (-1.d0))
-
   DEF_OP1(vari, pos, (vi%val_), (1.d0))
-
   DEF_OP1(vari, sinh, dsinh(vi%val_), (dcosh(a%val_)))
-
   DEF_OP1(vari, cosh, dcosh(vi%val_), (dsinh(a%val_)))
-
   DEF_OP1(vari, tanh, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
 
   elemental real(rk) function logit_d(d)
@@ -89,10 +75,13 @@ contains
     implicit none
     type(vari), pointer, intent(in) :: this
     type(vari), pointer :: va
-    integer(ik) :: i, j, n
-    n = core_adstack%pop_int(this%i + visize)
+    integer(ik) :: i, j, k, n
+    k = this%i + visize
+    call core_adstack%pop(k, n)
     do i = 1, n
-       call recover(va, core_adstack%pop_int(this%i + visize + i*iksize))
+       k = this%i + visize + i*iksize
+       call core_adstack%pop(k, j)
+       call recover(va, j)
        va%adj_ = va%adj_ + this%adj_
     enddo
   end subroutine chain_sum

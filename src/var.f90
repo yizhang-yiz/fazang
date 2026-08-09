@@ -2,7 +2,7 @@
 #define DEF_VAR_OP_DEFINED
 
 #define DEF_OP1( NAME ) \
-  function NAME/**/_v(x) result(v); \
+impure elemental function NAME/**/_v(x) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \

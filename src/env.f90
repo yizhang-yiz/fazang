@@ -31,20 +31,16 @@ module fz_env
      procedure push_int
      procedure push_int_array
      procedure pop_real
-     ! procedure pop_real_array
+     procedure pop_real_array
      procedure pop_int
-     ! procedure pop_int_array
+     procedure pop_int_array
      procedure :: incr
      generic :: push => push_real,push_real_array,push_int,push_int_array
+     generic :: pop => pop_real,pop_real_array,pop_int,pop_int_array
      procedure :: reboot
   end type adstack
 
   type(adstack), target :: core_adstack
-
-  interface pop_array
-     module procedure pop_int_array
-     module procedure pop_real_array
-  end interface pop_array
 
 contains
 
@@ -91,18 +87,22 @@ contains
     call stack%incr(iksize*size(a), .false.)
   end subroutine push_int_array
 
-  elemental real(rk) function pop_real(stack, i)
+  elemental subroutine pop_real(stack, i, res)
     class(adstack), intent(in) :: stack
-    integer(ik), intent(in) :: i
-    pop_real = transfer(stack%s_(i:(i+rksize-1)), pop_real)
-  end function pop_real
+    integer(ik), intent(inout) :: i
+    real(rk), intent(out) :: res
+    res = transfer(stack%s_(i:(i + rksize -1)), res)
+    i = i + rksize
+  end subroutine pop_real
 
-  elemental integer(ik) function pop_int(stack, i)
+  elemental subroutine pop_int(stack, i, res)
     implicit none
     class(adstack), intent(in) :: stack
-    integer(ik), intent(in) :: i
-    pop_int = transfer(stack%s_(i:(i+iksize-1)), pop_int)
-  end function pop_int
+    integer(ik), intent(inout) :: i
+    integer(ik), intent(out) :: res
+    res = transfer(stack%s_(i:(i + iksize-1)), res)
+    i = i + iksize
+  end subroutine pop_int
 
   subroutine reboot(this)
     implicit none
@@ -119,22 +119,28 @@ contains
      call core_adstack%reboot()
    end subroutine reboot_chain
 
-   subroutine pop_real_array(p, n, i)
+   subroutine pop_real_array(stack, i, n, res)
      implicit none
-     real(rk), pointer :: p(:)
-     integer(ik), intent(in) :: n, i
+     class(adstack), intent(in) :: stack
+     real(rk), pointer, intent(out) :: res(:)
+     integer(ik), intent(in) :: n
+     integer(ik), intent(inout) :: i
      type(c_ptr) :: cp
      cp = c_loc(core_adstack%s_(i))
-     call c_f_pointer(cp, p, [(n)])
+     call c_f_pointer(cp, res, [(n)])
+     i = i + rksize * n
    end subroutine pop_real_array
 
-   subroutine pop_int_array(p, n, i)
+   subroutine pop_int_array(stack, i, n, res)
      implicit none
-     integer(ik), pointer :: p(:)
-     integer(ik), intent(in) :: n, i
+     class(adstack), intent(in) :: stack
+     integer(ik), pointer, intent(out) :: res(:)
+     integer(ik), intent(in) :: n
+     integer(ik), intent(inout) :: i
      type(c_ptr) :: cp
      cp = c_loc(core_adstack%s_(i))
-     call c_f_pointer(cp, p, [(n)])
+     call c_f_pointer(cp, res, [(n)])
+     i = i + iksize * n
    end subroutine pop_int_array
 
 end module fz_env

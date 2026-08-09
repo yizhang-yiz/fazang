@@ -83,10 +83,13 @@ contains
     implicit none
     type(fvari), pointer, intent(in) :: this
     type(fvari), pointer :: va
-    integer(ik) :: i, j, n
-    n = core_adstack%pop_int(this%i + visize)
+    integer(ik) :: i, j, k, n
+    k = this%i + visize
+    call core_adstack%pop(j, n)
     do i = 1, n
-       call recover(va, core_adstack%pop_int(this%i + visize + i*iksize))
+       k = this%i + visize + i*iksize
+       call core_adstack%pop(k, j)
+       call recover(va, j)
        va%adj_ = va%adj_ + this%adj_
     enddo
   end subroutine chain_sum
