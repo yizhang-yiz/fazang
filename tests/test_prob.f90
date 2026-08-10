@@ -301,63 +301,66 @@ contains
   end subroutine test_laplace_lpdf
 
 
-  ! subroutine test_chi_square_lpdf()
-  !   implicit none
+  subroutine test_chi_square_lpdf()
+    implicit none
 
-  !   real(rk), parameter :: x   = 2.3_rk
-  !   real(rk), parameter :: df0 = 4.2_rk
-  !   real(rk), parameter :: tol = 1.0e-12_rk
+    real(rk), parameter :: x   = 2.3_rk
+    real(rk), parameter :: df0 = 4.2_rk
+    real(rk), parameter :: tol = 1.0e-12_rk
 
-  !   ! d/d(df) log chi_square(x | df):
-  !   ! 0.5 * [log(x) - log(2) - digamma(df / 2)]
-  !   real(rk), parameter :: expected_ddf = -0.172787013152337_rk
-  !   real(rk), parameter :: expected_lp = (0.5_rk * df0 - 1.0_rk) * log(x) - 0.5_rk * x &
-  !     - 0.5_rk * df0 * log(2.0_rk) - log_gamma(0.5_rk * df0)
+    ! d/d(df) log chi_square(x | df):
+    ! 0.5 * [log(x) - log(2) - digamma(df / 2)]
+    real(rk), parameter :: expected_ddf = -0.172787013152337_rk
+    real(rk), parameter :: expected_lp = (0.5_rk * df0 - 1.0_rk) * log(x) - 0.5_rk * x &
+      - 0.5_rk * df0 * log(2.0_rk) - log_gamma(0.5_rk * df0)
 
-  !   type(var) :: df, lp
+    type(var) :: df, lp
 
-  !   ASSERT_TOL(chi_square_lpdf(df0, x), expected_lp, tol)
+    ASSERT_TOL(chi_square_lpdf(df0, x), expected_lp, tol)
 
-  !   df = df0
-  !   lp = chi_square_lpdf(df, x)
-  !   call grad(lp)
-  !   ASSERT_TOL(val(lp), expected_lp, tol)
-  !   ASSERT_TOL(adj(df), expected_ddf, tol)
-  !   call reset_adj()
-  ! end subroutine test_chi_square_lpdf
+    df = df0
+    lp = chi_square_lpdf(df, x)
+    call grad(lp)
+    ASSERT_TOL(val(lp), expected_lp, tol)
+    ASSERT_TOL(adj(df), expected_ddf, tol)
+    call reset_adj()
+  end subroutine test_chi_square_lpdf
 
 
-  ! subroutine test_inv_chi_square_lpdf()
-  !   implicit none
+  subroutine test_inv_chi_square_lpdf()
+    implicit none
 
-  !   real(rk), parameter :: x   = 2.3_rk
-  !   real(rk), parameter :: df0 = 4.2_rk
-  !   real(rk), parameter :: tol = 1.0e-12_rk
+    real(rk), parameter :: x   = 2.3_rk
+    real(rk), parameter :: df0 = 4.2_rk
+    real(rk), parameter :: tol = 1.0e-12_rk
 
-  !   ! Conventional unscaled inverse-chi-square:
-  !   !
-  !   ! log p(x | df) = (df/2) * log(df/2) - log_gamma(df/2)
-  !   !              - (df/2 + 1) * log(x) - df / (2*x)
-  !   !
-  !   ! d/d(df) log p(x | df) =
-  !   ! 0.5 * [log(df/2) + 1 - digamma(df/2) - log(x) - 1/x]
-  !   real(rk), parameter :: expected_ddf = -0.00554517779060559_rk
-  !   real(rk), parameter :: expected_lp = 0.5_rk * df0 * log(0.5_rk * df0) &
-  !     - log_gamma(0.5_rk * df0) &
-  !     - (0.5_rk * df0 + 1.0_rk) * log(x) &
-  !     - df0 / (2.0_rk * x)
+    ! Standard inverse-chi-square:
+    !
+    ! p(x | df) = 2**(-df/2) / gamma(df/2)
+    !           * x**(-df/2 - 1) * exp(-1 / (2*x))
+    !
+    ! d/d(df) log p(x | df)
+    !   = -0.5 * [log(2) + digamma(df/2) + log(x)]
+  real(rk), parameter :: expected_lp = &
+    -0.5_rk * df0 * log(2.0_rk) &
+    - log_gamma(0.5_rk * df0) &
+    - (0.5_rk * df0 + 1.0_rk) * log(x) &
+    - 1.0_rk / (2.0_rk * x)
 
-  !   type(var) :: df, lp
+  ! Precomputed because digamma is not an intrinsic Fortran function.
+  real(rk), parameter :: expected_ddf = -1.0056961360874408_rk
 
-  !   ASSERT_TOL(inv_chi_square_lpdf(df0, x), expected_lp, tol)
+    type(var) :: df, lp
 
-  !   df = df0
-  !   lp = inv_chi_square_lpdf(df, x)
-  !   call grad(lp)
-  !   ASSERT_TOL(val(lp), expected_lp, tol)
-  !   ASSERT_TOL(adj(df), expected_ddf, tol)
-  !   call reset_adj()
-  ! end subroutine test_inv_chi_square_lpdf
+    ASSERT_TOL(inv_chi_square_lpdf(df0, x), expected_lp, tol)
+
+    df = df0
+    lp = inv_chi_square_lpdf(df, x)
+    call grad(lp)
+    ASSERT_TOL(val(lp), expected_lp, tol)
+    ASSERT_TOL(adj(df), expected_ddf, tol)
+    call reset_adj()
+  end subroutine test_inv_chi_square_lpdf
 
 end module test_lpdf
 
@@ -373,7 +376,7 @@ program test
   call test_gumbel_lpdf()
   call test_laplace_lpdf()
   call test_logistic_lpdf()
-  ! call test_chi_square_lpdf()
-  ! call test_inv_chi_square_lpdf()
+  call test_chi_square_lpdf()
+  call test_inv_chi_square_lpdf()
 
 end program test

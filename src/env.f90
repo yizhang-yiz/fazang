@@ -19,6 +19,7 @@ module fz_env
   real(rk), parameter :: eps = tiny(0.0d0)  ! smallest
   real(rk), parameter :: log_eps = log(eps) ! log(smallest)
   real(rk), parameter :: pi = 4.D0*DATAN(1.D0)
+  real(rk), parameter :: log2 = log(2.d0)
 
   type :: adstack
      integer(c_int8_t) :: s_(adsize) = 0      ! int8 serves as byte

@@ -294,4 +294,21 @@ elemental function chi_square_dnu(nu, y) result(d)
 end function chi_square_dnu
 DEF_OP2_VD(vari, chi_square_lpdf, chi_square_lpdf_d_d(va%val_, b), chi_square_dnu(va%val_, b))
 
+elemental function inv_chi_square_lpdf_d_d(nu, y) result(loglik)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: loglik
+  real(rk) :: half_nu
+  half_nu = 0.5d0*nu
+  loglik = -half_nu*log2-log(gamma(half_nu))-(half_nu+1.d0)*log(y)-0.5d0/y
+end function
+elemental function inv_chi_square_dnu(nu, y) result(d)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: d
+  real(rk) :: half_nu
+  half_nu = 0.5d0*nu
+  d = -0.5d0*(log2 + digamma(half_nu) + log(y))
+end function
+DEF_OP2_VD(vari, inv_chi_square_lpdf, inv_chi_square_lpdf_d_d(va%val_, b), inv_chi_square_dnu(va%val_, b))
+
+
 end module fz_vari_prob

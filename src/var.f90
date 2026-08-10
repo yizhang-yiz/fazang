@@ -194,6 +194,16 @@ module fz_var
      module procedure logistic_lpdf_d_d_d
   end interface
 
+  interface chi_square_lpdf
+     module procedure chi_square_lpdf_v
+     module procedure chi_square_lpdf_d_d
+  end interface
+
+  interface inv_chi_square_lpdf
+     module procedure inv_chi_square_lpdf_v
+     module procedure inv_chi_square_lpdf_d_d
+  end interface
+
 contains
 
   impure elemental subroutine new_var_val(this, val)
@@ -306,5 +316,21 @@ contains
   DEF_OP2D(gumbel_lpdf)
   DEF_OP2D(laplace_lpdf)
   DEF_OP2D(logistic_lpdf)
+
+  impure elemental function chi_square_lpdf_v(x, d) result(v)
+    implicit none;
+    type(var), intent(in) :: x
+    real(rk), intent(in) :: d
+    type(var) :: v
+    v%p => chi_square_lpdf_vi_d(x%p, d)
+  end function chi_square_lpdf_v
+
+  impure elemental function inv_chi_square_lpdf_v(x, d) result(v)
+    implicit none;
+    type(var), intent(in) :: x
+    real(rk), intent(in) :: d
+    type(var) :: v
+    v%p => inv_chi_square_lpdf_vi_d(x%p, d)
+  end function
 
 end module fz_var
