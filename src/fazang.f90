@@ -41,7 +41,16 @@ module fazang
     var_logit_v       => logit_v,&
     var_inv_logit_d   => inv_logit_d,&
     var_inv_logit_v   => inv_logit_v,&
-    var_sum_v         => sum_v
+    var_sum_v         => sum_v,&
+    var_normal_lpdf_vd         => normal_lpdf_vd,&
+    var_normal_lpdf_dv         => normal_lpdf_dv,&
+    var_normal_lpdf_vv         => normal_lpdf_vv,&
+    normal_lpdf_d_d_d, &
+    var_lognormal_lpdf_vd         => lognormal_lpdf_vd,&
+    var_lognormal_lpdf_dv         => lognormal_lpdf_dv,&
+    var_lognormal_lpdf_vv         => lognormal_lpdf_vv,&
+    lognormal_lpdf_d_d_d
+
 
   use fz_fvar, only: fvar, new_fvar_val,new_fvar_real32,set_fvar,&
     val_dv, adj_dv, &
@@ -201,6 +210,20 @@ module fazang
   interface inv_logit
      module procedure var_inv_logit_d
      module procedure var_inv_logit_v
+  end interface
+
+  interface normal_lpdf
+     module procedure normal_lpdf_d_d_d
+     module procedure var_normal_lpdf_vd
+     module procedure var_normal_lpdf_dv
+     module procedure var_normal_lpdf_vv
+  end interface
+
+  interface lognormal_lpdf
+     module procedure lognormal_lpdf_d_d_d
+     module procedure var_lognormal_lpdf_vd
+     module procedure var_lognormal_lpdf_dv
+     module procedure var_lognormal_lpdf_vv
   end interface
 
 end module fazang

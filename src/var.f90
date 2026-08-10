@@ -31,6 +31,30 @@ impure elemental function NAME/**/_v(x) result(v); \
     v%p => NAME/**/_vi_vi(x%p, y%p); \
   end function NAME/**/_vv;
 
+  ! loglik function with two params
+#define DEF_OP2D( NAME ) \
+  function NAME/**/_vd(x, y, d) result(v); \
+    implicit none; \
+    type(var), intent(in) :: x; \
+    real(rk), intent(in) :: y, d; \
+    type(var) :: v; \
+    v%p => NAME/**/_vi_d_d(x%p, y, d); \
+  end function; \
+  function NAME/**/_dv(x, y, d) result(v); \
+    implicit none; \
+    type(var), intent(in) :: y; \
+    real(rk), intent(in) :: x, d; \
+    type(var) :: v; \
+    v%p => NAME/**/_d_vi_d(x, y%p, d); \
+  end function; \
+  function NAME/**/_vv(x, y, d) result(v); \
+    implicit none; \
+    type(var), intent(in) :: x, y; \
+    real(rk), intent(in) :: d; \
+    type(var) :: v; \
+    v%p => NAME/**/_vi_vi_d(x%p, y%p, d); \
+  end function
+
 #endif
 
 module fz_var
@@ -38,6 +62,7 @@ module fz_var
   use fz_env
   use fz_vari
   use fz_vari_op
+  use fz_vari_prob
   implicit none
 
   type :: var
@@ -118,6 +143,56 @@ module fz_var
 
   ! vec op
   interface sum; module procedure sum_v; end interface
+
+  ! loglik
+  interface normal_lpdf
+     module procedure normal_lpdf_vd
+     module procedure normal_lpdf_dv
+     module procedure normal_lpdf_vv
+     module procedure normal_lpdf_d_d_d
+  end interface
+
+  interface lognormal_lpdf
+     module procedure lognormal_lpdf_vd
+     module procedure lognormal_lpdf_dv
+     module procedure lognormal_lpdf_vv
+     module procedure lognormal_lpdf_d_d_d
+  end interface
+
+  interface weibull_lpdf
+     module procedure weibull_lpdf_vd
+     module procedure weibull_lpdf_dv
+     module procedure weibull_lpdf_vv
+     module procedure weibull_lpdf_d_d_d
+  end interface
+
+  interface cauchy_lpdf
+     module procedure cauchy_lpdf_vd
+     module procedure cauchy_lpdf_dv
+     module procedure cauchy_lpdf_vv
+     module procedure cauchy_lpdf_d_d_d
+  end interface
+
+  interface gumbel_lpdf
+     module procedure gumbel_lpdf_vd
+     module procedure gumbel_lpdf_dv
+     module procedure gumbel_lpdf_vv
+     module procedure gumbel_lpdf_d_d_d
+  end interface
+
+  interface laplace_lpdf
+     module procedure laplace_lpdf_vd
+     module procedure laplace_lpdf_dv
+     module procedure laplace_lpdf_vv
+     module procedure laplace_lpdf_d_d_d
+  end interface laplace_lpdf
+
+  interface logistic_lpdf
+     module procedure logistic_lpdf_vd
+     module procedure logistic_lpdf_dv
+     module procedure logistic_lpdf_vv
+     module procedure logistic_lpdf_d_d_d
+  end interface
 
 contains
 
@@ -222,5 +297,14 @@ contains
        call core_adstack%push(x(i)%p%i)
     end do
   end function sum_v
+
+  ! loglik
+  DEF_OP2D(normal_lpdf)
+  DEF_OP2D(lognormal_lpdf)
+  DEF_OP2D(weibull_lpdf)
+  DEF_OP2D(cauchy_lpdf)
+  DEF_OP2D(gumbel_lpdf)
+  DEF_OP2D(laplace_lpdf)
+  DEF_OP2D(logistic_lpdf)
 
 end module fz_var

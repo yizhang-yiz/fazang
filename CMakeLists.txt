@@ -41,12 +41,11 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
 set(fz_src
   OBJECT
   src/env.f90
-  src/vari.f90 src/vari_op.f90 src/var.f90
+  src/vari.f90 src/vari_op.f90 src/vari_prob.f90 src/var.f90
   src/fvari.f90 src/fvari_op.f90 src/fvar.f90
   src/eval.f90
   src/relation.f90
   src/vari_builder.f90
-  # src/prob.f90
   src/fazang.f90
   )
 
