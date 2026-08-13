@@ -25,6 +25,7 @@ contains
   DEF_OP1(vari, sinh, dsinh(vi%val_), (dcosh(a%val_)))
   DEF_OP1(vari, cosh, dcosh(vi%val_), (dsinh(a%val_)))
   DEF_OP1(vari, tanh, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
+  DEF_OP1(vari, square, (vi%val_)**2, (2.0d0*a%val_))
 
   elemental real(rk) function logit_d(d)
     implicit none

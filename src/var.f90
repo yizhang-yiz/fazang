@@ -130,6 +130,7 @@ module fz_var
   interface sinh; module procedure sinh_v; end interface
   interface cosh; module procedure cosh_v; end interface
   interface tanh; module procedure tanh_v; end interface
+  interface square; module procedure square_v; end interface
 
   interface logit
      module procedure logit_d
@@ -286,6 +287,7 @@ contains
   DEF_OP1(tanh)
   DEF_OP1(logit)
   DEF_OP1(inv_logit)
+  DEF_OP1(square)
 
   ! OP2
   DEF_OP2(add)

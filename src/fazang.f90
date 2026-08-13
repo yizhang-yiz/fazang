@@ -41,6 +41,7 @@ module fazang
     var_logit_v       => logit_v,&
     var_inv_logit_d   => inv_logit_d,&
     var_inv_logit_v   => inv_logit_v,&
+    var_square_v      => square_v,&
     var_sum_v         => sum_v,&
     var_normal_lpdf_vd         => normal_lpdf_vd,&
     var_normal_lpdf_dv         => normal_lpdf_dv,&
@@ -200,6 +201,7 @@ module fazang
   interface sinh; module procedure var_sinh_v; end interface
   interface cosh; module procedure var_cosh_v; end interface
   interface tanh; module procedure var_tanh_v; end interface
+  interface square; module procedure var_square_v; end interface
   interface sum; module procedure var_sum_v; end interface
 
   interface logit
