@@ -59,7 +59,7 @@ jobs:
       run: cmake --build _build
 
     - name: Run tests
-      run: ctest
+      run: ctest --test-dir _build
 
     - name: Install project
       run: cmake --install _build
