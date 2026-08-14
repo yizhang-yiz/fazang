@@ -10,21 +10,21 @@ impure elemental function NAME/**/_v(x) result(v); \
   end function NAME/**/_v
 
 #define DEF_OP2( NAME ) \
-  function NAME/**/_vd(x, b) result(v); \
+impure elemental function NAME/**/_vd(x, b) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
     v%p => NAME/**/_vi_d(x%p, b); \
   end function NAME/**/_vd; \
-  function NAME/**/_dv(b, x) result(v); \
+impure elemental function NAME/**/_dv(b, x) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
     v%p => NAME/**/_d_vi(b, x%p); \
   end function NAME/**/_dv; \
-  function NAME/**/_vv(x, y) result(v); \
+impure elemental function NAME/**/_vv(x, y) result(v); \
     implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
@@ -33,21 +33,21 @@ impure elemental function NAME/**/_v(x) result(v); \
 
   ! loglik function with two params
 #define DEF_OP2D( NAME ) \
-  function NAME/**/_vd(x, y, d) result(v); \
+impure elemental function NAME/**/_vd(x, y, d) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: y, d; \
     type(var) :: v; \
     v%p => NAME/**/_vi_d_d(x%p, y, d); \
   end function; \
-  function NAME/**/_dv(x, y, d) result(v); \
+impure elemental function NAME/**/_dv(x, y, d) result(v); \
     implicit none; \
     type(var), intent(in) :: y; \
     real(rk), intent(in) :: x, d; \
     type(var) :: v; \
     v%p => NAME/**/_d_vi_d(x, y%p, d); \
   end function; \
-  function NAME/**/_vv(x, y, d) result(v); \
+impure elemental function NAME/**/_vv(x, y, d) result(v); \
     implicit none; \
     type(var), intent(in) :: x, y; \
     real(rk), intent(in) :: d; \
