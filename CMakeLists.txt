@@ -60,7 +60,7 @@ add_library(fz STATIC ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)
 target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
 
-add_executable(ftest /home/zhangyi6_admin/work/sandbox/temp/rosenbrock.f90)
+add_executable(ftest ftest.f90)
 target_link_libraries(ftest PUBLIC fz fcompiler_flags)
 target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
 
