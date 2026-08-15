@@ -50,6 +50,59 @@ contains
     end if
   end subroutine recover
 
+  subroutine recover_parent(p, p1)
+    implicit none
+    type(vari), pointer, intent(in) :: p
+    type(vari), pointer, intent(out) :: p1
+    integer(ik), pointer :: i
+    type(c_ptr) :: cp
+    cp = c_loc(core_adstack%s_(p%i+visize))
+    call c_f_pointer(cp, i)
+    if (i > 0) then
+       cp = c_loc(core_adstack%s_(i))
+       call c_f_pointer(cp, p1)
+    end if
+  end subroutine recover_parent
+
+  subroutine recover_parent2(p, p1, p2)
+    implicit none
+    type(vari), pointer, intent(in) :: p
+    type(vari), pointer, intent(out) :: p1, p2
+    integer(ik), pointer :: i
+    type(c_ptr) :: cp
+    cp = c_loc(core_adstack%s_(p%i+visize))
+    call c_f_pointer(cp, i)
+    if (i > 0) then
+       cp = c_loc(core_adstack%s_(i))
+       call c_f_pointer(cp, p1)
+    end if
+    cp = c_loc(core_adstack%s_(p%i+visize+iksize))
+    call c_f_pointer(cp, i)
+    if (i > 0) then
+       cp = c_loc(core_adstack%s_(i))
+       call c_f_pointer(cp, p2)
+    end if
+  end subroutine recover_parent2
+
+  subroutine recover_parent_real(p, p1, b)
+    implicit none
+    type(vari), pointer, intent(in) :: p
+    type(vari), pointer, intent(out) :: p1
+    real(rk), intent(out) :: b
+    integer(ik), pointer :: i
+    real(rk), pointer :: pb
+    type(c_ptr) :: cp
+    cp = c_loc(core_adstack%s_(p%i+visize))
+    call c_f_pointer(cp, i)
+    if (i > 0) then
+       cp = c_loc(core_adstack%s_(i))
+       call c_f_pointer(cp, p1)
+    end if
+    cp = c_loc(core_adstack%s_(p%i+visize+iksize))
+    call c_f_pointer(cp, pb)
+    b = pb
+  end subroutine recover_parent_real
+
   elemental real(rk) function vi_val(this)
     implicit none
     type(vari), intent(in) :: this

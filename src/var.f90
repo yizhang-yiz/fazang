@@ -232,6 +232,13 @@ contains
     this%p => that%p
   end subroutine set_var
 
+
+  elemental integer(ik) function index(this)
+    implicit none
+    type(var), intent(in) :: this
+    index = this%p%i
+  end function index
+
   elemental real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
@@ -301,13 +308,11 @@ contains
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
-    integer(ik) :: i, j
+    integer(ik) :: i(size(x)), j
     v%p = sum(val(x))
     v%p%chain = c_funloc(chain_sum)
     call core_adstack%push(size(x))
-    do i = 1, size(x)
-       call core_adstack%push(x(i)%p%i)
-    end do
+    call core_adstack%push(index(x))
   end function sum_v
 
   ! loglik

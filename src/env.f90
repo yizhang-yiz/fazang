@@ -31,12 +31,13 @@ module fz_env
      procedure push_real_array
      procedure push_int
      procedure push_int_array
+     procedure push_int_real
      procedure pop_real
      procedure pop_real_array
      procedure pop_int
      procedure pop_int_array
      procedure :: incr
-     generic :: push => push_real,push_real_array,push_int,push_int_array
+     generic :: push => push_real,push_real_array,push_int,push_int_array,push_int_real
      generic :: pop => pop_real,pop_real_array,pop_int,pop_int_array
      procedure :: reboot
   end type adstack
@@ -58,33 +59,77 @@ contains
 
   subroutine push_real(stack, a)
     implicit none
-    class(adstack), intent(inout) :: stack
+    class(adstack), target, intent(inout) :: stack
     real(rk), intent(in) :: a
-    stack%s_(stack%i_:(stack%i_+rksize-1)) = transfer(a, 0_c_int8_t, rksize)
+    type(c_ptr) :: cp
+    real(rk), pointer :: p
+    cp = c_loc(stack%s_(stack%i_))
+    call c_f_pointer(cp, p); p = a
     call stack%incr(rksize, .false.)
   end subroutine push_real
 
+  subroutine push_int_real(stack, i, a)
+    implicit none
+    class(adstack), target, intent(inout) :: stack
+    real(rk), intent(in) :: a
+    integer(ik), intent(in) :: i
+    type(c_ptr) :: cp
+    integer(ik), pointer :: p1
+    real(rk), pointer :: p2
+    cp = c_loc(stack%s_(stack%i_))
+    call c_f_pointer(cp, p1); p1 = i
+    cp = c_loc(stack%s_(stack%i_+iksize))
+    call c_f_pointer(cp, p2); p2 = a
+    call stack%incr(iksize+rksize, .false.)
+  end subroutine push_int_real
+
+  ! subroutine push_int_real_real(stack, i, a, b)
+  !   implicit none
+  !   class(adstack), target, intent(inout) :: stack
+  !   real(rk), intent(in) :: a
+  !   integer(ik), intent(in) :: i
+  !   type(c_ptr) :: cp
+  !   integer(ik), pointer :: p1
+  !   real(rk), pointer :: p2
+  !   cp = c_loc(stack%s_(stack%i_))
+  !   call c_f_pointer(cp, p1); p1 = i
+  !   cp = c_loc(stack%s_(stack%i_+iksize))
+  !   call c_f_pointer(cp, p2); p2 = a
+  !   cp = c_loc(stack%s_(stack%i_+iksize+rksize))
+  !   call c_f_pointer(cp, p2); p2 = b
+  !   call stack%incr(rksize, .false.)
+  ! end subroutine push_int_real_real
+
   subroutine push_real_array(stack, a)
     implicit none
-    class(adstack), intent(inout) :: stack
+    class(adstack), target, intent(inout) :: stack
     real(rk), intent(in) :: a(:)
-    stack%s_(stack%i_:(stack%i_+rksize*size(a)-1)) = transfer(a, 0_c_int8_t, rksize*size(a))
+    type(c_ptr) :: cp
+    real(rk), pointer :: p(:)
+    cp = c_loc(stack%s_(stack%i_))
+    call c_f_pointer(cp, p, shape=[size(a)]); p = a
     call stack%incr(rksize*size(a), .false.)
   end subroutine push_real_array
 
   subroutine push_int(stack, i)
     implicit none
-    class(adstack), intent(inout) :: stack
+    class(adstack), target, intent(inout) :: stack
     integer(ik), intent(in) :: i
-    stack%s_(stack%i_:(stack%i_+iksize-1)) = transfer(i, 0_c_int8_t, iksize)
+    type(c_ptr) :: cp
+    integer(ik), pointer :: p
+    cp = c_loc(stack%s_(stack%i_))
+    call c_f_pointer(cp, p); p = i
     call stack%incr(iksize, .false.)
   end subroutine push_int
 
   subroutine push_int_array(stack, a)
     implicit none
-    class(adstack), intent(inout) :: stack
+    class(adstack), target, intent(inout) :: stack
     integer(ik), intent(in) :: a(:)
-    stack%s_(stack%i_:(stack%i_+iksize*size(a)-1)) = transfer(a, 0_c_int8_t, iksize*size(a))
+    type(c_ptr) :: cp
+    integer(ik), pointer :: p(:)
+    cp = c_loc(stack%s_(stack%i_))
+    call c_f_pointer(cp, p, shape=[size(a)]); p = a
     call stack%incr(iksize*size(a), .false.)
   end subroutine push_int_array
 

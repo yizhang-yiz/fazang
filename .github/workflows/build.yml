@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        gcc: [11] # Version of GFortran we want to use.
+        gcc: [13] # Version of GFortran we want to use.
 
     steps:
     - name: Checkout code

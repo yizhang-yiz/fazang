@@ -12,11 +12,9 @@ function NAME/**/_vi (vi) result(v1); \
   contains; \
   subroutine mychain (this); \
     implicit none; \
-    type(VARITYPE), pointer :: this, a; \
-    integer(ik) :: i, j; \
-    i = this%i+visize; \
-    call core_adstack%pop(i, j); \
-    call recover(a, j); \
+    type(VARITYPE), pointer, intent(in) :: this; \
+    type(VARITYPE), pointer :: a; \
+    call recover_parent(this, a); \
     a%adj_ = a%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -30,18 +28,13 @@ function NAME/**/_vi_d(va, b) result(v1); \
   type(VARITYPE), pointer :: v1; \
   v1 = OP; \
   v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(va%i); \
-  call core_adstack%push(b); \
+  call core_adstack%push(va%i, b); \
   contains; \
   subroutine mychain (this); \
     implicit none; \
     type(VARITYPE), pointer :: this, va; \
     real(rk) :: b; \
-    integer(ik) :: i, j;\
-    i = this%i+visize; \
-    call core_adstack%pop(i, j); \
-    call core_adstack%pop(i, b); \
-    call recover(va, j); \
+    call recover_parent_real(this, va, b); \
     va%adj_ = va%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -54,18 +47,13 @@ function NAME/**/_d_vi(a, vb) result(v1); \
   type(VARITYPE), pointer :: v1; \
   v1 = OP; \
   v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(vb%i); \
-  call core_adstack%push(a); \
+  call core_adstack%push(vb%i, a); \
   contains; \
   subroutine mychain (this); \
     implicit none; \
     type(VARITYPE), pointer :: this, vb; \
     real(rk) :: a; \
-    integer(ik) :: i, j;\
-    i = this%i+visize; \
-    call core_adstack%pop(i, j); \
-    call core_adstack%pop(i, a); \
-    call recover(vb, j); \
+    call recover_parent_real(this, vb, a); \
     vb%adj_ = vb%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
@@ -77,18 +65,13 @@ function NAME/**/_vi_vi(va, vb) result(v1); \
   type(VARITYPE), pointer :: v1; \
   v1 = OP; \
   v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(va%i); \
-  call core_adstack%push(vb%i); \
+  call core_adstack%push([va%i, vb%i]); \
   contains; \
   subroutine mychain (this); \
     implicit none; \
-    type(VARITYPE), pointer :: this, va, vb; \
-    integer(ik) :: i, j;\
-    i = this%i+visize; \
-    call core_adstack%pop(i, j); \
-    call recover(va, j); \
-    call core_adstack%pop(i, j); \
-    call recover(vb, j); \
+    type(VARITYPE), pointer, intent(in) :: this; \
+    type(VARITYPE), pointer :: va, vb; \
+    call recover_parent2(this, va, vb); \
     va%adj_ = va%adj_ + this%adj_ * DYDA; \
     vb%adj_ = vb%adj_ + this%adj_ * DYDB; \
   end subroutine mychain; \
@@ -102,8 +85,7 @@ function NAME/**/_vi_d(va, b) result(v1); \
   type(VARITYPE), pointer :: v1; \
   v1 = OP; \
   v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(va%i); \
-  call core_adstack%push(b); \
+  call core_adstack%push([va%i, b]); \
   contains; \
   subroutine mychain (this); \
     implicit none; \
