@@ -46,7 +46,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install cmake
-      run: pip3 install ${{ env.PACKAGES }}
+      run: brew install ${{ env.PACKAGES }}
       env:
         PACKAGES: >-
           cmake==3.30.1

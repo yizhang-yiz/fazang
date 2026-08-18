@@ -6,7 +6,7 @@ impure elemental function NAME/**/_v(x) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \
-    v%p => NAME/**/_vi(x%p); \
+    v%i = NAME/**/_vi(x%i); \
   end function NAME/**/_v
 
 #define DEF_OP2( NAME ) \
@@ -15,20 +15,20 @@ impure elemental function NAME/**/_vd(x, b) result(v); \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%p => NAME/**/_vi_d(x%p, b); \
+    v%i = NAME/**/_vi_d(x%i, b); \
   end function NAME/**/_vd; \
 impure elemental function NAME/**/_dv(b, x) result(v); \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%p => NAME/**/_d_vi(b, x%p); \
+    v%i = NAME/**/_d_vi(b, x%i); \
   end function NAME/**/_dv; \
 impure elemental function NAME/**/_vv(x, y) result(v); \
     implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
-    v%p => NAME/**/_vi_vi(x%p, y%p); \
+    v%i = NAME/**/_vi_vi(x%i, y%i); \
   end function NAME/**/_vv;
 
   ! loglik function with two params
@@ -38,21 +38,21 @@ impure elemental function NAME/**/_vd(x, y, d) result(v); \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: y, d; \
     type(var) :: v; \
-    v%p => NAME/**/_vi_d_d(x%p, y, d); \
+    v%i = NAME/**/_vi_d_d(x%i, y, d); \
   end function; \
 impure elemental function NAME/**/_dv(x, y, d) result(v); \
     implicit none; \
     type(var), intent(in) :: y; \
     real(rk), intent(in) :: x, d; \
     type(var) :: v; \
-    v%p => NAME/**/_d_vi_d(x, y%p, d); \
+    v%i = NAME/**/_d_vi_d(x, y%i, d); \
   end function; \
 impure elemental function NAME/**/_vv(x, y, d) result(v); \
     implicit none; \
     type(var), intent(in) :: x, y; \
     real(rk), intent(in) :: d; \
     type(var) :: v; \
-    v%p => NAME/**/_vi_vi_d(x%p, y%p, d); \
+    v%i = NAME/**/_vi_vi_d(x%i, y%i, d); \
   end function
 
 #endif
@@ -62,11 +62,11 @@ module fz_var
   use fz_env
   use fz_vari
   use fz_vari_op
-  use fz_vari_prob
+  ! use fz_vari_prob
   implicit none
 
   type :: var
-     type(vari), pointer :: p => null() ! point to a vari in adstack
+     integer(ik) :: i ! point to a vari in adstack
   end type var
 
   interface assignment(=)
@@ -145,65 +145,65 @@ module fz_var
   ! vec op
   interface sum; module procedure sum_v; end interface
 
-  ! loglik
-  interface normal_lpdf
-     module procedure normal_lpdf_vd
-     module procedure normal_lpdf_dv
-     module procedure normal_lpdf_vv
-     module procedure normal_lpdf_d_d_d
-  end interface
+  ! ! loglik
+  ! interface normal_lpdf
+  !    module procedure normal_lpdf_vd
+  !    module procedure normal_lpdf_dv
+  !    module procedure normal_lpdf_vv
+  !    module procedure normal_lpdf_d_d_d
+  ! end interface
 
-  interface lognormal_lpdf
-     module procedure lognormal_lpdf_vd
-     module procedure lognormal_lpdf_dv
-     module procedure lognormal_lpdf_vv
-     module procedure lognormal_lpdf_d_d_d
-  end interface
+  ! interface lognormal_lpdf
+  !    module procedure lognormal_lpdf_vd
+  !    module procedure lognormal_lpdf_dv
+  !    module procedure lognormal_lpdf_vv
+  !    module procedure lognormal_lpdf_d_d_d
+  ! end interface
 
-  interface weibull_lpdf
-     module procedure weibull_lpdf_vd
-     module procedure weibull_lpdf_dv
-     module procedure weibull_lpdf_vv
-     module procedure weibull_lpdf_d_d_d
-  end interface
+  ! interface weibull_lpdf
+  !    module procedure weibull_lpdf_vd
+  !    module procedure weibull_lpdf_dv
+  !    module procedure weibull_lpdf_vv
+  !    module procedure weibull_lpdf_d_d_d
+  ! end interface
 
-  interface cauchy_lpdf
-     module procedure cauchy_lpdf_vd
-     module procedure cauchy_lpdf_dv
-     module procedure cauchy_lpdf_vv
-     module procedure cauchy_lpdf_d_d_d
-  end interface
+  ! interface cauchy_lpdf
+  !    module procedure cauchy_lpdf_vd
+  !    module procedure cauchy_lpdf_dv
+  !    module procedure cauchy_lpdf_vv
+  !    module procedure cauchy_lpdf_d_d_d
+  ! end interface
 
-  interface gumbel_lpdf
-     module procedure gumbel_lpdf_vd
-     module procedure gumbel_lpdf_dv
-     module procedure gumbel_lpdf_vv
-     module procedure gumbel_lpdf_d_d_d
-  end interface
+  ! interface gumbel_lpdf
+  !    module procedure gumbel_lpdf_vd
+  !    module procedure gumbel_lpdf_dv
+  !    module procedure gumbel_lpdf_vv
+  !    module procedure gumbel_lpdf_d_d_d
+  ! end interface
 
-  interface laplace_lpdf
-     module procedure laplace_lpdf_vd
-     module procedure laplace_lpdf_dv
-     module procedure laplace_lpdf_vv
-     module procedure laplace_lpdf_d_d_d
-  end interface laplace_lpdf
+  ! interface laplace_lpdf
+  !    module procedure laplace_lpdf_vd
+  !    module procedure laplace_lpdf_dv
+  !    module procedure laplace_lpdf_vv
+  !    module procedure laplace_lpdf_d_d_d
+  ! end interface laplace_lpdf
 
-  interface logistic_lpdf
-     module procedure logistic_lpdf_vd
-     module procedure logistic_lpdf_dv
-     module procedure logistic_lpdf_vv
-     module procedure logistic_lpdf_d_d_d
-  end interface
+  ! interface logistic_lpdf
+  !    module procedure logistic_lpdf_vd
+  !    module procedure logistic_lpdf_dv
+  !    module procedure logistic_lpdf_vv
+  !    module procedure logistic_lpdf_d_d_d
+  ! end interface
 
-  interface chi_square_lpdf
-     module procedure chi_square_lpdf_v
-     module procedure chi_square_lpdf_d_d
-  end interface
+  ! interface chi_square_lpdf
+  !    module procedure chi_square_lpdf_v
+  !    module procedure chi_square_lpdf_d_d
+  ! end interface
 
-  interface inv_chi_square_lpdf
-     module procedure inv_chi_square_lpdf_v
-     module procedure inv_chi_square_lpdf_d_d
-  end interface
+  ! interface inv_chi_square_lpdf
+  !    module procedure inv_chi_square_lpdf_v
+  !    module procedure inv_chi_square_lpdf_d_d
+  ! end interface
 
 contains
 
@@ -211,70 +211,64 @@ contains
     implicit none
     type(var), intent(out) :: this
     real(rk), intent(in) :: val
-    type(vari), pointer :: v
-    v = val
-    this%p => v
+    call new_vari(this%i, val)
   end subroutine new_var_val
 
   impure subroutine new_var_real32(this, val)
     implicit none
     type(var), intent(out) :: this
     real(real32), intent(in) :: val
-    type(vari), pointer :: v
-    v = val
-    this%p => v
+    call new_var_val(this, real(val, rk))
   end subroutine new_var_real32
 
   impure subroutine set_var(this, that)
     implicit none
     type(var), intent(out) :: this
     type(var), intent(in) :: that
-    this%p => that%p
+    this%i = that%i
   end subroutine set_var
 
 
   elemental integer(ik) function index(this)
     implicit none
     type(var), intent(in) :: this
-    index = this%p%i
+    index = this%i
   end function index
 
-  elemental real(rk) function val(v)
+  impure elemental real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
-    val = vi_val(v%p)
+    val = vi_val(v%i)
   end function val
 
-  elemental real(rk) function adj(v)
+  impure elemental real(rk) function adj(v)
     implicit none
     type(var), intent(in) :: v
-    adj = vi_adj(v%p)
+    adj = vi_adj(v%i)
   end function adj
 
   subroutine grad_of(v)
     implicit none
     type(var), intent(in) :: v
-    call chain(v%p)
+    call chain(v%i)
   end subroutine grad_of
 
   subroutine grad_all()
     implicit none
     type(vari), pointer :: p
-    call recover(p, core_adstack%j_)
-    call chain(p)
+    call chain(core_adstack%j_)
   end subroutine grad_all
 
   subroutine reset_adj_from(v)
     implicit none
     type(var), intent(in) :: v
-    call reset_chain(v%p)
+    call reset_chain(v%i)
   end subroutine reset_adj_from
 
   subroutine reset_all_adj()
     implicit none
     type(vari), pointer :: p
-    call recover(p, core_adstack%j_)
-    call reset_chain(p)
+    call reset_chain(core_adstack%j_)
   end subroutine reset_all_adj
 
   DEF_OP1(exp)
@@ -308,36 +302,34 @@ contains
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
-    integer(ik) :: i(size(x)), j
-    v%p = sum(val(x))
-    v%p%chain = c_funloc(chain_sum)
-    call core_adstack%push(size(x))
-    call core_adstack%push(index(x))
+    type(vari), pointer :: v1
+    call new_vari(v%i, v1, sum(val(x)), [size(x), index(x)])
+    v1%chain = c_funloc(chain_sum)
   end function sum_v
 
-  ! loglik
-  DEF_OP2D(normal_lpdf)
-  DEF_OP2D(lognormal_lpdf)
-  DEF_OP2D(weibull_lpdf)
-  DEF_OP2D(cauchy_lpdf)
-  DEF_OP2D(gumbel_lpdf)
-  DEF_OP2D(laplace_lpdf)
-  DEF_OP2D(logistic_lpdf)
+  ! ! loglik
+  ! DEF_OP2D(normal_lpdf)
+  ! DEF_OP2D(lognormal_lpdf)
+  ! DEF_OP2D(weibull_lpdf)
+  ! DEF_OP2D(cauchy_lpdf)
+  ! DEF_OP2D(gumbel_lpdf)
+  ! DEF_OP2D(laplace_lpdf)
+  ! DEF_OP2D(logistic_lpdf)
 
-  impure elemental function chi_square_lpdf_v(x, d) result(v)
-    implicit none;
-    type(var), intent(in) :: x
-    real(rk), intent(in) :: d
-    type(var) :: v
-    v%p => chi_square_lpdf_vi_d(x%p, d)
-  end function chi_square_lpdf_v
+  ! impure elemental function chi_square_lpdf_v(x, d) result(v)
+  !   implicit none;
+  !   type(var), intent(in) :: x
+  !   real(rk), intent(in) :: d
+  !   type(var) :: v
+  !   v%i = chi_square_lpdf_vi_d(x%p, d)
+  ! end function chi_square_lpdf_v
 
-  impure elemental function inv_chi_square_lpdf_v(x, d) result(v)
-    implicit none;
-    type(var), intent(in) :: x
-    real(rk), intent(in) :: d
-    type(var) :: v
-    v%p => inv_chi_square_lpdf_vi_d(x%p, d)
-  end function
+  ! impure elemental function inv_chi_square_lpdf_v(x, d) result(v)
+  !   implicit none;
+  !   type(var), intent(in) :: x
+  !   real(rk), intent(in) :: d
+  !   type(var) :: v
+  !   v%i = inv_chi_square_lpdf_vi_d(x%p, d)
+  ! end function
 
 end module fz_var

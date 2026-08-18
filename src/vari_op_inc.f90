@@ -3,87 +3,93 @@
 
 ! OP: use vi as vari arg
 #define DEF_OP1(VARITYPE, NAME, OP, DYDX) \
-function NAME/**/_vi (vi) result(v1); \
+function NAME/**/_vi (i) result(iout); \
   implicit none; \
+  integer(ik), intent(in) :: i; \
+  integer(ik) :: iout; \
+  integer(ik), pointer :: ip; \
   type(VARITYPE), pointer :: vi, v1; \
-  v1 = OP; \
+  call new_vari(iout, v1, i, vi); \
+  v1%val_ = OP; \
   v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(vi%i); \
   contains; \
-  subroutine mychain (this); \
+  subroutine mychain (ip, this); \
     implicit none; \
-    type(VARITYPE), pointer, intent(in) :: this; \
-    type(VARITYPE), pointer :: a; \
-    call recover_parent(this, a); \
+    integer(ik), intent(in) :: ip; \
+    type(VARITYPE), pointer :: this, a; \
+    call recover(ip, a); \
     a%adj_ = a%adj_ + this%adj_ * DYDX; \
-  end subroutine mychain; \
+  end subroutine; \
 end function
 
 ! OP = certain operation using (va%val_, vb%val_ , a, b ...)
 #define DEF_OP2_VD(VARITYPE, NAME, OP, DYDX) \
-function NAME/**/_vi_d(va, b) result(v1); \
+function NAME/**/_vi_d(ia, b) result(iout); \
   implicit none; \
-  type(VARITYPE), pointer, intent(in) :: va; \
+  integer(ik), intent(in) :: ia; \
   real(rk), intent(in) :: b; \
-  type(VARITYPE), pointer :: v1; \
-  v1 = OP; \
-  v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(va%i, b); \
+  integer(ik) :: iout; \
+  type(VARITYPE), pointer :: va, v1; \
+  call new_vari(iout, v1, ia, va, b); \
+  v1%val_ = OP; \
   contains; \
-  subroutine mychain (this); \
+  subroutine mychain (ip, this); \
     implicit none; \
+    integer(ik), intent(in) :: ip; \
     type(VARITYPE), pointer :: this, va; \
     real(rk) :: b; \
-    call recover_parent_real(this, va, b); \
+    call recover(ip, this, va, b); \
     va%adj_ = va%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
 
 #define DEF_OP2_DV(VARITYPE, NAME, OP, DYDX) \
-function NAME/**/_d_vi(a, vb) result(v1); \
+function NAME/**/_d_vi(a, ib) result(iout); \
   implicit none; \
-  type(VARITYPE), pointer, intent(in) :: vb; \
+  integer(ik), intent(in) :: ib; \
   real(rk), intent(in) :: a; \
-  type(VARITYPE), pointer :: v1; \
-  v1 = OP; \
-  v1%chain = c_funloc( mychain ); \
-  call core_adstack%push(vb%i, a); \
+  integer(ik) :: iout; \
+  type(VARITYPE), pointer :: vb, v1; \
+  call new_vari(iout, v1, ib, vb, a); \
+  v1%val_ = OP; \
   contains; \
-  subroutine mychain (this); \
+  subroutine mychain (ip, this); \
     implicit none; \
+    integer(ik), intent(in) :: ip; \
     type(VARITYPE), pointer :: this, vb; \
     real(rk) :: a; \
-    call recover_parent_real(this, vb, a); \
+    call recover(ip, this, vb, a); \
     vb%adj_ = vb%adj_ + this%adj_ * DYDX; \
   end subroutine mychain; \
 end function
 
 #define DEF_OP2_VV(VARITYPE, NAME, OP, DYDA, DYDB) \
-function NAME/**/_vi_vi(va, vb) result(v1); \
+function NAME/**/_vi_vi(ia, ib) result(iout); \
   implicit none; \
-  type(VARITYPE), pointer, intent(in) :: va, vb; \
-  type(VARITYPE), pointer :: v1; \
-  v1 = OP; \
-  v1%chain = c_funloc( mychain ); \
-  call core_adstack%push([va%i, vb%i]); \
+  integer(ik), intent(in) :: ia, ib; \
+  integer(ik) :: iout; \
+  type(VARITYPE), pointer :: va, vb, v1; \
+  call new_vari(iout, v1, ia, va, ib, vb); \
+  v1%val_ = OP; \
   contains; \
-  subroutine mychain (this); \
+  subroutine mychain (ip, this); \
     implicit none; \
-    type(VARITYPE), pointer, intent(in) :: this; \
-    type(VARITYPE), pointer :: va, vb; \
-    call recover_parent2(this, va, vb); \
+    integer(ik), intent(in) :: ip; \
+    type(VARITYPE), pointer :: this, va, vb; \
+    call recover(ip, this, va, vb); \
     va%adj_ = va%adj_ + this%adj_ * DYDA; \
     vb%adj_ = vb%adj_ + this%adj_ * DYDB; \
   end subroutine mychain; \
 end function
 
 #define DEF_OP2_VI(VARITYPE, NAME, OP, DYDX) \
-function NAME/**/_vi_d(va, b) result(v1); \
+function NAME/**/_vi_d(ia, b) result(iout); \
   implicit none; \
-  type(VARITYPE), pointer, intent(in) :: va; \
+  integer(ik), intent(in) :: ia; \
   integer(ik), intent(in) :: b; \
-  type(VARITYPE), pointer :: v1; \
-  v1 = OP; \
+  type(VARITYPE), pointer :: va, v1; \
+  call new_vari(iout, v1, ia, va, b); \
+  v1%val_ = OP; \
   v1%chain = c_funloc( mychain ); \
   call core_adstack%push([va%i, b]); \
   contains; \

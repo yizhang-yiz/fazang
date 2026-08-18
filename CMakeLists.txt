@@ -47,12 +47,13 @@ check_ipo_supported(
 
 set(fz_src
   src/env.f90
-  src/vari.f90 src/vari_op.f90 src/vari_prob.f90 src/var.f90
-  src/fvari.f90 src/fvari_op.f90 src/fvar.f90
-  src/eval.f90
-  src/relation.f90
-  src/vari_builder.f90
-  src/fazang.f90
+  src/vari.f90 src/vari_op.f90
+  src/var.f90
+  # src/fvari.f90 src/fvari_op.f90 src/fvar.f90
+  # src/eval.f90
+  # src/relation.f90
+  # src/vari_builder.f90
+  # src/fazang.f90
   )
 
 add_library(fz STATIC ${fz_src})
@@ -63,12 +64,12 @@ add_executable(ftest ftest.f90)
 target_link_libraries(ftest PUBLIC fz fcompiler_flags)
 target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
 
-add_executable(htest htest.f90)
-target_link_libraries(htest PUBLIC fz fcompiler_flags)
-target_include_directories(htest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
+# add_executable(htest htest.f90)
+# target_link_libraries(htest PUBLIC fz fcompiler_flags)
+# target_include_directories(htest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
 
 if (ipo_supported)
-  set_property(TARGET fz ftest htest
+  set_property(TARGET fz ftest
     PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 else()
   message(WARNING "Fortran IPO/LTO unavailable: ${ipo_error}")

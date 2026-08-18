@@ -72,16 +72,17 @@ contains
   DEF_OP2_DV(vari, pow, ((a) ** (vb%val_)), (a**(vb%val_)*log(a)) )
   DEF_OP2_VV(vari, pow, ((va%val_) ** (vb%val_)), ((vb%val_)*(va%val_)**(vb%val_-1)), ((va%val_)**(vb%val_)*log(va%val_)) )
 
-  subroutine chain_sum (this)
+  subroutine chain_sum (ip, this)
     implicit none
+    integer(ik), intent(in) :: ip
     type(vari), pointer, intent(in) :: this
     type(vari), pointer :: va
     integer(ik) :: i, j, k, n
-    k = this%i + visize
+    k = ip + visize
     call core_adstack%pop(k, n)
     do i = 1, n
        call core_adstack%pop(k, j)
-       call recover(va, j)
+       call recover(j, va)
        va%adj_ = va%adj_ + this%adj_
     enddo
   end subroutine chain_sum
