@@ -32,6 +32,7 @@ function NAME/**/_vi_d(ia, b) result(iout); \
   type(VARITYPE), pointer :: va, v1; \
   call new_vari(iout, v1, ia, va, b); \
   v1%val_ = OP; \
+  v1%chain = c_funloc( mychain ); \
   contains; \
   subroutine mychain (ip, this); \
     implicit none; \
@@ -52,6 +53,7 @@ function NAME/**/_d_vi(a, ib) result(iout); \
   type(VARITYPE), pointer :: vb, v1; \
   call new_vari(iout, v1, ib, vb, a); \
   v1%val_ = OP; \
+  v1%chain = c_funloc( mychain ); \
   contains; \
   subroutine mychain (ip, this); \
     implicit none; \
@@ -71,6 +73,7 @@ function NAME/**/_vi_vi(ia, ib) result(iout); \
   type(VARITYPE), pointer :: va, vb, v1; \
   call new_vari(iout, v1, ia, va, ib, vb); \
   v1%val_ = OP; \
+  v1%chain = c_funloc( mychain ); \
   contains; \
   subroutine mychain (ip, this); \
     implicit none; \
