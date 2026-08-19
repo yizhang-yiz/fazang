@@ -22,17 +22,16 @@ program fz_op2_test
   ASSERT_TOL( adj(a), -3.297442541400256293697d0, tol )
   ASSERT_TOL( adj(b), 2.d0, tol )
   ASSERT_TOL( adj(d), 0.d0, tol )
-  ASSERT( c%p%i + visize + iksize + iksize == core_adstack%i_ )
-  ASSERT( c%p%i  == core_adstack%j_ )
+  ASSERT( index(c) + visize + iksize + iksize == core_adstack%i_ )
 
   call reset_adj()
   d = a
-  ASSERT( a%p%i  == 1 )
-  ASSERT( d%p%i  == 1 )
+  ASSERT( index(a)  == 1 )
+  ASSERT( index(d)  == 1 )
   i = core_adstack%i_
   a = b/2.d0 + a
-  ASSERT( a%p%i  == i + visize + iksize + rksize )
-  ASSERT( a%p%i + visize + 2*iksize  == core_adstack%i_ )
+  ASSERT( index(a)  == i + visize + iksize + rksize )
+  ASSERT( index(a) + visize + 2*iksize  == core_adstack%i_ )
   call grad(a)
   ASSERT_TOL( adj(b), 0.5d0, tol )
   ASSERT_TOL( adj(c), 0.0d0, tol )

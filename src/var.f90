@@ -3,33 +3,37 @@
 
 #define DEF_OP1( NAME ) \
 impure elemental function NAME/**/_v(x) result(v); \
+    use NAME/**/_vi_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \
-    v%i = NAME/**/_vi(x%i); \
-  end function NAME/**/_v
+    v%i = new_vi(x%i); \
+  end function
 
 #define DEF_OP2( NAME ) \
 impure elemental function NAME/**/_vd(x, b) result(v); \
+    use NAME/**/_vi_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%i = NAME/**/_vi_d(x%i, b); \
-  end function NAME/**/_vd; \
+    v%i = new_vi_d(x%i, b); \
+  end function; \
 impure elemental function NAME/**/_dv(b, x) result(v); \
+    use NAME/**/_vi_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(var) :: v; \
-    v%i = NAME/**/_d_vi(b, x%i); \
-  end function NAME/**/_dv; \
+    v%i = new_d_vi(b, x%i); \
+  end function; \
 impure elemental function NAME/**/_vv(x, y) result(v); \
+    use NAME/**/_vi_mod; \
     implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
-    v%i = NAME/**/_vi_vi(x%i, y%i); \
-  end function NAME/**/_vv;
+    v%i = new_vi_vi(x%i, y%i); \
+  end function
 
   ! loglik function with two params
 #define DEF_OP2D( NAME ) \
@@ -61,7 +65,7 @@ module fz_var
   use, intrinsic :: iso_fortran_env
   use fz_env
   use fz_vari
-  use fz_vari_op
+  use fz_real_op
   ! use fz_vari_prob
   implicit none
 
@@ -228,11 +232,10 @@ contains
     this%i = that%i
   end subroutine set_var
 
-
   elemental integer(ik) function index(this)
     implicit none
     type(var), intent(in) :: this
-    index = this%i
+    index = core_adstack%id(this%i)
   end function index
 
   impure elemental real(rk) function val(v)
@@ -256,7 +259,7 @@ contains
   subroutine grad_all()
     implicit none
     type(vari), pointer :: p
-    call chain(core_adstack%j_)
+    call chain(core_adstack%nvari)
   end subroutine grad_all
 
   subroutine reset_adj_from(v)
@@ -268,7 +271,7 @@ contains
   subroutine reset_all_adj()
     implicit none
     type(vari), pointer :: p
-    call reset_chain(core_adstack%j_)
+    call reset_chain(core_adstack%nvari)
   end subroutine reset_all_adj
 
   DEF_OP1(exp)
@@ -299,12 +302,13 @@ contains
 
   ! vec op
   function sum_v(x) result(v)
+    use sum_vi_mod
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
     type(vari), pointer :: v1
     call new_vari(v%i, v1, sum(val(x)), [size(x), index(x)])
-    v1%chain = c_funloc(chain_sum)
+    chains(v%i)%c => vi_chain_instance
   end function sum_v
 
   ! ! loglik

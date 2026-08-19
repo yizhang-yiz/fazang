@@ -24,8 +24,8 @@ module fz_env
   type :: adstack
      integer(c_int8_t) :: s_(adsize) = 0      ! int8 serves as byte
      integer(ik) :: i_ = 1       ! current (vacant) location
-     integer(ik) :: j_ = 0       ! previous (just filled) location
      integer(ik) :: nest_level = 0, i_nest(max_nest_level)
+     integer(ik) :: id(adsize/8) = 0, nvari = 0
    contains
      procedure push_real
      procedure push_real_array
@@ -47,12 +47,10 @@ module fz_env
 contains
 
   ! move according to inserted object size
-  subroutine incr(stack, len, update_tail)
+  subroutine incr(stack, len)
     implicit none
     class(adstack), intent(inout) :: stack
     integer(ik), intent(in) :: len
-    logical, intent(in) :: update_tail
-    if (update_tail) stack%j_ = stack%i_
     if (stack%i_ + len > adsize) error stop
     stack%i_ = stack%i_ + len
   end subroutine incr
@@ -65,7 +63,7 @@ contains
     real(rk), pointer :: p
     cp = c_loc(stack%s_(stack%i_))
     call c_f_pointer(cp, p); p = a
-    call stack%incr(rksize, .false.)
+    call stack%incr(rksize)
   end subroutine push_real
 
   subroutine push_int_real(stack, i, a)
@@ -80,7 +78,7 @@ contains
     call c_f_pointer(cp, p1); p1 = i
     cp = c_loc(stack%s_(stack%i_+iksize))
     call c_f_pointer(cp, p2); p2 = a
-    call stack%incr(iksize+rksize, .false.)
+    call stack%incr(iksize+rksize)
   end subroutine push_int_real
 
   ! subroutine push_int_real_real(stack, i, a, b)
@@ -97,7 +95,7 @@ contains
   !   call c_f_pointer(cp, p2); p2 = a
   !   cp = c_loc(stack%s_(stack%i_+iksize+rksize))
   !   call c_f_pointer(cp, p2); p2 = b
-  !   call stack%incr(rksize, .false.)
+  !   call stack%incr(rksize)
   ! end subroutine push_int_real_real
 
   subroutine push_real_array(stack, a)
@@ -108,7 +106,7 @@ contains
     real(rk), pointer :: p(:)
     cp = c_loc(stack%s_(stack%i_))
     call c_f_pointer(cp, p, shape=[size(a)]); p = a
-    call stack%incr(rksize*size(a), .false.)
+    call stack%incr(rksize*size(a))
   end subroutine push_real_array
 
   subroutine push_int(stack, i)
@@ -119,7 +117,7 @@ contains
     integer(ik), pointer :: p
     cp = c_loc(stack%s_(stack%i_))
     call c_f_pointer(cp, p); p = i
-    call stack%incr(iksize, .false.)
+    call stack%incr(iksize)
   end subroutine push_int
 
   subroutine push_int_array(stack, a)
@@ -130,7 +128,7 @@ contains
     integer(ik), pointer :: p(:)
     cp = c_loc(stack%s_(stack%i_))
     call c_f_pointer(cp, p, shape=[size(a)]); p = a
-    call stack%incr(iksize*size(a), .false.)
+    call stack%incr(iksize*size(a))
   end subroutine push_int_array
 
   elemental subroutine pop_real(stack, i, res)
@@ -153,11 +151,10 @@ contains
   subroutine reboot(this)
     implicit none
     class(adstack), intent(inout) :: this
-     this%s_ = 0
      this%i_ = 1
-     this%j_ = 0
      this%nest_level = 0
      this%i_nest = 0
+     this%nvari = 0
    end subroutine reboot
 
    subroutine reboot_chain()

@@ -14,20 +14,19 @@ program fz_op1_test
 
   a = 0.5d0
   b = exp(a)
-  d = 0.5d0
+  d = 0.4d0
   c = sin(b)
   call grad(c)
   ASSERT_TOL( val(c), dsin(dexp(val(a))), tol )
   ASSERT_TOL( adj(a), -0.1283465274185981d0, tol )
-  ASSERT(a%p%i == 1)
-  ASSERT( (b%p%i - 1) == visize )
-  ASSERT( (d%p%i - 1) == visize + visize + iksize )
-  ASSERT( (c%p%i - 1) == visize + visize + iksize + visize )
-  ASSERT( core_adstack%j_ == c%p%i )
+  ASSERT(index(a) == 1)
+  ASSERT( (index(b) - 1) == visize )
+  ASSERT( (index(d) - 1) == visize + visize + iksize )
+  ASSERT( (index(c) - 1) == visize + visize + iksize + visize )
 
   d = log(cos(c))
-  ASSERT( d%p%i == c%p%i + visize + iksize + visize + iksize )
-  ASSERT( core_adstack%i_ == d%p%i + visize + iksize )
+  ASSERT( index(d) == index(c) + visize + iksize + visize + iksize )
+  ASSERT( core_adstack%i_ == index(d) + visize + iksize )
   call reset_adj()
   ASSERT_TOL( adj(d), 0.d0, tol )
   ASSERT_TOL( adj(c), 0.d0, tol )

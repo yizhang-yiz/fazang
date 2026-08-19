@@ -1,38 +1,15 @@
 #include "vari_op_inc.f90"
 
-module fz_vari_op
-  use, intrinsic :: iso_fortran_env
-  use, intrinsic :: iso_c_binding
+module fz_real_op
   use fz_env
   use fz_vari
-
-  implicit none
-
 contains
-
-  DEF_OP1(vari, exp, dexp(vi%val_), (this%val_))
-  DEF_OP1(vari, sin, dsin(vi%val_), (cos(a%val_)))
-  DEF_OP1(vari, cos, dcos(vi%val_), (-sin(a%val_)))
-  DEF_OP1(vari, tan, dtan(vi%val_), (1.d0/(cos(a%val_)*cos(a%val_))))
-  DEF_OP1(vari, asin, dasin(vi%val_), (1.d0/sqrt(1.d0-a%val_*a%val_)))
-  DEF_OP1(vari, acos, dacos(vi%val_), (-1.d0/sqrt(1.d0-a%val_*a%val_)))
-  DEF_OP1(vari, atan, datan(vi%val_), (1.d0/(1.d0+a%val_*a%val_)))
-  DEF_OP1(vari, log, dlog(vi%val_), (1.d0/a%val_))
-  DEF_OP1(vari, log10, dlog10(vi%val_), (1.d0/(a%val_*dlog(10.d0))))
-  DEF_OP1(vari, sqrt, dsqrt(vi%val_), (0.5d0/dsqrt(a%val_)))
-  DEF_OP1(vari, neg, (-vi%val_), (-1.d0))
-  DEF_OP1(vari, pos, (vi%val_), (1.d0))
-  DEF_OP1(vari, sinh, dsinh(vi%val_), (dcosh(a%val_)))
-  DEF_OP1(vari, cosh, dcosh(vi%val_), (dsinh(a%val_)))
-  DEF_OP1(vari, tanh, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
-  DEF_OP1(vari, square, (vi%val_)**2, (2.0d0*a%val_))
 
   elemental real(rk) function logit_d(d)
     implicit none
     real(rk), intent(in) :: d
     logit_d = log(d / (1.d0 - d))
   end function logit_d
-  DEF_OP1(vari, logit, logit_d(vi%val_), (1.d0 / (a%val_ - a%val_ * a%val_)) )
 
   elemental function inv_logit_d(d) result(s)
     use fz_env, only : log_eps
@@ -50,41 +27,62 @@ contains
        s = 1.d0/(1.d0 + exp(-d))
     endif
   end function inv_logit_d
-  DEF_OP1(vari, inv_logit, inv_logit_d(vi%val_), (this%val_ * (1.d0 - this%val_)) )
+end module fz_real_op
 
-  DEF_OP2_VD(vari, add, (va%val_ + b), (1.d0))
-  DEF_OP2_DV(vari, add, (vb%val_ + a), (1.d0))
-  DEF_OP2_VV(vari, add, (vb%val_ + va%val_), (1.d0), (1.d0))
+module sum_vi_mod
+  use, intrinsic :: iso_fortran_env
+  use, intrinsic :: iso_c_binding
+  use fz_env
+  use fz_vari
 
-  DEF_OP2_VD(vari, sub, (va%val_ - b), (1.d0))
-  DEF_OP2_DV(vari, sub, (a - vb%val_), (-1.d0))
-  DEF_OP2_VV(vari, sub, (va%val_ - vb%val_), (1.d0), (-1.d0))
+  implicit none
 
-  DEF_OP2_VD(vari, mul, (va%val_ * b), (b))
-  DEF_OP2_DV(vari, mul, (a * vb%val_), (a))
-  DEF_OP2_VV(vari, mul, (va%val_ * vb%val_), (vb%val_), (va%val_))
+  type, extends(chain_base) :: vi_chain
+   contains
+     procedure, nopass :: chain => chain_sum
+  end type vi_chain
+  type( vi_chain ), target :: vi_chain_instance
+contains
 
-  DEF_OP2_VD(vari, div, (va%val_/b), (1.d0/b))
-  DEF_OP2_DV(vari, div, (a/vb%val_), (-this%val_/vb%val_))
-  DEF_OP2_VV(vari, div, (va%val_/vb%val_), (1.d0/vb%val_), (-this%val_/vb%val_))
-
-  DEF_OP2_VD(vari, pow, ((va%val_) ** (b)), (b*(va%val_)**(b-1)))
-  DEF_OP2_DV(vari, pow, ((a) ** (vb%val_)), (a**(vb%val_)*log(a)) )
-  DEF_OP2_VV(vari, pow, ((va%val_) ** (vb%val_)), ((vb%val_)*(va%val_)**(vb%val_-1)), ((va%val_)**(vb%val_)*log(va%val_)) )
-
-  subroutine chain_sum (ip, this)
+  subroutine chain_sum (ip)
     implicit none
     integer(ik), intent(in) :: ip
-    type(vari), pointer, intent(in) :: this
-    type(vari), pointer :: va
-    integer(ik) :: i, j, k, n
-    k = ip + visize
-    call core_adstack%pop(k, n)
+    type(vari), pointer :: va, this
+    integer(ik) :: i
+    integer(ik), pointer :: n
+    integer(ik), pointer :: p(:)
+    call recover(ip, this)
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(ip)+visize)), n)
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(ip)+visize+iksize)), p, [n])
     do i = 1, n
-       call core_adstack%pop(k, j)
-       call recover(j, va)
+       call c_f_pointer(c_loc(core_adstack%s_(p(i))), va)
        va%adj_ = va%adj_ + this%adj_
     enddo
   end subroutine chain_sum
 
-end module fz_vari_op
+end module sum_vi_mod
+
+DEF_VARI1_MOD(vari, exp, dexp(vi%val_), (this%val_))
+DEF_VARI1_MOD(vari, sin, dsin(vi%val_), (cos(a%val_)))
+DEF_VARI1_MOD(vari, cos, dcos(vi%val_), (-sin(a%val_)))
+DEF_VARI1_MOD(vari, tan, dtan(vi%val_), (1.d0/(cos(a%val_)*cos(a%val_))))
+DEF_VARI1_MOD(vari, asin, dasin(vi%val_), (1.d0/sqrt(1.d0-a%val_*a%val_)))
+DEF_VARI1_MOD(vari, acos, dacos(vi%val_), (-1.d0/sqrt(1.d0-a%val_*a%val_)))
+DEF_VARI1_MOD(vari, atan, datan(vi%val_), (1.d0/(1.d0+a%val_*a%val_)))
+DEF_VARI1_MOD(vari, log, dlog(vi%val_), (1.d0/a%val_))
+DEF_VARI1_MOD(vari, log10, dlog10(vi%val_), (1.d0/(a%val_*dlog(10.d0))))
+DEF_VARI1_MOD(vari, sqrt, dsqrt(vi%val_), (0.5d0/dsqrt(a%val_)))
+DEF_VARI1_MOD(vari, neg, (-vi%val_), (-1.d0))
+DEF_VARI1_MOD(vari, pos, (vi%val_), (1.d0))
+DEF_VARI1_MOD(vari, sinh, dsinh(vi%val_), (dcosh(a%val_)))
+DEF_VARI1_MOD(vari, cosh, dcosh(vi%val_), (dsinh(a%val_)))
+DEF_VARI1_MOD(vari, tanh, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
+DEF_VARI1_MOD(vari, square, (vi%val_)**2, (2.0d0*a%val_))
+DEF_VARI1_MOD(vari, logit, logit_d(vi%val_), (1.d0 / (a%val_ - a%val_ * a%val_)) )
+DEF_VARI1_MOD(vari, inv_logit, inv_logit_d(vi%val_), (this%val_ * (1.d0 - this%val_)) )
+
+DEF_VARI2_MOD(vari, add, (vi_val(a) + vi_val(b)), (1.d0), (1.d0))
+DEF_VARI2_MOD(vari, sub, (vi_val(a) - vi_val(b)), (1.d0), (-1.d0))
+DEF_VARI2_MOD(vari, mul, (vi_val(a) * vi_val(b)), (vi_val(b)), (vi_val(a)))
+DEF_VARI2_MOD(vari, div, (vi_val(a)/vi_val(b)), (1.d0/vi_val(b)), (-this%val_/vi_val(b)))
+DEF_VARI2_MOD(vari, pow, ((vi_val(a)) ** (vi_val(b))), ((vi_val(b))*(vi_val(a))**(vi_val(b)-1)), ((vi_val(a))**(vi_val(b))*log(vi_val(a))) )
