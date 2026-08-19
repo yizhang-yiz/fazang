@@ -8,7 +8,45 @@ module fz_vari
      real(rk) :: adj_ = 0d0
   end type vari
 
+  type, bind(c) :: v_vari
+     real(rk) :: val_
+     real(rk) :: adj_ = 0d0
+     integer(ik) :: ia = 0
+  end type v_vari
+
+  type, bind(c) :: vd_vari
+     real(rk) :: val_
+     real(rk) :: adj_ = 0d0
+     integer(ik) :: ia = 0
+     real(rk) :: b = 0.d0
+  end type vd_vari
+
+  type, bind(c) :: vv_vari
+     real(rk) :: val_
+     real(rk) :: adj_ = 0d0
+     integer(ik) :: ia = 0, ib = 0
+  end type vv_vari
+
+  type, bind(c) :: vdd_vari
+     real(rk) :: val_
+     real(rk) :: adj_ = 0d0
+     integer(ik) :: ia = 0
+     real(rk) :: b = 0, c = 0
+  end type vdd_vari
+
+  type, bind(c) :: vvd_vari
+     real(rk) :: val_
+     real(rk) :: adj_ = 0d0
+     integer(ik) :: ia = 0, ib = 0
+     real(rk) :: c = 0
+  end type vvd_vari
+
   integer(ik), parameter :: visize = storage_size(vari(0.d0))/storage_size(0_c_int8_t)
+  integer(ik), parameter :: v_visize = storage_size(v_vari(0.d0))/storage_size(0_c_int8_t)
+  integer(ik), parameter :: vd_visize = storage_size(vd_vari(0.d0))/storage_size(0_c_int8_t)
+  integer(ik), parameter :: vv_visize = storage_size(vv_vari(0.d0))/storage_size(0_c_int8_t)
+  integer(ik), parameter :: vdd_visize = storage_size(vdd_vari(0.d0))/storage_size(0_c_int8_t)
+  integer(ik), parameter :: vvd_visize = storage_size(vvd_vari(0.d0))/storage_size(0_c_int8_t)
 
   type :: chain_base
    contains
@@ -16,20 +54,23 @@ module fz_vari
   end type chain_base
   type(chain_base), target :: chain_base_instance
 
-  type :: chain_wrapper
+  ! wari (wrapper of vari) has two components: storage & chain
+  type :: wari
+     integer(ik) :: i
      class(chain_base), pointer :: c => null()
   end type
 
-  type(chain_wrapper) :: chains(adsize/8)
+  type(wari) :: chains(adsize/8)
 
+  ! "new" happens var creation, the id's are chains array loc
   interface new_vari
      module procedure new_vari_val
-     module procedure new_vari_real32
-     module procedure new_vari_int
-     module procedure new_vari_int_int
-     module procedure new_vari_int2
-     module procedure new_vari_int_real
-     module procedure new_vari_ivec
+     module procedure new_v_vari
+     module procedure new_vd_vari
+     module procedure new_vv_vari
+     module procedure new_vec_vari
+     module procedure new_vdd_vari
+     module procedure new_vvd_vari
   end interface new_vari
 
   interface vi_val
@@ -43,11 +84,15 @@ module fz_vari
      module procedure vari_adj_at
   end interface vi_adj
 
+  ! recover happens during chaining, the id's are internal storage loc
   interface recover
      module procedure recover_vari
-     module procedure recover_parent
-     module procedure recover_parent2
-     module procedure recover_parent_real
+     module procedure recover_v_vari
+     module procedure recover_vd_vari
+     module procedure recover_vv_vari
+     module procedure recover_vi_vari
+     module procedure recover_vdd_vari
+     module procedure recover_vvd_vari
   end interface recover
 
   abstract interface
@@ -60,60 +105,79 @@ module fz_vari
 
 contains
 
-  subroutine recover_vari(i, p)
+  subroutine recover_vari(ip, p)
     implicit none
     type(vari), pointer, intent(out) :: p
-    integer(ik), intent(in) :: i
-    p => null()
-    if (i > 0) call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(i))), p)
+    integer(ik), intent(in) :: ip
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
   end subroutine recover_vari
 
-  subroutine recover_parent(ip, p, p1)
+  subroutine recover_v_vari(ip, p, p1)
     implicit none
     integer(ik), intent(in) :: ip
-    type(vari), pointer, intent(out) :: p, p1
-    integer(ik), pointer :: i
-    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(ip))), p)
-    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(ip) + visize)), i)
-    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%id(i))), p1)
-  end subroutine recover_parent
+    type(v_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+  end subroutine recover_v_vari
 
-  subroutine recover_parent2(ip, p, p1, p2)
+  subroutine recover_vv_vari(ip, p, p1, p2)
     implicit none
     integer(ik), intent(in) :: ip
-    type(vari), pointer, intent(out) :: p, p1, p2
-    integer(ik), pointer :: i
-    type(c_ptr) :: cp
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip)))
-    call c_f_pointer(cp, p)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip) + visize))
-    call c_f_pointer(cp, i)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, p1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip) + visize + iksize))
-    call c_f_pointer(cp, i)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, p2)
-  end subroutine recover_parent2
+    type(vv_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1, p2
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ib)), p2)
+  end subroutine recover_vv_vari
 
-  subroutine recover_parent_real(ip, p, p1, b)
+  subroutine recover_vdd_vari(ip, p, p1, b, c)
     implicit none
     integer(ik), intent(in) :: ip
-    type(vari), pointer, intent(out) :: p, p1
+    type(vdd_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1
+    real(rk), intent(out) :: b, c
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+    b = p%b; c = p%c
+  end subroutine recover_vdd_vari
+
+  subroutine recover_vvd_vari(ip, p, p1, p2, c)
+    implicit none
+    integer(ik), intent(in) :: ip
+    type(vvd_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1, p2
+    real(rk), intent(out) :: c
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ib)), p2)
+    c = p%c
+  end subroutine recover_vvd_vari
+
+  subroutine recover_vd_vari(ip, p, p1, b)
+    implicit none
+    integer(ik), intent(in) :: ip
+    type(vd_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1
+    real(rk), pointer :: rp
     real(rk), intent(out) :: b
-    integer(ik), pointer :: i
-    real(rk), pointer :: pb
-    type(c_ptr) :: cp
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip)))
-    call c_f_pointer(cp, p)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip) + visize))
-    call c_f_pointer(cp, i)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, p1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ip)+visize+iksize))
-    call c_f_pointer(cp, pb)
-    b = pb
-  end subroutine recover_parent_real
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p); b = p%b
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+  end subroutine recover_vd_vari
+
+  subroutine recover_vi_vari(ip, p, p1, n)
+    implicit none
+    integer(ik), intent(in) :: ip
+    type(v_vari), pointer, intent(out) :: p
+    type(vari), pointer, intent(out) :: p1
+    real(rk), pointer :: rp
+    integer(ik), intent(out) :: n
+    integer(ik), pointer :: np
+    call c_f_pointer(c_loc(core_adstack%s_(ip)), p)
+    call c_f_pointer(c_loc(core_adstack%s_(p%ia)), p1)
+    call c_f_pointer(c_loc(core_adstack%s_(ip + v_visize)), np)
+    n = np
+  end subroutine recover_vi_vari
 
   impure elemental real(rk) function vari_val_at(ip)
     implicit none
@@ -149,125 +213,127 @@ contains
     vari_adj = vi%adj_
   end function vari_adj
 
-  ! move according to inserted object size
-  subroutine add_vari(id, p)
-    implicit none
-    integer(ik), intent(out) :: id
-    type(vari), pointer, intent(out) :: p
-    type(c_ptr) :: cp
-    core_adstack%nvari = core_adstack%nvari + 1
-    core_adstack%id(core_adstack%nvari) = core_adstack%i_
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, p)
-    id = core_adstack%nvari
-    core_adstack%i_ = core_adstack%i_ + visize
-  end subroutine add_vari
-
   subroutine new_vari_val(this, val)
     implicit none
     integer(ik), intent(out) :: this
     type(vari), pointer :: vp
     real(rk), intent(in) :: val
-    call add_vari(this, vp)
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
     vp%val_ = val
-    chains(this)%c => chain_base_instance
   end subroutine new_vari_val
 
-  subroutine new_vari_int(this, v1, i, vi)
+  subroutine new_v_vari(this, val, i)
     implicit none
     integer(ik), intent(out) :: this
     integer(ik), intent(in) :: i
-    type(vari), pointer, intent(out) :: v1, vi
-    integer(ik), pointer :: ip
-    type(c_ptr) :: cp
-    call add_vari(this, v1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, vi)
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = i
-    core_adstack%i_ = core_adstack%i_ + iksize
-  end subroutine new_vari_int
+    real(rk), intent(in) :: val
+    type(v_vari), pointer :: vp
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + v_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i
+  end subroutine new_v_vari
 
-  subroutine new_vari_ivec(this, v1, val, vec)
+  subroutine new_vd_vari(this, val, i, b)
     implicit none
     integer(ik), intent(out) :: this
-    integer(ik), target, intent(in) :: vec(:)
+    integer(ik), intent(in) :: i
     real(rk), intent(in) :: val
-    type(vari), pointer, intent(out) :: v1
-    integer(ik), pointer :: ip, ipv(:)
-    type(c_ptr) :: cp
-    call add_vari(this, v1)
-    v1%val_ = val
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ipv, [(size(vec))])
-    ipv = vec
-    core_adstack%i_ = core_adstack%i_ + iksize*size(vec)
-  end subroutine new_vari_ivec
+    real(rk), intent(in) :: b
+    type(vd_vari), pointer :: vp
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + vd_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i; vp%b = b
+  end subroutine new_vd_vari
 
-  subroutine new_vari_int_int(this, v1, i, vi, j)
+  subroutine new_vi_vari(this, val, i, n)
+    implicit none
+    integer(ik), intent(out) :: this
+    integer(ik), intent(in) :: i, n
+    real(rk), intent(in) :: val
+    type(v_vari), pointer :: vp
+    integer(ik), pointer :: ip
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + v_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ip)
+    ip = n
+    core_adstack%i_ = core_adstack%i_ + iksize
+  end subroutine new_vi_vari
+
+  subroutine new_vv_vari(this, val, i, j)
     implicit none
     integer(ik), intent(out) :: this
     integer(ik), intent(in) :: i, j
-    type(vari), pointer, intent(out) :: v1, vi
-    integer(ik), pointer :: ip
-    type(c_ptr) :: cp
-    call add_vari(this, v1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, vi)
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = i
-    core_adstack%i_ = core_adstack%i_ + iksize
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = j
-    core_adstack%i_ = core_adstack%i_ + iksize
-  end subroutine new_vari_int_int
+    real(rk), intent(in) :: val
+    type(vv_vari), pointer :: vp
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + vv_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i; vp%ib = chains(j)%i
+  end subroutine new_vv_vari
 
-  subroutine new_vari_int_real(this, v1, i, vi, b)
+  subroutine new_vdd_vari(this, val, i, b, c)
     implicit none
     integer(ik), intent(out) :: this
     integer(ik), intent(in) :: i
-    type(vari), pointer, intent(out) :: v1, vi
-    integer(ik), pointer :: ip
-    real(rk), intent(in) :: b
-    real(rk), pointer :: rp
-    type(c_ptr) :: cp
-    call add_vari(this, v1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(i)))
-    call c_f_pointer(cp, vi)
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = i
-    core_adstack%i_ = core_adstack%i_ + iksize
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, rp)
-    rp = b
-    core_adstack%i_ = core_adstack%i_ + rksize
-  end subroutine new_vari_int_real
+    real(rk), intent(in) :: val
+    type(vdd_vari), pointer :: vp
+    real(rk), intent(in) :: b, c
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + vdd_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i; vp%b = b; vp%c = c
+  end subroutine new_vdd_vari
 
-  subroutine new_vari_int2(this, v1, ia, va, ib, vb)
+  subroutine new_vvd_vari(this, val, i, j, c)
     implicit none
     integer(ik), intent(out) :: this
-    integer(ik), intent(in) :: ia, ib
-    type(vari), pointer, intent(out) :: v1, va, vb
-    integer(ik), pointer :: ip
-    type(c_ptr) :: cp
-    call add_vari(this, v1)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ia)))
-    call c_f_pointer(cp, va)
-    cp = c_loc(core_adstack%s_(core_adstack%id(ib)))
-    call c_f_pointer(cp, vb)
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = ia
-    core_adstack%i_ = core_adstack%i_ + iksize
-    cp = c_loc(core_adstack%s_(core_adstack%i_))
-    call c_f_pointer(cp, ip)
-    ip = ib
-    core_adstack%i_ = core_adstack%i_ + iksize
-  end subroutine new_vari_int2
+    integer(ik), intent(in) :: i, j
+    real(rk), intent(in) :: val
+    type(vvd_vari), pointer :: vp
+    real(rk), intent(in) :: c
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + vvd_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = chains(i)%i; vp%ib = chains(j)%i; vp%c = c
+  end subroutine new_vvd_vari
+
+  subroutine new_vec_vari(this, val, vec)
+    implicit none
+    integer(ik), intent(out) :: this
+    integer(ik), target, intent(in) :: vec(:)
+    type(v_vari), pointer :: vp
+    real(rk), intent(in) :: val
+    integer(ik), pointer :: ipv(:)
+    core_adstack%nvari = core_adstack%nvari + 1
+    this = core_adstack%nvari
+    chains(this)%i = core_adstack%i_
+    core_adstack%i_ = core_adstack%i_ + v_visize
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp%val_ = val; vp%ia = size(vec)
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(size(vec))])
+    ipv = vec
+    core_adstack%i_ = core_adstack%i_ + iksize*size(vec)
+  end subroutine new_vec_vari
 
   subroutine new_vari_real32(this, val)
     implicit none
@@ -286,10 +352,9 @@ contains
     implicit none
     integer(ik), intent(in) :: ip
     type(vari), pointer :: p1
-    integer(ik) :: i
-    call recover(i, p1)
-    do i = ip, 1, -1
-       call recover(i, p1)
+    integer(ik) :: j
+    do j = ip, 1, -1
+       call recover(chains(j)%i, p1)
        p1%adj_ = 0.d0
     enddo
   end subroutine reset_chain
@@ -298,12 +363,11 @@ contains
     implicit none
     integer(ik), intent(in) :: ip
     type(vari), pointer :: p1
-    procedure(chain_op), pointer :: p1_chain
-    integer(ik) :: i
-    call recover(ip, p1)
+    integer(ik) :: j
+    call recover(chains(ip)%i, p1)
     p1%adj_ = 1.0d0
-    do i = ip, 1, -1
-       call chains(i)%c%chain(i)
+    do j = ip, 1, -1
+       call chains(j)%c%chain(chains(j)%i)
     enddo
   end subroutine chain
 

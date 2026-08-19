@@ -11,26 +11,8 @@ module fz_vari_prob
 contains
 
 DEF_OP2_VD(vari, exponential_lpdf, log(va%val_) - va%val_*b, (1.0d0/va%val_ - b))
-DEF_OP2_VI(vari, bernoulli_lpmf, b*log(va%val_) + (1_ik-b)*log(1.0d0-va%val_), b/va%val_ - (1_ik-b)/(1.0d0-va%val_))
 
 ! normal
-elemental function normal_lpdf_d_d_d(mu, sigma, y) result(loglik)
-  implicit none
-  real(rk), intent(in) :: mu, sigma, y
-  real(rk) :: z, loglik
-  z = (y - mu) / sigma
-  loglik = -0.5d0 * log(2.0d0 * pi) - log(sigma) - 0.5d0 * z * z
-end function normal_lpdf_d_d_d
-elemental function normal_dsigma(mu, sigma, y) result(d)
-  implicit none
-  real(rk), intent(in) :: mu, sigma, y
-  real(rk) :: z, d
-  z = (y - mu) / sigma
-  d = -1.0d0 / sigma + z * z / sigma
-end function normal_dsigma
-DEF_OP3_VDD(vari, normal_lpdf, normal_lpdf_d_d_d(va%val_, b, c), ((c - va%val_) / (b * b)))
-DEF_OP3_DVD(vari, normal_lpdf, normal_lpdf_d_d_d(a, vb%val_, c), normal_dsigma(a, vb%val_, c))
-DEF_OP3_VVD(vari, normal_lpdf, normal_lpdf_d_d_d(va%val_, vb%val_, c), ((c - va%val_) / (vb%val_ * vb%val_)), normal_dsigma(va%val_, vb%val_, c))
 
 ! lognormal
 elemental function lognormal_lpdf_d_d_d(mu, sigma, y) result(loglik)

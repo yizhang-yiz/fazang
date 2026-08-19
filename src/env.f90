@@ -25,7 +25,7 @@ module fz_env
      integer(c_int8_t) :: s_(adsize) = 0      ! int8 serves as byte
      integer(ik) :: i_ = 1       ! current (vacant) location
      integer(ik) :: nest_level = 0, i_nest(max_nest_level)
-     integer(ik) :: id(adsize/8) = 0, nvari = 0
+     integer(ik) :: nvari = 0
    contains
      procedure push_real
      procedure push_real_array

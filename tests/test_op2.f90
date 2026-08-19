@@ -30,8 +30,8 @@ program fz_op2_test
   ASSERT( index(d)  == 1 )
   i = core_adstack%i_
   a = b/2.d0 + a
-  ASSERT( index(a)  == i + visize + iksize + rksize )
-  ASSERT( index(a) + visize + 2*iksize  == core_adstack%i_ )
+  ASSERT( index(a)  == i + vd_visize )
+  ASSERT( index(a) + vv_visize  == core_adstack%i_ )
   call grad(a)
   ASSERT_TOL( adj(b), 0.5d0, tol )
   ASSERT_TOL( adj(c), 0.0d0, tol )

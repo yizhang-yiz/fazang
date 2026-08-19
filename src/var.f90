@@ -235,19 +235,19 @@ contains
   elemental integer(ik) function index(this)
     implicit none
     type(var), intent(in) :: this
-    index = core_adstack%id(this%i)
+    index = chains(this%i)%i
   end function index
 
   impure elemental real(rk) function val(v)
     implicit none
     type(var), intent(in) :: v
-    val = vi_val(v%i)
+    val = vi_val(chains(v%i)%i)
   end function val
 
   impure elemental real(rk) function adj(v)
     implicit none
     type(var), intent(in) :: v
-    adj = vi_adj(v%i)
+    adj = vi_adj(chains(v%i)%i)
   end function adj
 
   subroutine grad_of(v)
@@ -306,8 +306,7 @@ contains
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
-    type(vari), pointer :: v1
-    call new_vari(v%i, v1, sum(val(x)), [size(x), index(x)])
+    call new_vari(v%i, sum(val(x)), index(x))
     chains(v%i)%c => vi_chain_instance
   end function sum_v
 
