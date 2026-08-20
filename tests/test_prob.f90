@@ -365,7 +365,8 @@ contains
 end module test_lpdf
 
 program test
-  use fazang
+  use fz_env
+  use fz_var
   use test_lpdf
   implicit none
 
