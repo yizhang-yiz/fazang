@@ -1,6 +1,6 @@
 #include "vari_op_inc.f90"
 
-module fz_real_op
+module fz_prim_op
   use fz_env
   use fz_vari
 contains
@@ -102,7 +102,201 @@ elemental function cauchy_dscale(loc, scale, y) result(d)
   r = y - loc
   d = -1.0d0 / scale + 2.0d0 * r * r / (scale * (scale * scale + r * r))
 end function cauchy_dscale
-end module fz_real_op
+
+elemental function gumbel_lpdf_d_d_d(loc, scale, y) result(loglik)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: z, ez, loglik
+  z = (y - loc) / scale
+  ez = exp(-z)
+  loglik = -log(scale) - z - ez
+end function gumbel_lpdf_d_d_d
+elemental function gumbel_dloc(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: z, ez, d
+  z = (y - loc) / scale
+  ez = exp(-z)
+  d = (1.0d0 - ez) / scale
+end function gumbel_dloc
+elemental function gumbel_dscale(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: z, ez, d
+  z = (y - loc) / scale
+  ez = exp(-z)
+  d = (-1.0d0 + z - z * ez) / scale
+end function gumbel_dscale
+
+elemental function logistic_lpdf_d_d_d(loc, scale, y) result(loglik)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: z, ez, t, loglik
+  z = (y - loc) / scale
+  ez = exp(-z)
+  t = tanh(0.5d0 * z)
+  loglik = -log(scale) - z - 2.0d0 * log(1.0d0 + ez)
+end function logistic_lpdf_d_d_d
+elemental function logistic_dloc(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: z, ez, t, d
+  z = (y - loc) / scale
+  ez = exp(-z)
+  t = tanh(0.5d0 * z)
+  d = t/scale
+end function
+elemental function logistic_dscale(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(8) :: z, ez, t, d
+  z = (y - loc) / scale
+  ez = exp(-z)
+  t = tanh(0.5d0 * z)
+  d = (-1.0d0 + z * t) / scale
+end function logistic_dscale
+
+elemental function laplace_lpdf_d_d_d(loc, scale, y) result(loglik)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: r, ar, loglik
+  r = y - loc; ar = abs(r)
+  loglik = -log(2.0d0 * scale) - ar / scale
+end function laplace_lpdf_d_d_d
+elemental function laplace_dloc(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: r, ar, d
+  r = y - loc
+  ar = abs(r)
+  d = sign(1.0d0, r) / scale
+end function laplace_dloc
+elemental function laplace_dscale(loc, scale, y) result(d)
+  implicit none
+  real(rk), intent(in) :: loc, scale, y
+  real(rk) :: r, ar, d
+  r = y - loc
+  ar = abs(r)
+  d = -1.0d0 / scale + ar / (scale * scale)
+end function laplace_dscale
+
+pure real(rk) function digamma ( x )
+
+!*****************************************************************************80
+!
+!! DIGAMMA calculates DIGAMMA ( X ) = d ( LOG ( GAMMA ( X ) ) ) / dX
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    20 March 2016
+!
+!  Author:
+!
+!    Original FORTRAN77 version by Jose Bernardo.
+!    FORTRAN90 version by John Burkardt.
+!
+!  Reference:
+!
+!    Jose Bernardo,
+!    Algorithm AS 103:
+!    Psi ( Digamma ) Function,
+!    Applied Statistics,
+!    Volume 25, Number 3, 1976, pages 315-317.
+!
+!  Parameters:
+!
+!    Input, real ( kind = 8 ) X, the argument of the digamma function.
+!    0 < X.
+!
+!    Output, integer IFAULT, error flag.
+!    0, no error.
+!    1, X <= 0.
+!
+!    Output, real ( kind = 8 ) DIGAMMA, the value of the digamma function at X.
+!
+  implicit none
+
+  real(rk), parameter :: c = 8.5D+00
+  real(rk), parameter :: euler_mascheroni = 0.57721566490153286060D+00
+  integer(ik) :: ifault
+  real(rk), intent(in) :: x
+  real(rk) :: r, x2
+!
+!  Check the input.
+!
+  if ( x <= 0.0D+00 ) then
+    digamma = 0.0D+00
+    ifault = 1
+    return
+  end if
+!
+!  Initialize.
+!
+  ifault = 0
+!
+!  Approximation for small argument.
+!
+  if ( x <= 0.000001D+00 ) then
+    digamma = - euler_mascheroni - 1.0D+00 / x + 1.6449340668482264365D+00 * x
+    return
+  end if
+!
+!  Reduce to DIGAMA(X + N).
+!
+  digamma = 0.0D+00
+  x2 = x
+
+  do while ( x2 < c )
+    digamma = digamma - 1.0D+00 / x2
+    x2 = x2 + 1.0D+00
+  end do
+!
+!  Use Stirling's (actually de Moivre's) expansion.
+!
+  r = 1.0D+00 / x2
+
+  digamma = digamma + log ( x2 ) - 0.5D+00 * r
+
+  r = r * r
+
+  digamma = digamma &
+    - r * ( 1.0D+00 / 12.0D+00 &
+    - r * ( 1.0D+00 / 120.0D+00 &
+    - r * ( 1.0D+00 / 252.0D+00 &
+    - r * ( 1.0D+00 / 240.0D+00 &
+    - r * ( 1.0D+00 / 132.0D+00 ) ) ) ) )
+end function digamma
+
+elemental function chi_square_lpdf_d_d(nu, y) result(loglik)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: loglik
+  loglik = (0.5d0 * nu - 1.0d0) * log(y) - 0.5d0 * y - 0.5d0 * nu * log(2.0d0) - log(gamma(0.5d0 * nu))
+end function chi_square_lpdf_d_d
+elemental function chi_square_dnu(nu, y) result(d)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: d
+  d = 0.5d0 * log(y) - 0.5d0 * log(2.0d0) - 0.5d0 * digamma(0.5d0 * nu)
+end function chi_square_dnu
+
+elemental function inv_chi_square_lpdf_d_d(nu, y) result(loglik)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: loglik
+  real(rk) :: half_nu
+  half_nu = 0.5d0*nu
+  loglik = -half_nu*log2-log(gamma(half_nu))-(half_nu+1.d0)*log(y)-0.5d0/y
+end function
+elemental function inv_chi_square_dnu(nu, y) result(d)
+  real(rk), intent(in) :: nu, y
+  real(rk) :: d
+  real(rk) :: half_nu
+  half_nu = 0.5d0*nu
+  d = -0.5d0*(log2 + digamma(half_nu) + log(y))
+end function
+end module fz_prim_op
 
 module sum_vi_mod
   use, intrinsic :: iso_fortran_env
@@ -161,14 +355,3 @@ DEF_VARI2_MOD(vari, sub, (vi_val(a) - vi_val(b)), (1.d0), (-1.d0))
 DEF_VARI2_MOD(vari, mul, (vi_val(a) * vi_val(b)), (vi_val(b)), (vi_val(a)))
 DEF_VARI2_MOD(vari, div, (vi_val(a)/vi_val(b)), (1.d0/vi_val(b)), (-this%val_/vi_val(b)))
 DEF_VARI2_MOD(vari, pow, ((vi_val(a)) ** (vi_val(b))), ((vi_val(b))*(vi_val(a))**(vi_val(b)-1)), ((vi_val(a))**(vi_val(b))*log(vi_val(a))) )
-
-! prob
-DEF_VARI1_INT_MOD(vari, bernoulli_lpmf, n*log(vi%val_) + (1_ik-n)*log(1.0d0-vi%val_), (this%val_ * (1.d0 - this%val_)) )
-
-DEF_VARI2_REAL_MOD(vari, normal_lpdf, normal_lpdf_d_d_d(vi_val(a), vi_val(b), c), ((c - vi_val(a)) / (vi_val(b) * vi_val(b))), normal_dsigma(vi_val(a), vi_val(b), c))
-
-DEF_VARI2_REAL_MOD(vari, lognormal_lpdf, lognormal_lpdf_d_d_d(vi_val(a), vi_val(b), c), (log(c) - vi_val(a)) / (vi_val(b) * vi_val(b)), lognormal_dsigma(vi_val(a), vi_val(b), c))
-
-DEF_VARI2_REAL_MOD(vari, weibull_lpdf, weibull_lpdf_d_d_d(vi_val(a), vi_val(b), c), weibull_dshape(vi_val(a), vi_val(b), c), weibull_dscale(vi_val(a), vi_val(b), c))
-
-DEF_VARI2_REAL_MOD(vari, cauchy_lpdf, cauchy_lpdf_d_d_d(vi_val(a), vi_val(b), c), cauchy_dloc(vi_val(a), vi_val(b), c), cauchy_dscale(vi_val(a), vi_val(b), c))

@@ -47,7 +47,7 @@ check_ipo_supported(
 
 set(fz_src
   src/env.f90
-  src/vari.f90 src/vari_op.f90
+  src/vari.f90 src/vari_op.f90 src/vari_prob.f90
   src/var.f90
   # src/fvari.f90 src/fvari_op.f90 src/fvar.f90
   # src/eval.f90
@@ -56,7 +56,7 @@ set(fz_src
   # src/fazang.f90
   )
 
-add_library(fz STATIC ${fz_src})
+add_library(fz OBJECT ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)
 target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
 
