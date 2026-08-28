@@ -57,9 +57,19 @@ program fz_op1_test
 
   a = 0.8d0
   c = inv_logit(a)
-    call reset_adj()
+  call reset_adj()
   call grad(c)
   ASSERT_TOL( val(c), 1.d0/(1.d0 + exp(-0.8d0)), tol )
   ASSERT_TOL( adj(a), val(c)*(1.d0 - val(c)), tol )
+
+  ! test reboot
+  do i = 1, 3
+     call reboot_chain()
+     a = 0.8d0
+     c = inv_logit(a)
+     call grad(c)
+     ASSERT_TOL( val(c), 1.d0/(1.d0 + exp(-0.8d0)), tol )
+     ASSERT_TOL( adj(a), val(c)*(1.d0 - val(c)), tol )
+  end do
 
 end program fz_op1_test

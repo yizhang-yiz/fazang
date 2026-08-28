@@ -1,42 +1,38 @@
+#define VARI_BASE real(rk) :: val_; real(rk) :: adj_ = 0d0
+
 module fz_vari
   use, intrinsic :: iso_fortran_env
   use, intrinsic :: iso_c_binding
   use fz_env
 
   type, bind(c) :: vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
   end type vari
 
   type, bind(c) :: v_vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
      integer(ik) :: ia = 0
   end type v_vari
 
   type, bind(c) :: vd_vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
      integer(ik) :: ia = 0
      real(rk) :: b = 0.d0
   end type vd_vari
 
   type, bind(c) :: vv_vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
      integer(ik) :: ia = 0, ib = 0
   end type vv_vari
 
   type, bind(c) :: vdd_vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
      integer(ik) :: ia = 0
      real(rk) :: b = 0, c = 0
   end type vdd_vari
 
   type, bind(c) :: vvd_vari
-     real(rk) :: val_
-     real(rk) :: adj_ = 0d0
+     VARI_BASE
      integer(ik) :: ia = 0, ib = 0
      real(rk) :: c = 0
   end type vvd_vari
@@ -54,7 +50,7 @@ module fz_vari
   end type chain_base
   type(chain_base), target :: chain_base_instance
 
-  ! wari (wrapper of vari) has two components: storage & chain
+  ! wari (wrapper of vari) has two components: raw storage loc & chain
   type :: wari
      integer(ik) :: i
      class(chain_base), pointer :: c => null()
@@ -62,7 +58,7 @@ module fz_vari
 
   type(wari) :: chains(adsize/8)
 
-  ! "new" happens var creation, the id's are chains array loc
+  ! "new" handles vari creation, the id is the corresponding index in "chains" array
   interface new_vari
      module procedure new_vari_val
      module procedure new_v_vari
@@ -228,8 +224,9 @@ contains
     type(vari), pointer :: vp
     real(rk), intent(in) :: val
     this = add_vari(visize)
+    chains(this)%c => chain_base_instance
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val
+    vp = vari(val, 0.d0)
   end subroutine new_vari_val
 
   subroutine new_v_vari(this, val, i)
@@ -240,7 +237,7 @@ contains
     type(v_vari), pointer :: vp
     this = add_vari(v_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i
+    vp = v_vari(val, 0.d0, chains(i)%i)
   end subroutine new_v_vari
 
   subroutine new_vd_vari(this, val, i, b)
@@ -252,7 +249,7 @@ contains
     type(vd_vari), pointer :: vp
     this = add_vari(vd_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i; vp%b = b
+    vp = vd_vari(val, 0.d0, chains(i)%i, b)
   end subroutine new_vd_vari
 
   subroutine new_vi_vari(this, val, i, n)
@@ -264,7 +261,7 @@ contains
     integer(ik), pointer :: ip
     this = add_vari(v_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i
+    vp = v_vari(val, 0.d0, chains(i)%i)
     call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ip)
     ip = n
     core_adstack%i_ = core_adstack%i_ + iksize
@@ -278,7 +275,7 @@ contains
     type(vv_vari), pointer :: vp
     this = add_vari(vv_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i; vp%ib = chains(j)%i
+    vp = vv_vari(val, 0.d0, chains(i)%i, chains(j)%i)
   end subroutine new_vv_vari
 
   subroutine new_vdd_vari(this, val, i, b, c)
@@ -290,7 +287,7 @@ contains
     real(rk), intent(in) :: b, c
     this = add_vari(vdd_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i; vp%b = b; vp%c = c
+    vp = vdd_vari(val, 0.d0, chains(i)%i, b, c)
   end subroutine new_vdd_vari
 
   subroutine new_vvd_vari(this, val, i, j, c)
@@ -302,7 +299,7 @@ contains
     real(rk), intent(in) :: c
     this = add_vari(vvd_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = chains(i)%i; vp%ib = chains(j)%i; vp%c = c
+    vp = vvd_vari(val, 0.d0, chains(i)%i, chains(j)%i, c)
   end subroutine new_vvd_vari
 
   subroutine new_vec_vari(this, val, vec)
@@ -314,7 +311,7 @@ contains
     integer(ik), pointer :: ipv(:)
     this = add_vari(v_visize)
     call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
-    vp%val_ = val; vp%ia = size(vec)
+    vp = v_vari(val, 0.d0, size(vec))
     call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(size(vec))])
     ipv = vec
     core_adstack%i_ = core_adstack%i_ + iksize*size(vec)

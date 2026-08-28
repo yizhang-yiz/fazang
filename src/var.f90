@@ -3,7 +3,7 @@
 
 #define DEF_OP1( NAME ) \
 impure elemental function NAME/**/_v(x) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     type(var) :: v; \
@@ -12,7 +12,7 @@ impure elemental function NAME/**/_v(x) result(v); \
 
 #define DEF_OP2( NAME ) \
 impure elemental function NAME/**/_vd(x, b) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
@@ -20,7 +20,7 @@ impure elemental function NAME/**/_vd(x, b) result(v); \
     v%i = new_vi_d(x%i, b); \
   end function; \
 impure elemental function NAME/**/_dv(b, x) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: b; \
@@ -28,7 +28,7 @@ impure elemental function NAME/**/_dv(b, x) result(v); \
     v%i = new_d_vi(b, x%i); \
   end function; \
 impure elemental function NAME/**/_vv(x, y) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x, y; \
     type(var) :: v; \
@@ -38,7 +38,7 @@ impure elemental function NAME/**/_vv(x, y) result(v); \
   ! loglik function with two params
 #define DEF_OP2D( NAME ) \
 impure elemental function NAME/**/_vd(x, y, d) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x; \
     real(rk), intent(in) :: y, d; \
@@ -46,7 +46,7 @@ impure elemental function NAME/**/_vd(x, y, d) result(v); \
     v%i = new_vi_d(x%i, y, d); \
   end function; \
 impure elemental function NAME/**/_dv(x, y, d) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: y; \
     real(rk), intent(in) :: x, d; \
@@ -54,7 +54,7 @@ impure elemental function NAME/**/_dv(x, y, d) result(v); \
     v%i = new_d_vi(x, y%i, d); \
   end function; \
 impure elemental function NAME/**/_vv(x, y, d) result(v); \
-    use NAME/**/_vi_mod; \
+    use NAME/**/_vari_mod; \
     implicit none; \
     type(var), intent(in) :: x, y; \
     real(rk), intent(in) :: d; \
@@ -69,7 +69,6 @@ module fz_var
   use fz_env
   use fz_vari
   use fz_prim_op
-  ! use fz_vari_prob
   implicit none
 
   type :: var
@@ -221,14 +220,14 @@ contains
     call new_vari(this%i, val)
   end subroutine new_var_val
 
-  impure subroutine new_var_real32(this, val)
+  impure elemental subroutine new_var_real32(this, val)
     implicit none
     type(var), intent(out) :: this
     real(real32), intent(in) :: val
     call new_var_val(this, real(val, rk))
   end subroutine new_var_real32
 
-  impure subroutine set_var(this, that)
+  impure elemental subroutine set_var(this, that)
     implicit none
     type(var), intent(out) :: this
     type(var), intent(in) :: that
@@ -261,7 +260,6 @@ contains
 
   subroutine grad_all()
     implicit none
-    type(vari), pointer :: p
     call chain(core_adstack%nvari)
   end subroutine grad_all
 
@@ -273,7 +271,6 @@ contains
 
   subroutine reset_all_adj()
     implicit none
-    type(vari), pointer :: p
     call reset_chain(core_adstack%nvari)
   end subroutine reset_all_adj
 
@@ -305,7 +302,7 @@ contains
 
   ! vec op
   function sum_v(x) result(v)
-    use sum_vi_mod
+    use sum_vari_mod
     implicit none
     type(var), intent(in) :: x(:)
     type(var) :: v
@@ -323,7 +320,7 @@ contains
   DEF_OP2D(logistic_lpdf)
 
   impure elemental function chi_square_lpdf_v(x, d) result(v)
-    use chi_square_lpdf_vi_mod
+    use chi_square_lpdf_vari_mod
     implicit none;
     type(var), intent(in) :: x
     real(rk), intent(in) :: d
@@ -332,7 +329,7 @@ contains
   end function chi_square_lpdf_v
 
   impure elemental function inv_chi_square_lpdf_v(x, d) result(v)
-    use inv_chi_square_lpdf_vi_mod
+    use inv_chi_square_lpdf_vari_mod
     implicit none;
     type(var), intent(in) :: x
     real(rk), intent(in) :: d

@@ -15,10 +15,13 @@ contains
       implicit none
         type(var), intent(in) :: x(:)
         type(var) :: f
-        integer :: n
+        integer :: i, n
         n  = size(x)
 
-        f = 100.d0*sum(square(x(2:n)-square(x(1:(n-1))))) + sum(square(1.d0-x))
+        f = 0.d0
+        do i = 1, n-1
+           f = f + 100.d0*(x(i+1)-x(i)**2.d0)**2.d0 + (1.d0-x(i))**2.d0
+        enddo
 
     end function rosenbrock
 

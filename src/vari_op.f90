@@ -2,7 +2,6 @@
 
 module fz_prim_op
   use fz_env
-  use fz_vari
 contains
 
   elemental real(rk) function logit_d(d)
@@ -298,7 +297,7 @@ elemental function inv_chi_square_dnu(nu, y) result(d)
 end function
 end module fz_prim_op
 
-module sum_vi_mod
+module sum_vari_mod
   use, intrinsic :: iso_fortran_env
   use, intrinsic :: iso_c_binding
   use fz_env
@@ -329,29 +328,29 @@ contains
     enddo
   end subroutine chain_sum
 
-end module sum_vi_mod
+end module sum_vari_mod
 
-DEF_VARI1_MOD(vari, exp, dexp(vi%val_), (this%val_))
-DEF_VARI1_MOD(vari, sin, dsin(vi%val_), (cos(a%val_)))
-DEF_VARI1_MOD(vari, cos, dcos(vi%val_), (-sin(a%val_)))
-DEF_VARI1_MOD(vari, tan, dtan(vi%val_), (1.d0/(cos(a%val_)*cos(a%val_))))
-DEF_VARI1_MOD(vari, asin, dasin(vi%val_), (1.d0/sqrt(1.d0-a%val_*a%val_)))
-DEF_VARI1_MOD(vari, acos, dacos(vi%val_), (-1.d0/sqrt(1.d0-a%val_*a%val_)))
-DEF_VARI1_MOD(vari, atan, datan(vi%val_), (1.d0/(1.d0+a%val_*a%val_)))
-DEF_VARI1_MOD(vari, log, dlog(vi%val_), (1.d0/a%val_))
-DEF_VARI1_MOD(vari, log10, dlog10(vi%val_), (1.d0/(a%val_*dlog(10.d0))))
-DEF_VARI1_MOD(vari, sqrt, dsqrt(vi%val_), (0.5d0/dsqrt(a%val_)))
-DEF_VARI1_MOD(vari, neg, (-vi%val_), (-1.d0))
-DEF_VARI1_MOD(vari, pos, (vi%val_), (1.d0))
-DEF_VARI1_MOD(vari, sinh, dsinh(vi%val_), (dcosh(a%val_)))
-DEF_VARI1_MOD(vari, cosh, dcosh(vi%val_), (dsinh(a%val_)))
-DEF_VARI1_MOD(vari, tanh, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
-DEF_VARI1_MOD(vari, square, (vi%val_)**2, (2.0d0*a%val_))
-DEF_VARI1_MOD(vari, logit, logit_d(vi%val_), (1.d0 / (a%val_ - a%val_ * a%val_)) )
-DEF_VARI1_MOD(vari, inv_logit, inv_logit_d(vi%val_), (this%val_ * (1.d0 - this%val_)) )
+DEF_VARI1_MOD(exp_vari_mod, fz_vari, dexp(vi%val_), (this%val_))
+DEF_VARI1_MOD(sin_vari_mod, fz_vari, dsin(vi%val_), (cos(a%val_)))
+DEF_VARI1_MOD(cos_vari_mod, fz_vari, dcos(vi%val_), (-sin(a%val_)))
+DEF_VARI1_MOD(tan_vari_mod, fz_vari, dtan(vi%val_), (1.d0/(cos(a%val_)*cos(a%val_))))
+DEF_VARI1_MOD(asin_vari_mod, fz_vari, dasin(vi%val_), (1.d0/sqrt(1.d0-a%val_*a%val_)))
+DEF_VARI1_MOD(acos_vari_mod, fz_vari, dacos(vi%val_), (-1.d0/sqrt(1.d0-a%val_*a%val_)))
+DEF_VARI1_MOD(atan_vari_mod, fz_vari, datan(vi%val_), (1.d0/(1.d0+a%val_*a%val_)))
+DEF_VARI1_MOD(log_vari_mod, fz_vari, dlog(vi%val_), (1.d0/a%val_))
+DEF_VARI1_MOD(log10_vari_mod, fz_vari, dlog10(vi%val_), (1.d0/(a%val_*dlog(10.d0))))
+DEF_VARI1_MOD(sqrt_vari_mod, fz_vari, dsqrt(vi%val_), (0.5d0/dsqrt(a%val_)))
+DEF_VARI1_MOD(neg_vari_mod, fz_vari, (-vi%val_), (-1.d0))
+DEF_VARI1_MOD(pos_vari_mod, fz_vari, (vi%val_), (1.d0))
+DEF_VARI1_MOD(sinh_vari_mod, fz_vari, dsinh(vi%val_), (dcosh(a%val_)))
+DEF_VARI1_MOD(cosh_vari_mod, fz_vari, dcosh(vi%val_), (dsinh(a%val_)))
+DEF_VARI1_MOD(tanh_vari_mod, fz_vari, dtanh(vi%val_), (1.d0/(dcosh(a%val_)*dcosh(a%val_))) )
+DEF_VARI1_MOD(square_vari_mod, fz_vari, (vi%val_)**2, (2.0d0*a%val_))
+DEF_VARI1_MOD(logit_vari_mod, fz_vari, logit_d(vi%val_), (1.d0 / (a%val_ - a%val_ * a%val_)) )
+DEF_VARI1_MOD(inv_logit_vari_mod, fz_vari, inv_logit_d(vi%val_), (this%val_ * (1.d0 - this%val_)) )
 
-DEF_VARI2_MOD(vari, add, (vi_val(a) + vi_val(b)), (1.d0), (1.d0))
-DEF_VARI2_MOD(vari, sub, (vi_val(a) - vi_val(b)), (1.d0), (-1.d0))
-DEF_VARI2_MOD(vari, mul, (vi_val(a) * vi_val(b)), (vi_val(b)), (vi_val(a)))
-DEF_VARI2_MOD(vari, div, (vi_val(a)/vi_val(b)), (1.d0/vi_val(b)), (-this%val_/vi_val(b)))
-DEF_VARI2_MOD(vari, pow, ((vi_val(a)) ** (vi_val(b))), ((vi_val(b))*(vi_val(a))**(vi_val(b)-1)), ((vi_val(a))**(vi_val(b))*log(vi_val(a))) )
+DEF_VARI2_MOD(add_vari_mod, fz_vari, (vi_val(a) + vi_val(b)), (1.d0), (1.d0))
+DEF_VARI2_MOD(sub_vari_mod, fz_vari, (vi_val(a) - vi_val(b)), (1.d0), (-1.d0))
+DEF_VARI2_MOD(mul_vari_mod, fz_vari, (vi_val(a) * vi_val(b)), (vi_val(b)), (vi_val(a)))
+DEF_VARI2_MOD(div_vari_mod, fz_vari, (vi_val(a)/vi_val(b)), (1.d0/vi_val(b)), (-this%val_/vi_val(b)))
+DEF_VARI2_MOD(pow_vari_mod, fz_vari, ((vi_val(a)) ** (vi_val(b))), ((vi_val(b))*(vi_val(a))**(vi_val(b)-1)), ((vi_val(a))**(vi_val(b))*log(vi_val(a))) )

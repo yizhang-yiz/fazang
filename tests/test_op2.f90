@@ -52,4 +52,22 @@ program fz_op2_test
   ASSERT_TOL( adj(a), 1.d0, tol )
   ASSERT_TOL( adj(c), -0.5d0, tol )
 
+  ! test reboot
+  do i = 1, 3
+     call reboot_chain()
+     a = 0.5d0
+     p = a
+     b = exp(a)
+     d = 2.5d0
+     c = b / a
+     a = b/2.d0 + atan(d) - c * a
+     ASSERT_TOL( VAL(a), exp(0.5d0)/2.d0 + atan(2.5d0) - exp(0.5d0), tol)
+     call grad(a)
+     ASSERT_TOL( adj(p), -0.5d0*exp(0.5d0), tol )
+     ASSERT_TOL( adj(b), -0.5d0, tol )
+     ASSERT_TOL( adj(d), 0.137931034482758620d0, tol )
+     ASSERT_TOL( adj(a), 1.d0, tol )
+     ASSERT_TOL( adj(c), -0.5d0, tol )
+  enddo
+
 end program fz_op2_test

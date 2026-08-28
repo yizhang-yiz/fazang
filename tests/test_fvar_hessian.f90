@@ -1,7 +1,8 @@
 #include "assert_inc.f90"
 
 module hessian_test_func
-  use fazang
+  use fz_env
+  use fz_fvar
   implicit none
 contains
   type(fvar) function f1(x, y)
@@ -31,38 +32,40 @@ contains
 end module hessian_test_func
 
 program fz_fvar_hessian
-  use fazang
+  use fz_env
+  use fz_fvar
+  use fz_eval
   use hessian_test_func
   implicit none
 
   real(rk), parameter :: tol = 1.d-15
-  type(fvar) :: a, b, c, d, p, q
+  type(fvar) :: a, b, c, d, p(2), q
   real(rk), parameter :: a0=0.6d0, b0=4.38d0
   real(rk) :: v0(2), v(2), s(2)
 
   a=a0; b=b0
   call init_deriv(a)
   c = f1(a, b)
-  call grad(c)
-  ASSERT_TOL( adj_dv(a), 4.d0, tol)
-  ASSERT_TOL( adj_dv(b), 3.d0, tol)
-  call reset_from(c)
+  call deriv(c)
+  ASSERT_TOL( adj_dv(a), 4.d0, tol) ! d(df1/da)/da
+  ASSERT_TOL( adj_dv(b), 3.d0, tol) ! d(df1/db)/da
+  call reset_deriv(c)
   call init_deriv(b)
   c = f1(a, b)
-  call grad(c)
-  ASSERT_TOL( adj_dv(a), 3.d0, tol)
-  ASSERT_TOL( adj_dv(b), 10.d0, tol)
+  call deriv(c)
+  ASSERT_TOL( adj_dv(a), 3.d0, tol) ! d(df1/da)/db
+  ASSERT_TOL( adj_dv(b), 10.d0, tol) ! d(df1/db)/db
 
-  call reset_all_deriv()
+  call reset_deriv()
   call init_deriv(a)
   c = f2(a, b)
-  call grad(c)
+  call deriv(c)
   ASSERT_TOL( adj_dv(a), 6*a0+4, tol)
   ASSERT_TOL( adj_dv(b), 2*b0, tol)
-  call reset_from(c)
+  call reset_deriv(c)
   call init_deriv(b)
   c = f2(a, b)
-  call grad(c)
+  call deriv(c)
   ASSERT_TOL( adj_dv(a), 2*b0, tol)
   ASSERT_TOL( adj_dv(b), 2*a0, tol)
 

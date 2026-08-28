@@ -2,48 +2,73 @@
 #define DEF_VAR_OP_DEFINED
 
 #define DEF_OP1( NAME ) \
-  function NAME/**/_v(x) result(v); \
+impure elemental function NAME/**/_v(x) result(v); \
+    use NAME/**/_fvari_mod; \
     implicit none; \
     type(fvar), intent(in) :: x; \
     type(fvar) :: v; \
-    v%p => NAME/**/_vi(x%p); \
-  end function NAME/**/_v
-
-#define DEF_INTERFACE( NAME ) \
-  interface NAME; \
-     module procedure NAME/**/_v ; \
-  end interface NAME; \
-  public :: NAME
+    v%i = new_vi(x%i); \
+  end function
 
 #define DEF_OP2( NAME ) \
-  impure elemental function NAME/**/_vd(x, b) result(v); \
+impure elemental function NAME/**/_vd(x, b) result(v); \
+    use NAME/**/_fvari_mod; \
     implicit none; \
     type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(fvar) :: v; \
-    v%p => NAME/**/_vi_d(x%p, b); \
-  end function NAME/**/_vd; \
-  impure elemental function NAME/**/_dv(b, x) result(v); \
+    v%i = new_vi_d(x%i, b); \
+  end function; \
+impure elemental function NAME/**/_dv(b, x) result(v); \
+    use NAME/**/_fvari_mod; \
     implicit none; \
     type(fvar), intent(in) :: x; \
     real(rk), intent(in) :: b; \
     type(fvar) :: v; \
-    v%p => NAME/**/_d_vi(b, x%p); \
-  end function NAME/**/_dv; \
-  impure elemental function NAME/**/_vv(x, y) result(v); \
+    v%i = new_d_vi(b, x%i); \
+  end function; \
+impure elemental function NAME/**/_vv(x, y) result(v); \
+    use NAME/**/_fvari_mod; \
     implicit none; \
     type(fvar), intent(in) :: x, y; \
     type(fvar) :: v; \
-    v%p => NAME/**/_vi_vi(x%p, y%p); \
-  end function NAME/**/_vv;
+    v%i = new_vi_vi(x%i, y%i); \
+  end function
+
+  ! loglik function with two params
+#define DEF_OP2D( NAME ) \
+impure elemental function NAME/**/_vd(x, y, d) result(v); \
+    use NAME/**/_fvari_mod; \
+    implicit none; \
+    type(fvar), intent(in) :: x; \
+    real(rk), intent(in) :: y, d; \
+    type(fvar) :: v; \
+    v%i = new_vi_d(x%i, y, d); \
+  end function; \
+impure elemental function NAME/**/_dv(x, y, d) result(v); \
+    use NAME/**/_fvari_mod; \
+    implicit none; \
+    type(fvar), intent(in) :: y; \
+    real(rk), intent(in) :: x, d; \
+    type(fvar) :: v; \
+    v%i = new_d_vi(x, y%i, d); \
+  end function; \
+impure elemental function NAME/**/_vv(x, y, d) result(v); \
+    use NAME/**/_fvari_mod; \
+    implicit none; \
+    type(fvar), intent(in) :: x, y; \
+    real(rk), intent(in) :: d; \
+    type(fvar) :: v; \
+    v%i = new_vi_vi(x%i, y%i, d); \
+  end function
 
 #endif
 
 module fz_fvar
   use, intrinsic :: iso_fortran_env
   use fz_env
-  use fz_fvari, only : fvari
-  use fz_fvari_op
+  use fz_fvari
+  use fz_prim_op
   implicit none
 
   ! private
@@ -52,7 +77,7 @@ module fz_fvar
   ! public :: reboot_chain
 
   type :: fvar
-     type(fvari), pointer :: p => null() ! point to a fvari in adstack
+     integer(ik) :: i ! point to a fvari in adstack
   end type fvar
 
   interface assignment(=)
@@ -87,11 +112,6 @@ module fz_fvar
      module procedure div_vv
   end interface operator(/)
 
-  interface grad
-     module procedure grad_of
-     module procedure grad_all
-  end interface grad
-
   interface reset_deriv
      module procedure reset_from
      module procedure reset_all_deriv
@@ -124,7 +144,14 @@ module fz_fvar
   ! public :: inv_logit
 
   ! vec op
-  interface sum; module procedure sum_v; end interface
+  ! interface sum; module procedure sum_v; end interface
+
+  abstract interface
+     type(fvar) function hessian_op(x)
+       import :: fvar
+       type(fvar), intent(in) :: x(:)
+     end function hessian_op
+  end interface
 
 contains
 
@@ -132,85 +159,81 @@ contains
     implicit none
     type(fvar), intent(out) :: this
     real(rk), intent(in) :: val
-    type(fvari), pointer :: v
-    v = val
-    this%p => v
+    call new_vari(this%i, val)
   end subroutine new_fvar_val
 
   impure subroutine new_fvar_real32(this, val)
     implicit none
     type(fvar), intent(out) :: this
     real(real32), intent(in) :: val
-    type(fvari), pointer :: v
-    v = val
-    this%p => v
+    call new_fvar_val(this, real(val, rk))
   end subroutine new_fvar_real32
 
-  impure subroutine set_fvar(this, that)
+  elemental subroutine set_fvar(this, that)
     implicit none
     type(fvar), intent(out) :: this
     type(fvar), intent(in) :: that
-    this%p => that%p
+    this%i = that%i
   end subroutine set_fvar
 
-  elemental function val(v) result(v1)
+  elemental integer(ik) function index(this)
+    implicit none
+    type(fvar), intent(in) :: this
+    index = chains(this%i)%i
+  end function index
+
+  impure elemental function val(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
     real(rk) :: v1
-    v1 = vi_val_v(v%p)
+    v1 = vari_val_v_at(index(v))
   end function val
 
-  elemental function val_dv(v) result(v1)
+  impure elemental function val_dv(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
     real(rk) :: v1
-    v1 = vi_val_dv(v%p)
+    v1 = vi_val_dv(index(v))
   end function val_dv
 
-  elemental function adj(v) result(v1)
+  impure elemental function adj(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
     real(rk) :: v1
-    v1 = vi_adj_v(v%p)
+    v1 = vi_adj_v(chains(v%i)%i)
   end function adj
 
-  elemental function adj_dv(v) result(v1)
+  impure elemental function adj_dv(v) result(v1)
     implicit none
     type(fvar), intent(in) :: v
     real(rk) :: v1
-    v1 = vi_adj_dv(v%p)
+    v1 = vi_adj_dv(chains(v%i)%i)
   end function adj_dv
-
-  subroutine grad_of(v)
-    implicit none
-    type(fvar), intent(in) :: v
-    call chain(v%p)
-  end subroutine grad_of
-
-  subroutine grad_all()
-    implicit none
-    type(fvari), pointer :: p
-    call recover(p, core_adstack%j_)
-    call chain(p)
-  end subroutine grad_all
 
   subroutine init_deriv(v)
     implicit none
-    type(fvar), intent(inout) :: v
-    v%p%val_%dv = 1.d0
+    type(fvar), intent(in) :: v
+    type(vari), pointer :: p
+    call recover(chains(v%i)%i, p)
+    p%val_%dv = 1.d0
   end subroutine init_deriv
+
+  ! gradience of v, hessian wrt to v1
+  subroutine deriv(v)
+    implicit none
+    type(fvar), intent(in) :: v
+    call chain(v%i)
+  end subroutine deriv
 
   subroutine reset_from(v)
     implicit none
     type(fvar), intent(in) :: v
-    call reset_chain(v%p)
+    call reset_chain(v%i)
   end subroutine reset_from
 
   subroutine reset_all_deriv()
     implicit none
-    type(fvari), pointer :: p
-    call recover(p, core_adstack%j_)
-    call reset_chain(p)
+    call reset_chain(core_adstack%nvari)
   end subroutine reset_all_deriv
 
   DEF_OP1(exp)
@@ -243,17 +266,33 @@ contains
   DEF_OP2(div)
 
   ! vec op
-  function sum_v(x) result(v)
+  ! function sum_v(x) result(v)
+  !   implicit none
+  !   type(fvar), intent(in) :: x(:)
+  !   type(fvar) :: v
+  !   integer(ik) :: i, j
+  !   v%p = sum(val(x))
+  !   v%p%chain = c_funloc(chain_sum)
+  !   call core_adstack%push(size(x))
+  !   do i = 1, size(x)
+  !      call core_adstack%push(x(i)%p%i)
+  !   end do
+  ! end function sum_v
+
+  ! hessian-vector product
+  function hvp(f, x, v) result(res)
     implicit none
-    type(fvar), intent(in) :: x(:)
-    type(fvar) :: v
-    integer(ik) :: i, j
-    v%p = sum(val(x))
-    v%p%chain = c_funloc(chain_sum)
-    call core_adstack%push(size(x))
-    do i = 1, size(x)
-       call core_adstack%push(x(i)%p%i)
-    end do
-  end function sum_v
+    procedure(hessian_op) :: f
+    real(rk), intent(in) :: x(:), v(:)
+    real(rk) :: res(size(x))
+    type(fvar) :: vx(size(x)), a, y
+
+    a = 0.d0
+    call init_deriv(a)
+    vx = x + a*v(1:size(x))
+    y = f(vx)
+    call deriv(y)
+    res = adj_dv(vx)
+  end function hvp
 
 end module fz_fvar
