@@ -45,12 +45,16 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install cmake
-      run: brew install ${{ env.PACKAGES }}
-      env:
-        PACKAGES: >-
-          cmake==3.30.1
-          ninja
+    - name: Install cmake (macos)
+      if: ${{ contains(matrix.os, 'macos') }}
+      run: |
+        brew install cmake ninja
+
+    - name: Install cmake (Linux)
+      if: ${{ contains(matrix.os, 'ubuntu') }}
+      run: |
+        sudo apt update
+        sudo apt install -y cmake ninja-build
 
     - name: Configure build
       run: cmake $PWD -B _build -GNinja -Dtest=ON
