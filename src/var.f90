@@ -211,6 +211,14 @@ module fz_var
      module procedure inv_chi_square_lpdf_d_d
   end interface
 
+  ! forward vector operator
+  abstract interface
+     type(var) function var_op(x)
+       import :: var
+       type(var), intent(in) :: x(:)
+     end function var_op
+  end interface
+
 contains
 
   impure elemental subroutine new_var_val(this, val)
@@ -336,5 +344,22 @@ contains
     type(var) :: v
     v%i = new_vi(x%i, d)
   end function
+
+  function jac(f, x) result(res)
+    implicit none
+    procedure(var_op) :: f
+    real(rk), intent(in) :: x(:)
+    real(rk) :: res(size(x) + 1)
+
+    type(var) :: v
+    integer(ik) :: i, n
+    type(var) :: vx(size(x))
+
+    vx = x
+    v = f(vx)
+    call grad(v)
+    res(1) = val(v)
+    res(2:n) = adj(vx)
+  end function jac
 
 end module fz_var

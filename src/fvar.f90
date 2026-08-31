@@ -146,11 +146,12 @@ module fz_fvar
   ! vec op
   ! interface sum; module procedure sum_v; end interface
 
+  ! forward vector operator
   abstract interface
-     type(fvar) function hessian_op(x)
+     type(fvar) function fvar_op(x)
        import :: fvar
        type(fvar), intent(in) :: x(:)
-     end function hessian_op
+     end function fvar_op
   end interface
 
 contains
@@ -282,7 +283,7 @@ contains
   ! hessian-vector product
   function hvp(f, x, v) result(res)
     implicit none
-    procedure(hessian_op) :: f
+    procedure(fvar_op) :: f
     real(rk), intent(in) :: x(:), v(:)
     real(rk) :: res(size(x))
     type(fvar) :: vx(size(x)), a, y

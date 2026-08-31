@@ -51,7 +51,6 @@ set(fz_src
   src/var.f90
   src/dual.f90 src/fvari.f90 src/fvari_op.f90
   src/fvar.f90
-  src/eval.f90
   # src/relation.f90
   # src/vari_builder.f90
   # src/fazang.f90

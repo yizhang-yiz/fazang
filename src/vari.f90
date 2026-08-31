@@ -317,6 +317,82 @@ contains
     core_adstack%i_ = core_adstack%i_ + iksize*size(vec)
   end subroutine new_vec_vari
 
+  subroutine new_general_vari(this, val, vec, data, idata)
+    implicit none
+    integer(ik), intent(out) :: this
+    integer(ik), target, intent(in) :: vec(:), idata(:)
+    real(rk), target, intent(in) :: data(:)
+    real(rk), intent(in) :: val
+    type(vari), pointer :: vp
+    integer(ik), pointer :: ipv(:)
+    real(rk), pointer :: pv(:)
+    integer(ik) :: nv, nd, ni
+    nv = size(vec); nd = size(data); ni = size(idata)
+    this = add_vari(visize)
+    call c_f_pointer(c_loc(core_adstack%s_(chains(this)%i)), vp)
+    vp = vari(val, 0.d0)
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(1)])
+    ipv(1) = nv
+    core_adstack%i_ = core_adstack%i_ + iksize
+    if (nv > 0) then            ! vari dependencies
+       call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(nv)])
+       ipv = vec
+       core_adstack%i_ = core_adstack%i_ + iksize*nv
+    end if
+
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(1)])
+    ipv(1) = nd
+    core_adstack%i_ = core_adstack%i_ + iksize
+    if (nd > 0) then
+       call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), pv, [(nd)])
+       pv = data
+       core_adstack%i_ = core_adstack%i_ + rksize*nd
+    endif
+
+    call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(1)])
+    ipv(1) = ni
+    core_adstack%i_ = core_adstack%i_ + iksize
+    if (ni > 0) then
+       call c_f_pointer(c_loc(core_adstack%s_(core_adstack%i_)), ipv, [(ni)])
+       ipv = idata
+       core_adstack%i_ = core_adstack%i_ + iksize*ni
+    end if
+  end subroutine new_general_vari
+
+  subroutine recover_general_vari(ip, p, vec, data, idata)
+    implicit none
+    integer(ik), intent(in) :: ip
+    type(vari), pointer, intent(out) :: p
+    integer(ik), pointer, intent(out) :: vec(:), idata(:)
+    real(rk), pointer, intent(out) :: data(:)
+    integer(ik), pointer :: isize
+    integer(ik) :: head
+    head = ip
+    call c_f_pointer(c_loc(core_adstack%s_(head)), p)
+    head = head + visize
+
+    call c_f_pointer(c_loc(core_adstack%s_(head)), isize)
+    head = head + iksize
+    if (isize > 0) then
+       call c_f_pointer(c_loc(core_adstack%s_(head)), vec, [(isize)])
+       head = head + iksize * isize
+    endif
+
+    call c_f_pointer(c_loc(core_adstack%s_(head)), isize)
+    head = head + iksize
+    if (isize > 0) then
+       call c_f_pointer(c_loc(core_adstack%s_(head)), data, [(isize)])
+       head = head + rksize * isize
+    endif
+
+    call c_f_pointer(c_loc(core_adstack%s_(head)), isize)
+    head = head + iksize
+    if (isize > 0) then
+       call c_f_pointer(c_loc(core_adstack%s_(head)), idata, [(isize)])
+       head = head + iksize * isize
+    endif
+  end subroutine recover_general_vari
+
   subroutine new_vari_real32(this, val)
     implicit none
     integer(ik), intent(out) :: this
