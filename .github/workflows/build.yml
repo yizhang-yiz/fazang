@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
 
     - name: Install GFortran (MacOS)
       if: ${{ contains(matrix.os, 'macos') }}
@@ -44,7 +44,7 @@ jobs:
         DOWNLOAD: "https://github.com/brechtsanders/winlibs_mingw/releases/download/11.2.0-9.0.0-ucrt-r4/winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r4.zip"
 
     - name: Set up Python 3.x
-      uses: actions/setup-python@v1 # Use pip to install latest CMake, & FORD/Jin2For, etc.
+      uses: actions/setup-python@v7 # Use pip to install latest
       with:
         python-version: ${{ matrix.python-version }}
 
