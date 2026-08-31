@@ -34,7 +34,6 @@ end module hessian_test_func
 program fz_fvar_hessian
   use fz_env
   use fz_fvar
-  use fz_eval
   use hessian_test_func
   implicit none
 

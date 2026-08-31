@@ -1,8 +1,7 @@
 module benchmark_rosenbrock2
     ! Note: Replace 'ad_core' with the actual name of your Fortran AD module.
     ! We assume it exports 'type(var)' and overloads operators (+, -, *, **, =).
-  use fz_var
-  use fz_env
+  use fazang
   implicit none
 
   real(rk) :: s(100000)
@@ -11,7 +10,6 @@ contains
     ! N-dimensional Rosenbrock function
     ! A standard non-linear test function for optimization and autodiff benchmarking
     function rosenbrock(x) result(f)
-      use fz_var
       implicit none
         type(var), intent(in) :: x(:)
         type(var) :: f
@@ -30,7 +28,7 @@ end module benchmark_rosenbrock2
 program autodiff_benchmark
   use, intrinsic :: iso_fortran_env, only: dp => real64, int64
   ! Replace with your actual module and memory management routine
-  use fz_var
+  use fazang
   use benchmark_rosenbrock2
   implicit none
 

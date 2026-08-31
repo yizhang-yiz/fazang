@@ -1,5 +1,5 @@
 module hessian_func_example
-  use fazang
+  use fz_fvar
   implicit none
 contains
   type(fvar) function f1(x, y)
@@ -11,7 +11,7 @@ contains
 end module hessian_func_example
 
 program hessian_example
-  use fazang
+  use fz_fvar
   use hessian_func_example
   implicit none
 
@@ -23,14 +23,14 @@ program hessian_example
   a=a0; b=b0
   call init_deriv(a) ! fvar with respect to which the hessian will be taken
   c = f1(a, b)
-  call grad(c)       ! calc both adjoint (gradients) and the hessian
+  call deriv(c)       ! calc both adjoint (gradients) and the hessian
   write(*, *) "d^2c/(dada) ", adj_dv(a)
   write(*, *) "d^2c/(dbda) ", adj_dv(b)
 
   call reset_from(c) ! reset chain
   call init_deriv(b)
   c = f1(a, b)
-  call grad(c)
+  call deriv(c)
   write(*, *) "d^2c/(dadb) ", adj_dv(a)
   write(*, *) "d^2c/(dbdb) ", adj_dv(b)
 
