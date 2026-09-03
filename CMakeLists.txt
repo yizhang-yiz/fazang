@@ -57,18 +57,10 @@ set(fz_src
 
 add_library(fz OBJECT ${fz_src})
 target_link_libraries(fz PUBLIC fcompiler_flags)
-target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/include")
-
-add_executable(ftest ftest.f90)
-target_link_libraries(ftest PUBLIC fz fcompiler_flags)
-target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
-
-add_executable(htest htest.f90)
-target_link_libraries(htest PUBLIC fz fcompiler_flags)
-target_include_directories(htest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src;${PROJECT_SOURCE_DIR}/include")
+target_include_directories(fz PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY}")
 
 if (ipo_supported)
-  set_property(TARGET fz ftest htest
+  set_property(TARGET fz
     PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 else()
   message(WARNING "Fortran IPO/LTO unavailable: ${ipo_error}")
@@ -77,12 +69,22 @@ endif()
 if(test)
   include(CTest)
   add_subdirectory(tests)
-elseif(model)
-  cmake_path(GET model STEM fzexec)
-  get_filename_component(model_path ${model} ABSOLUTE BASE_DIR ${CMAKE_BINARY_DIR})
-  add_executable(${fzexec} ${model})
-  target_link_options(${fzexec} PRIVATE $<$<Fortran_COMPILER_ID:GNU>:-fno-use-linker-plugin> $<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Windows>>:-static>)
-  target_link_libraries(${fzexec} fz)
-else()
-  message(WARNING "Missing building mode (test/model).")
 endif()
+
+if(demo)
+  add_executable(ftest examples/ftest.f90)
+  target_link_libraries(ftest PUBLIC fz fcompiler_flags)
+  target_include_directories(ftest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src")
+
+  add_executable(htest examples/htest.f90)
+  target_link_libraries(htest PUBLIC fz fcompiler_flags)
+  target_include_directories(htest PUBLIC "${CMAKE_Fortran_MODULE_DIRECTORY};${PROJECT_SOURCE_DIR}/src")
+
+  if (ipo_supported)
+    set_property(TARGET ftest htest
+      PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+  endif()
+endif()
+
+# cvodes & idas
+include(sundials)
