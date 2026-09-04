@@ -1,20 +1,11 @@
 #include "assert_inc.f90"
-#include "new_op_inc.f90"
 
 module new_op_mod
   use fz_env
-  use fz_vari_builder
+  use fz_var
   implicit none
-  procedure(val_op_no_args), pointer :: p1_val => div_op
-  procedure(jac_op_no_args), pointer :: p1_jac => div_jac_op
-  procedure(val_op_no_args), pointer :: p2_val => hill_eq
-  procedure(jac_op_no_args), pointer :: p2_jac => hill_eq_jac
 
 contains
-
-  NEW_OP(new_div, p1_val, p1_jac)
-
-  NEW_OP(hill, p2_val, p2_jac)
 
   real(rk) function div_op(x)
     implicit none
@@ -29,19 +20,20 @@ contains
     res = (/1.d0/x(2), -x(1)/(x(2)*x(2)) /)
   end function div_jac_op
 
-  real(rk) function hill_eq(x)
+  ! Hill's equation
+  real(rk) function hill_op(x)
     real(rk), intent(in) :: x(:)
-    hill_eq = x(1)**x(3)/(x(2)**x(3)+x(1)**x(3))
-  end function hill_eq
+    hill_op = x(1)**x(3)/(x(2)**x(3)+x(1)**x(3))
+  end function hill_op
 
-  function hill_eq_jac(x) result(res)
+  function hill_jac_op(x) result(res)
     real(rk), intent(in) :: x(:)
     real(rk) :: res(size(x))
     res = (/ &
          x(3)*x(2)**x(3)*x(1)**(x(3)-1)/(x(1)**x(3)+x(2)**x(3))**2, &
          -x(3)*x(2)**(x(3)-1)*x(1)**x(3)/(x(1)**x(3)+x(2)**x(3))**2, &
          x(2)**x(3)*x(1)**x(3)*log(x(1)/x(2))/(x(1)**x(3)+x(2)**x(3))**2 /)
-  end function hill_eq_jac
+  end function hill_jac_op
 
 end module new_op_mod
 
@@ -58,8 +50,8 @@ program test
   a(2) = 2.d0
   d(2) = 0.7d0
   d(3) = 0.9d0
-  d(1) = new_div(a)
-  c = hill(d)
+  d(1) = new_var_general(a, div_op(val(a)), div_jac_op(val(a)))
+  c = new_var_general(d, hill_op(val(d)), hill_jac_op(val(d)))
   call grad(c)
   adj_a = adj(a)
   adj_d = adj(d)

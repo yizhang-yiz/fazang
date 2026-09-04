@@ -31,6 +31,7 @@ if(cvodes)
   )
   target_link_libraries(cvodes_example
     PRIVATE
+    fz
     ${cvodes_target}
     ${nvec_target}
     SUNDIALS::core

@@ -111,6 +111,8 @@ program main
   use fsunnonlinsol_fixedpoint_mod  ! Fortran interface to fixed point SUNNonlinearSolver
   use ode_problem                   ! ODE defining functions and parameters
 
+  use fazang
+
   !======= Declarations =========
   implicit none
 
@@ -130,6 +132,12 @@ program main
   integer(c_int), parameter :: sensi = 1, err_con = 1
   integer(c_int), parameter :: sensi_meth = CV_SIMULTANEOUS
 
+  ! autodiff vars
+  type(var) :: eta(1), y_hat
+  type(N_Vector), pointer :: nv_dydeta
+  real(c_double), pointer :: dydeta(:), y_hat_val(:)
+
+
   ! Create SUNDIALS simulation context
   retval = FSUNContext_Create(SUN_COMM_NULL, ctx)
   if (retval /= 0) then
@@ -138,7 +146,7 @@ program main
   end if
 
   ! Set problem data
-  p(0) = 1.0d0
+  p(0) = 0.4d0
   ! p(1) = 0.5d0
 
   ! Allocate and set initial states
@@ -289,6 +297,18 @@ program main
 
   ! Print final statistics
   call PrintFinalStats(cvodes_mem, sensi, err_con, sensi_meth)
+
+  ! AD test var CREATION
+  ! ================
+  eta(1) = p(0)
+  nv_dydeta => FN_VGetVecAtIndexVectorArray(uS, 0)
+  dydeta => FN_VGetArrayPointer(nv_dydeta)
+  y_hat_val => FN_VGetArrayPointer(u)
+  y_hat = new_var_general(eta, y_hat_val(1), dydeta)
+  call grad(y_hat);
+  write(*, *) "AD grad, True grad: ", adj(eta(1)), -dydeta
+  ! ================
+  ! END OF AD test
 
   ! Free memory
   call FN_VDestroy(u)

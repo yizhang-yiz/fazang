@@ -78,7 +78,6 @@ module fz_var
   interface assignment(=)
      module procedure new_var_val
      module procedure new_var_real32
-     ! module procedure set_var
   end interface assignment(=)
 
   interface operator(+)
@@ -235,12 +234,15 @@ contains
     call new_var_val(this, real(val, rk))
   end subroutine new_var_real32
 
-  ! impure elemental subroutine set_var(this, that)
-  !   implicit none
-  !   type(var), intent(out) :: this
-  !   type(var), intent(in) :: that
-  !   this%i = that%i
-  ! end subroutine set_var
+  function new_var_general(vec, val, adj) result(this)
+    use fz_vari_precomputed_adj
+    implicit none
+    type(var) :: this
+    real(rk), intent(in) :: val
+    type(var), intent(in) :: vec(:)
+    real(rk), intent(in) :: adj(:)
+    this%i = new_vi(val, index(vec), adj)
+  end function new_var_general
 
   elemental integer(ik) function index(this)
     implicit none
