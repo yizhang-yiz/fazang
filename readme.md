@@ -223,6 +223,44 @@ end program hessian_example
 ```
 
 
+## Nested AD
+
+Sometimes we want to evaluate AD for only a few variables but not others. `Fazang` provde
+
+```f90
+call begin_nest()
+! ...
+call end_nest()
+```
+
+pair so that AD evaluations within do not affect variables outside. This is best used with Fortran's `block` construct:
+
+```f90
+type(var) :: a, b, c
+a = 3.d0
+b = 5.d0
+c = b/a
+
+block
+  type(var) :: a, b, c
+  call begin_nest()
+  a = 5.d0
+  b = 27.d0
+  c= a*b
+  ! inner a, b, c derivatives
+  call grad(c)
+  ! ...
+  call end_nest()
+end block
+
+! outer a, b, c derivaties
+call grad(c)
+! ...
+```
+
+Just like `block`, `begin_nest()` / `end_nest()` pair can be nested.
+
+
 ## Name
 
 The library is named after ancient Chinese philosopher [Fazang](https://en.wikipedia.org/wiki/Fazang) (法藏), who views the cosmos "as an infinite number of interdependent and interpenetrating parts" (一法为因，万法为果；万法为因，一法为果).

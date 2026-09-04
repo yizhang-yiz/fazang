@@ -7,7 +7,7 @@ differentiation, inspired by [[https://mc-stan.org/users/interfaces/math][Stan/M
 =Fazang= provides user-facing variable =var= type. It is the type for dependent and independent variables
 of which derivatives will be calculated.
 
-#+INCLUDE: "ftest.f90" src f90
+#+INCLUDE: "examples/ftest.f90" src f90
 
 ** Use =Fazang=
 *** Build
@@ -97,7 +97,41 @@ calculated, then use ~deriv~ (counterpart of ~grad~ ) to calculate 1st- and
 #+end_src
 calculates ~d(df/da)/db~. See the following example (~htest.f90~) for
 details:
-#+INCLUDE: "htest.f90" src f90
+#+INCLUDE: "examples/htest.f90" src f90
+
+** Nested AD
+Sometimes we want to evaluate AD for only a few variables but not
+others. ~Fazang~ provde
+#+begin_src f90
+    call begin_nest()
+    ! ...
+    call end_nest()
+#+end_src
+pair so that AD evaluations within do not affect variables outside.
+This is best used with Fortran's ~block~ construct:
+#+begin_src f90
+  type(var) :: a, b, c
+  a = 3.d0
+  b = 5.d0
+  c = b/a
+
+  block
+    type(var) :: a, b, c
+    call begin_nest()
+    a = 5.d0
+    b = 27.d0
+    c= a*b
+    ! inner a, b, c derivatives
+    call grad(c)
+    ! ...
+    call end_nest()
+  end block
+
+  ! outer a, b, c derivaties
+  call grad(c)
+  ! ...
+#+end_src
+Just like ~block~, ~begin_nest()~ / ~end_nest()~ pair can be nested.
 
 ** Name
 The library is named after ancient Chinese philosopher [[https://en.wikipedia.org/wiki/Fazang][Fazang]] (法藏), who
