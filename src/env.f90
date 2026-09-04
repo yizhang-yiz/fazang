@@ -24,7 +24,7 @@ module fz_env
   type :: adstack
      integer(c_int8_t) :: s_(adsize) = 0      ! int8 serves as byte
      integer(ik) :: i_ = 1       ! current (vacant) location
-     integer(ik) :: nest_level = 0, i_nest(max_nest_level)
+     integer(ik) :: nest_level = 0, loc_nest(0:max_nest_level)=1, i_nest(0:max_nest_level)=1
      integer(ik) :: nvari = 0
    contains
      procedure push_real
@@ -81,23 +81,6 @@ contains
     call stack%incr(iksize+rksize)
   end subroutine push_int_real
 
-  ! subroutine push_int_real_real(stack, i, a, b)
-  !   implicit none
-  !   class(adstack), target, intent(inout) :: stack
-  !   real(rk), intent(in) :: a
-  !   integer(ik), intent(in) :: i
-  !   type(c_ptr) :: cp
-  !   integer(ik), pointer :: p1
-  !   real(rk), pointer :: p2
-  !   cp = c_loc(stack%s_(stack%i_))
-  !   call c_f_pointer(cp, p1); p1 = i
-  !   cp = c_loc(stack%s_(stack%i_+iksize))
-  !   call c_f_pointer(cp, p2); p2 = a
-  !   cp = c_loc(stack%s_(stack%i_+iksize+rksize))
-  !   call c_f_pointer(cp, p2); p2 = b
-  !   call stack%incr(rksize)
-  ! end subroutine push_int_real_real
-
   subroutine push_real_array(stack, a)
     implicit none
     class(adstack), target, intent(inout) :: stack
@@ -153,7 +136,8 @@ contains
     class(adstack), intent(inout) :: this
      this%i_ = 1
      this%nest_level = 0
-     this%i_nest = 0
+     this%i_nest = 1
+     this%loc_nest = 1
      this%nvari = 0
    end subroutine reboot
 
@@ -185,5 +169,27 @@ contains
      call c_f_pointer(cp, res, [(n)])
      i = i + iksize * n
    end subroutine pop_int_array
+
+   subroutine begin_nest()
+     implicit none
+     if(max_nest_level > core_adstack%nest_level) then
+        core_adstack%nest_level = core_adstack%nest_level + 1
+     else
+        ERROR STOP
+     endif
+     ! record the first vari in this nest level
+     core_adstack%i_nest(core_adstack%nest_level) = core_adstack%nvari + 1
+     core_adstack%loc_nest(core_adstack%nest_level) = core_adstack%i_
+   end subroutine begin_nest
+
+   subroutine end_nest()
+     implicit none
+     if (core_adstack%nest_level > 0) then
+        core_adstack%nvari = core_adstack%i_nest(core_adstack%nest_level) - 1
+        core_adstack%i_ = core_adstack%loc_nest(core_adstack%nest_level)
+        core_adstack%i_nest(core_adstack%nest_level) = 1
+        core_adstack%nest_level = core_adstack%nest_level - 1
+     endif
+   end subroutine end_nest
 
 end module fz_env

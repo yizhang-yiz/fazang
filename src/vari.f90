@@ -411,7 +411,7 @@ contains
     integer(ik), intent(in) :: ip
     type(vari), pointer :: p1
     integer(ik) :: j
-    do j = ip, 1, -1
+    do j = ip, core_adstack%i_nest(core_adstack%nest_level), -1
        call recover(chains(j)%i, p1)
        p1%adj_ = 0.d0
     enddo
@@ -424,7 +424,7 @@ contains
     integer(ik) :: j
     call recover(chains(ip)%i, p1)
     p1%adj_ = 1.0d0
-    do j = ip, 1, -1
+    do j = ip, core_adstack%i_nest(core_adstack%nest_level), -1
        call chains(j)%c%chain(chains(j)%i)
     enddo
   end subroutine chain
