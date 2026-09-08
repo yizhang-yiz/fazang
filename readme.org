@@ -11,17 +11,17 @@ of which derivatives will be calculated.
 
 ** Use =Fazang=
 *** Build
-    =Fazang= uses =cmake= to build. The ~CMakeLists.txt~ file has
-    a target ~ftest~ that compiles the above example. User may
+    =Fazang= uses =cmake= to build. The above example is in
+    ~examples/ftest.f90~ and can be built with ~-Ddemo=ON~ option. User may
     replicate the steps to build new applications.
     #+begin_src bash
       mkdir build
       cd build
-      cmake /path/to/fazang -B. -GNinja
-      cmake --build .
+      cmake /path/to/fazang -B. -GNinja -Ddemo=ON
+      cmake --build . -j1
+      ./ftest
     #+end_src
-    The library also contains option ~test~ so that adding ~-Dtest=ON~
-    to the above configuration
+    The library also contains option ~test~ so that
     #+begin_src bash
       cmake /path/to/fazang -B. -GNinja -Dtest=ON
     #+end_src
@@ -95,7 +95,7 @@ calculated, then use ~deriv~ (counterpart of ~grad~ ) to calculate 1st- and
   call deriv(f)
   write(*,*) adj_dv(a)
 #+end_src
-calculates ~d(df/da)/db~. See the following example (~htest.f90~) for
+calculates ~d(df/da)/db~. See the following example (~examples/htest.f90~) for
 details:
 #+INCLUDE: "examples/htest.f90" src f90
 
