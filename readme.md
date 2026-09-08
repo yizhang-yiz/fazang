@@ -88,16 +88,17 @@ end program autodiff_benchmark
 
 ### Build
 
-`Fazang` uses `cmake` to build. The `CMakeLists.txt` file has a target `ftest` that compiles the above example. User may replicate the steps to build new applications.
+`Fazang` uses `cmake` to build. The above example is in `examples/ftest.f90` and can be built with `-Ddemo=ON` option. User may replicate the steps to build new applications.
 
 ```bash
 mkdir build
 cd build
-cmake /path/to/fazang -B. -GNinja
-cmake --build .
+cmake /path/to/fazang -B. -GNinja -Ddemo=ON
+cmake --build . -j1
+./ftest
 ```
 
-The library also contains option `test` so that adding `-Dtest=ON` to the above configuration
+The library also contains option `test` so that
 
 ```bash
 cmake /path/to/fazang -B. -GNinja -Dtest=ON
@@ -180,7 +181,7 @@ call deriv(f)
 write(*,*) adj_dv(a)
 ```
 
-calculates `d(df/da)/db`. See the following example (`htest.f90`) for details:
+calculates `d(df/da)/db`. See the following example (`examples/htest.f90`) for details:
 
 ```f90
 module hessian_func_example
